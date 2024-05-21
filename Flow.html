@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <h1 id="Flow1"></h1>
+        <button id="toggle-flow"></button>
+    </div>
+
+    <div id="container">
+        <div class="content-box" id="AIFlow">
+            <!-- AI case -->
+            <div class="case-box" id="AIContention">
+                <div id="caseHeaderAI">
+                    <h2><span id="Flow2"></span> Case: </h2>
+                    <button id="SpeakAIContention">Speak</button>
+                </div>
+                <div id="AIContentionText"></div>
+            </div>
+            <!-- Rebuttal -->
+            <div class="rebuttal-box" id="RebuttalUser">
+                <div id="rebuttalHeaderUser">
+                    <h2><span id="Flow3"></span> Rebuttal: </h2>
+                    <button id="recordButtonRebuttal">Record</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-box" id="UserFlow">
+            <!-- User case -->
+            <div class="case-box" id="transcriptionContention">
+                <div id="caseHeader">
+                    <h2><span id="Flow2"></span> Case: </h2>
+                    <button id="recordButtonContention">Record</button>
+                </div>
+                <div id="transcriptionContentionText"></div>
+            </div>
+            <!-- Rebuttal -->
+            <div class="rebuttal-box" id="RebuttalAI">
+                <div id="rebuttalHeaderAI">
+                    <h2><span id="Flow3"></span> Rebuttal: </h2>
+                    <button id="speakAIRebuttal">Speak</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="small-text">User: <span id="selectedTurn"></span>, <span id="selectedSide"></span></div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

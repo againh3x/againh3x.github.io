@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Start Page</title>
+   <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+</head>
+
+<body>
+   <header>
+       <h1>Debate the AI and hone your PF debate skill! Full practice rounds with speech to text recognition! </h1>
+   </header>
+
+   <main>
+    <section id="pf-debate">
+        <h2>PF Debate</h2>
+        <label for="debateTopic">Enter Debate Topic:</label>
+        <input type="text" id="debateTopic" name="debateTopic" required>
+        <button onclick="startDebate()">Start PF Practice Round</button>
+       </section>
+
+       <section id="affirmative-negative" style="display: none;">
+           <h3>Affirmative or Negative</h3>
+           <button onclick="selectOptionAffNegg('Aff')">Affirmative</button>
+           <button onclick="selectOptionAffNegg('Neg')">Negative</button>
+       </section>
+
+       <section id="first-second" style="display: none;">
+           <h3>Would you like to go first or second?</h3>
+           <button onclick="selectOptionFS('First')">First</button>
+           <button onclick="selectOptionFS('Second')">Second</button>
+       </section>
+
+       <section id="go-button" style="display: none;">
+           <h3><br></h3>
+           <button onclick="goToLink()">Start!</button>
+       </section>
+   </main>
+
+   <footer>
+       <p>&copy; 2024 PublicForumAI. All rights reserved.</p>
+   </footer>
+   <div id="selectedSide"></div>
+   <div id="selectedTurn"></div>
+
+
+   <script>
+       var selectedSide = '';
+       var selectedTurn = '';
+       var debateTopic = '';
+
+       function startDebate() {
+        debateTopic = document.getElementById('debateTopic').value;
+               document.getElementById('pf-debate').style.display = 'none';
+               document.getElementById('affirmative-negative').style.display = 'block';
+               document.getElementById('first-second').style.display = 'block';
+               document.getElementById('go-button').style.display = 'block';
+
+               // Update the content of the selected side and turn in the small-text div
+               document.getElementById('selectedSide').textContent = selectedSide;
+               document.getElementById('selectedTurn').textContent = selectedTurn;
+            
+           
+           
+       }
+
+       function selectOptionAffNegg(option) {
+           selectedSide = option;
+       }
+
+       function selectOptionFS(option) {
+           selectedTurn = option;
+       }
+
+       function goToLink() {
+    var url = 'Flow.html';
+    url += '?selectedSide=' + encodeURIComponent(selectedSide) + '&selectedTurn=' + encodeURIComponent(selectedTurn) + '&debateTopic=' + encodeURIComponent(debateTopic);
+    window.location.href = url;
+}
+
+</script>
+
+</body>
+
+</html>
