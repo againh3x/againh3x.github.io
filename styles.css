@@ -1,0 +1,101 @@
+body {
+   font-family: Arial, sans-serif;
+   background-color: #f0f0f0;
+}
+
+h1 {
+   color: #333;
+}
+
+button {
+   padding: 10px 20px; /* Add padding to make the button larger */
+   background-color: #007bff; /* Change the background color */
+   color: #fff; /* Change the text color */
+   border: none; /* Remove the border */
+   border-radius: 5px; /* Add border radius for rounded corners */
+   cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+button:hover {
+   background-color: #0056b3; /* Darker background color on hover */
+}
+
+.small-text {
+   position: absolute;
+   top: 30px;
+   right: 100px;
+   font-size: 12px;
+   color: black;
+}
+
+.header {
+   display: flex;
+   align-items: center;
+}
+
+#toggle-flow {
+   margin-left: 10px; /* Adjust the margin as needed */
+}
+
+#debateTopic {
+   width: 500px; /* Set the width of the text box */
+   height: 40px; /* Set the height of the text box */
+   padding: 8px; /* Add padding inside the text box */
+   font-size: 16px; /* Set the font size */
+   border: 1px solid #ccc; /* Add a border */
+   border-radius: 5px; /* Add border radius for rounded corners */
+}
+
+.case-box,
+.rebuttal-box {
+   border: 1.5px solid #000;
+   padding: 0px 10px 10px;
+   width: calc(25%);
+   height: 100vh;
+   overflow: auto;
+   box-sizing: border-box;
+   float: left; /* Float the boxes to arrange them side by side */
+}
+
+.case-box h2,
+.rebuttal-box h2 {
+   margin-right: 20px;
+   width: auto;
+}
+
+#caseHeader,
+#rebuttalHeaderUser,
+#rebuttalHeaderAI {
+   display: flex;
+   align-items: center;
+   width: calc(25%);
+}
+
+#transcriptionContentionText,
+#AIContentionText {
+   width: auto;
+   margin-top: 10px; /* Add some top margin for spacing */
+}
+
+#UserFlow,
+#AIFlow {
+   display: flex; /* Use flexbox to arrange the elements */
+}
+
+#caseHeader,
+#caseHeaderAI {
+   display: flex;
+   align-items: center;
+   width: calc(75%);
+}
+
+#caseHeader button,
+#caseHeaderAI button {
+   margin-left: 10px; /* Adjust margin between button and text */
+}
+
+#caseHeader h2,
+#caseHeaderAI h2 {
+   margin-right: 20px;
+   width: auto;
+}
