@@ -161,12 +161,12 @@ function startAIRebuttal() {
         // Get the AI response from the data
         const { AIRebuttal } = data;
     
-        var msg = new SpeechSynthesisUtterance();
-        msg.text = AIRebuttal;
-        window.speechSynthesis.speak(msg);
+        var msg1 = new SpeechSynthesisUtterance();
+        msg1.text = AIRebuttal;
+        window.speechSynthesis.speak(msg1);
         
         // Display the AI response
-        document.getElementById('AIRebuttalText').innerHTML = "<p>" + AIContention.replace(/\n/g, '<br>') + "</p>";
+        document.getElementById('AIRebuttalText').innerHTML = "<p>" + AIRebuttal.replace(/\n/g, '<br>') + "</p>";
     })
     .catch(error => {
         console.error('Error processing user input:', error);
