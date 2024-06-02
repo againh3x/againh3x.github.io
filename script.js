@@ -4,13 +4,19 @@ var speakButtonAI = document.getElementById('SpeakAIContention');
 var transcriptionResultC = document.getElementById('transcriptionContentionText');
 var UserFlowDiv = document.getElementById('UserFlow');
 var AIFlowDiv = document.getElementById('AIFlow');
+var AIRebuttalButton = document.getElementById('speakAIRebuttal');
+var recordButtonR = document.getElementById('recordButtonRebuttal');
 
 var ToggleisSelectedSide;
 var recognition;
 var isRecordingC = false;
+var isRecordingR = false;
 var fullTranscriptionContention = '';
 var fullAIContentionRaw = '';
+var fullAIRebuttal = '';
+var fullTranscriptionRebuttal = '';
 var isSpeaking = false;
+var isRebutting = false;
 
 document.addEventListener('DOMContentLoaded', function () {
     // Parse URL parameters
@@ -65,6 +71,35 @@ speakButtonAI.addEventListener('click', () => {
     }
 });
 
+AIRebuttalButton.addEventListener('click', () => {
+    if (!isRebutting) {
+        startAIRebuttal();
+        AIRebuttalButton.textContent = 'Stop'; // Change button text to "Stop"
+        isRebutting = true; 
+    } else {
+        stopAIRebuttal();
+        AIRebuttalButton.textContent = 'Speak'; // Change button text back to "Speak"
+        isRebutting = false;
+    }
+});
+
+function stopSpeaking() {
+    if (isSpeaking){
+    speechSynthesis.cancel();
+    isSpeaking = false;
+    }
+
+}
+
+function stopAIRebuttal() {
+    if (isRebutting){
+    speechSynthesis.cancel();
+    isRebutting = false;
+    }
+
+}
+
+
 function startSpeaking(debateTopic, nonselectedSide) {
 fullAIContentionRaw = ''; // Reset full AI response
 
@@ -104,6 +139,40 @@ fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/', {
 });
 }
 
+
+function startAIRebuttal() {
+    fullAIRebuttal = ''; // Reset full AI rebuttal
+    
+    // Get the user's input from the text box
+    // Send the user's input to the Python backend for processing
+    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/', {
+        method: 'POST', // Specify POST method
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to process user input');
+        }
+        return response.json(); // Parse JSON response
+    })
+    .then(data => {
+        // Get the AI response from the data
+        const { AIRebuttal } = data;
+    
+        var msg = new SpeechSynthesisUtterance();
+        msg.text = AIRebuttal;
+        window.speechSynthesis.speak(msg);
+        
+        // Display the AI response
+        document.getElementById('AIRebuttalText').innerHTML = "<p>" + AIContention.replace(/\n/g, '<br>') + "</p>";
+    })
+    .catch(error => {
+        console.error('Error processing user input:', error);
+    });
+    }
+    
 toggleFlowButton.addEventListener('click', () => {
     const selectedSide = document.getElementById('selectedSide').textContent;
     const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
@@ -172,6 +241,7 @@ function startRecording() {
     // Initialize speech recognition
     recognition = new webkitSpeechRecognition();
     recognition.lang = window.navigator.language;
+    
     recognition.continuous = true; // Continuous listening
     recognition.interimResults = true; // Get interim results
     recognition.start(); // Start recognition
@@ -184,9 +254,7 @@ function startRecording() {
                 const transcript = result[0].transcript;
                 fullTranscriptionContention += transcript + ' '; // Append with space separator
                 transcriptionResultC.textContent = fullTranscriptionContention; // Update display
-                const selectedSide = document.getElementById('selectedSide').textContent;
-                // Process the transcription to generate debate flow
-                await processTranscription(fullTranscriptionContention, debateTopic, selectedSide);
+                
             }
         }
     });
@@ -195,11 +263,10 @@ function startRecording() {
 function stopRecording() {
     if (recognition) {
         recognition.stop(); // Stop speech recognition
+        const selectedSide = document.getElementById('selectedSide').textContent;
+                // Process the transcription to generate debate flow
+        processTranscription(fullTranscriptionContention, debateTopic, selectedSide);
     }
-}
-
-function stopSpeaking() {
-    // Add code to stop speaking if needed
 }
 
 async function processTranscription(transcription, debateTopic, selectedSide) {
@@ -221,7 +288,7 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
         // Get the debate flow from the response
         const { debateFlow } = await response.json(); // Parse JSON response
         // Update the display with the generated debate flow
-        print("joe:" + debateFlow)
+       
         transcriptionResultC.innerHTML = "<p>" + debateFlow.replace(/\n/g, '<br>') + "</p>";
     } else {
         console.error('Failed to process transcription:', response.statusText);
