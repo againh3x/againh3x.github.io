@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Flow Manager</title>
+    <style>
+        body {
+
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #EBF9FF, #99C9F9);
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            margin-top: 100px;
+            display: none;
+        }
+
+        .text10 {
+            font-size: 20px;
+            margin-bottom: 0px;
+
+        }
+
+        .ai-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 10vh;
+            /* Ensure it's centered in full view */
+        }
+
+        .dot {
+            width: 15px;
+            height: 15px;
+            margin: 0 5px;
+            border-radius: 50%;
+            background-color: #2e5adc;
+            animation: pulse 1.5s infinite;
+        }
+
+        .dot1 {
+            animation-delay: 0s;
+        }
+
+        .dot2 {
+            animation-delay: 0.2s;
+        }
+
+        .dot3 {
+            animation-delay: 0.4s;
+        }
+
+        .dot4 {
+            animation-delay: 0.6s;
+        }
+
+        .dot5 {
+            animation-delay: 0.8s;
+        }
+
+        .dot6 {
+            animation-delay: 1s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 95%;
+            /* Changed from 100% to occupy more width within the viewport */
+            max-width: 1400px;
+            /* Increased maximum width */
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            height: 700px;
+            /* Increased height */
+        }
+
+        .controls {
+            flex: 1;
+            margin-right: 30px;
+        }
+
+        .output {
+            flex: 2;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .input-group input[type="text"],
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        #speechType {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #speechType label {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+            background: #f9f9f9;
+            font-weight: normal;
+        }
+
+        #speechType input[type="radio"] {
+            display: none;
+        }
+
+        #speechType input[type="radio"]:checked+label {
+            border-color: #007bff;
+            box-shadow: 0 0 10px #007bff;
+        }
+
+        #recordButton {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            color: white;
+            background: linear-gradient(90deg, #0099ff, #66a6ff);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 20px;
+            transition: background 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0, 150, 255, 0.3);
+        }
+
+        #recordButton:hover {
+            background: linear-gradient(90deg, #00ccff, #80d4ff);
+            transform: scale(1.05);
+        }
+
+        #flowOutput {
+            border: 2px solid #ddd;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            height: 600px;
+            overflow-y: auto;
+            font-size: 1rem;
+            color: #333;
+
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="controls">
+            <h1>Speech Flow Manager</h1>
+            <div class="input-group">
+                <label for="topic">Topic:</label>
+                <input type="text" id="topic" placeholder="Enter the topic">
+            </div>
+            <div class="input-group">
+                <label for="side">Select Side:</label>
+                <select id="side">
+                    <option value="" disabled selected hidden>Select Side</option>
+                    <option value="Affirmative">Affirmative</option>
+                    <option value="Negative">Negative</option>
+                </select>
+            </div>
+            <div class="input-group" id="speechType">
+                <input type="radio" id="constructive" name="speech" value="constructive">
+                <label for="constructive">Constructive</label>
+                <input type="radio" id="rebuttal" name="speech" value="rebuttal">
+                <label for="rebuttal">Rebuttal</label>
+                <input type="radio" id="summary" name="speech" value="summary">
+                <label for="summary">Summary</label>
+                <input type="radio" id="finalFocus" name="speech" value="finalFocus">
+                <label for="finalFocus">Final Focus</label>
+            </div>
+            <button id="recordButton" onclick="toggleRecording()">Record</button>
+        </div>
+        <div class="output">
+            <h1>Flow Output</h1>
+            <div id="flowOutput">
+                <div id="OutputText"></div>
+                <div class="loading">
+                    <div class="text10">Generating (~10-15 seconds)</div>
+                    <div class="ai-loader">
+                        <div class="dot dot1"></div>
+                        <div class="dot dot2"></div>
+                        <div class="dot dot3"></div>
+                        <div class="dot dot4"></div>
+                        <div class="dot dot5"></div>
+                        <div class="dot dot6"></div>
+                    </div>
+
+                </div>
+                <div class="listeningC">
+                    <canvas id="visualizer"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            var recognition;
+            var isRecording = false;
+            var fullTranscription = ''
+
+
+            function toggleRecording() {
+                const recordButton = document.getElementById('recordButton');
+                const topic = document.getElementById('topic').value;
+                const side = document.getElementById('side').value;
+                const speechType = document.querySelector('input[name="speech"]:checked').value;
+
+                if (!isRecording) {
+                    // Stop recording
+                    recordButton.textContent = "Stop"; // Change button text to "Record"
+                    startRecording();
+
+                } else {
+                    // Start recording
+                    recordButton.textContent = "Start"; // Change button text to "Stop"
+                    stopRecording();
+
+                }
+
+                // Toggle the recording state
+                isRecording = !isRecording;
+            }
+
+            function startRecording() {
+                document.getElementById('OutputText').innerHTML = "<p>" // Reset full transcription
+                fullTranscription = ''
+                // Initialize speech recognition
+                recognition = new webkitSpeechRecognition();
+                recognition.lang = window.navigator.language;
+                recognition.continuous = true; // Continuous listening
+                recognition.interimResults = true; // Get interim results
+
+                const canvas = document.getElementById('visualizer');
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth / 4;  // Set canvas width to a quarter of the window width
+                canvas.height = window.innerHeight;
+
+                // Get user's microphone input
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(function (stream) {
+                        // Use the same stream for both the visualizer and speech recognition
+                        const audioContext = new AudioContext();
+                        const source = audioContext.createMediaStreamSource(stream);
+                        const analyser = audioContext.createAnalyser();
+                        analyser.fftSize = 64;  // Reduced the number of bars
+
+                        const bufferLength = analyser.frequencyBinCount;
+                        const dataArray = new Uint8Array(bufferLength);
+
+                        source.connect(analyser);
+
+                        function draw() {
+                            requestAnimationFrame(draw);
+
+                            analyser.getByteFrequencyData(dataArray);
+
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                            const cylinderWidth = 3;  // Half of the original width
+                            const spacing = cylinderWidth;  // One-third of the cylinder width
+                            const centerY = (canvas.height / 2) - (window.innerWidth / 10);
+
+                            // Draw cylinders on the right side (higher pitch on the right)
+                            let xRight = (canvas.width / 2) - (window.innerWidth / 90);
+                            for (let i = 0; i < bufferLength; i++) {
+                                const barHeight = dataArray[i] / 4;
+
+                                ctx.fillStyle = `rgb(53, 121, 246)`;
+
+                                ctx.beginPath();
+                                ctx.arc(xRight, centerY - barHeight, cylinderWidth / 2, 0, Math.PI * 2);
+                                ctx.arc(xRight, centerY + barHeight, cylinderWidth / 2, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.fillRect(xRight - cylinderWidth / 2, centerY - barHeight, cylinderWidth, barHeight * 2);
+
+                                xRight += cylinderWidth + spacing;
+                            }
+
+                            // Mirror the right side to the left side
+                            ctx.save(); // Save the current context state
+                            ctx.translate(canvas.width / 2, 0); // Move the context to the center of the canvas
+                            ctx.scale(-1, 1); // Flip the context horizontally
+
+                            // Redraw the cylinders (now mirrored)
+                            let xLeft = 1 / 90 * window.innerWidth;
+                            for (let i = 0; i < bufferLength; i++) {
+                                const barHeight = dataArray[i] / 4;
+
+                                ctx.fillStyle = `rgb(53, 121, 246)`;
+
+                                ctx.beginPath();
+                                ctx.arc(xLeft, centerY - barHeight, cylinderWidth / 2, 0, Math.PI * 2);
+                                ctx.arc(xLeft, centerY + barHeight, cylinderWidth / 2, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.fillRect(xLeft - cylinderWidth / 2, centerY - barHeight, cylinderWidth, barHeight * 2);
+
+                                xLeft += cylinderWidth + spacing;
+                            }
+
+                            ctx.restore(); // Restore the context to its original state
+                        }
+
+                        draw();
+
+                        // Start speech recognition
+                        recognition.start();
+
+                        // Event listener for speech recognition results
+                        recognition.addEventListener('result', async (event) => {
+                            for (let i = event.resultIndex; i < event.results.length; i++) {
+                                const result = event.results[i];
+                                if (result.isFinal) { // Only handle final results
+                                    const transcript = result[0].transcript;
+                                    fullTranscription += transcript + ' '; // Append with space separator
+                                }
+                            }
+                        });
+
+                        document.querySelector('.listeningC').style.display = 'block';
+
+                    })
+                    .catch(function (err) {
+                        console.error('Error accessing audio stream:', err);
+                    });
+            }
+
+            function stopRecording() {
+                if (recognition) {
+                    recognition.stop(); // Stop speech recognition
+                    document.querySelector('.listeningC').style.display = 'none';
+                    const topic = document.getElementById('topic').value;
+                    const side = document.getElementById('side').value;
+
+
+                    // Process the transcription to generate debate flow
+                    processTranscription(fullTranscription, topic, side);
+
+                }
+            }
+            async function processTranscription(transcription, debateTopic, selectedSide) {
+                document.querySelector('.loading').style.display = 'block';
+                const speechType = document.querySelector('input[name="speech"]:checked').value;
+                // Send the transcription to your Python backend for processing
+                if (speechType == "constructive") {
+                    const response = await fetch('http://localhost:6005/processC', {
+                        method: 'POST', // Specify POST method
+                        body: JSON.stringify({
+                            transcription: transcription,
+                            debateTopic: debateTopic,
+                            selectedSide: selectedSide,
+                        }), // Send user input in the request body
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+
+                        // Get the debate flow from the response
+                        const { CaseFlow } = await response.json(); // Parse JSON response
+                        document.getElementById('OutputText').innerHTML = "<p>" + CaseFlow.replace(/\n/g, '<br>') + "</p>";
+                        document.querySelector('.loading').style.display = 'none';
+
+                    } else {
+                        console.error('Failed to process transcription:', response.statusText);
+                        document.querySelector('.loading').style.display = 'none';
+
+                    }
+                }
+                if (speechType == "rebuttal") {
+                    const response = await fetch('http://localhost:6005/processR', {
+                        method: 'POST', // Specify POST method
+                        body: JSON.stringify({
+                            transcriptionR: transcription,
+                            debateTopic: debateTopic,
+                            selectedSide: selectedSide,
+                        }), // Send user input in the request body
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+
+                        // Get the debate flow from the response
+                        const { RebuttalFlow } = await response.json(); // Parse JSON response
+                        document.getElementById('OutputText').innerHTML = "<p>" + RebuttalFlow.replace(/\n/g, '<br>') + "</p>";
+                        document.querySelector('.loading').style.display = 'none';
+
+                    } else {
+                        console.error('Failed to process transcription:', response.statusText);
+                        document.querySelector('.loading').style.display = 'none';
+
+                    }
+                }
+                if (speechType == "summary") {
+                    const response = await fetch('http://localhost:6005/processS', {
+                        method: 'POST', // Specify POST method
+                        body: JSON.stringify({
+                            transcriptionS: transcription,
+                            debateTopic: debateTopic,
+                            selectedSide: selectedSide,
+                        }), // Send user input in the request body
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+
+                        // Get the debate flow from the response
+                        const { SummaryFlow } = await response.json(); // Parse JSON response
+                        document.getElementById('OutputText').innerHTML = "<p>" + SummaryFlow.replace(/\n/g, '<br>') + "</p>";
+                        document.querySelector('.loading').style.display = 'none';
+
+                    } else {
+                        console.error('Failed to process transcription:', response.statusText);
+                        document.querySelector('.loading').style.display = 'none';
+
+                    }
+                }
+                if (speechType == "finalFocus") {
+                    const response = await fetch('http://localhost:6005/processF', {
+                        method: 'POST', // Specify POST method
+                        body: JSON.stringify({
+                            transcriptionF: transcription,
+                            debateTopic: debateTopic,
+                            selectedSide: selectedSide,
+                        }), // Send user input in the request body
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+
+                        // Get the debate flow from the response
+                        const { FinalFocusFlow } = await response.json(); // Parse JSON response
+                        document.getElementById('OutputText').innerHTML = "<p>" + FinalFocusFlow.replace(/\n/g, '<br>') + "</p>";
+                        document.querySelector('.loading').style.display = 'none';
+
+                    } else {
+                        console.error('Failed to process transcription:', response.statusText);
+                        document.querySelector('.loading').style.display = 'none';
+
+                    }
+                }
+            }
+        </script>
+</body>
+
+</html>
