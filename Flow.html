@@ -1,62 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
 
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI PF Practice Round</title>
-    <link rel="stylesheet" href="styles.css">
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>AI PF Practice Round</title>
+   <link rel="stylesheet" href="styles.css">
 </head>
 
+
 <body>
-    <div class="header">
-        <h1 id="Flow1"></h1>
-        <button id="toggle-flow"></button>
-    </div>
+   <div class="header">
+       <h1 id="Flow1"></h1>
+       <button id="toggle-flow"></button>
+   </div>
 
-    <div id="container">
-        <div class="content-box" id="AIFlow">
-            <!-- AI case -->
-            <div class="case-box" id="AIContention">
-                <div id="caseHeaderAI">
-                    <h2><span id="Flow2"></span> Case: </h2>
-                    <button id="SpeakAIContention">Speak</button>
-                </div>
-                <div id="AIContentionText"></div>
-            </div>
-            <!-- Rebuttal -->
-            <div class="rebuttal-box" id="RebuttalUser">
-                <div id="rebuttalHeaderUser">
-                    <h2><span id="Flow3"></span> Rebuttal: </h2>
-                    <button id="recordButtonRebuttal">Record</button>
-                </div>
-                <div id="AIRebuttalText"></div>
-            </div>
-        </div>
 
-        <div class="content-box" id="UserFlow">
-            <!-- User case -->
-            <div class="case-box" id="transcriptionContention">
-                <div id="caseHeader">
-                    <h2><span id="Flow2"></span> Case: </h2>
-                    <button id="recordButtonContention">Record</button>
+   <div id="container">
+       <div class="content-box" id="AIFlow">
+           <!-- AI case -->
+           <div class="case-box" id="AIContention">
+               <div id="caseHeaderAI">
+                   <h2><span id="Flow2"></span> Case: </h2>
+                   <button id="GenerateAIContention">Generate</button>
+                   <button id="SpeakAIContention">Speak</button>
+               </div>
+               <div id="AIContentionText"></div>
+               <div class="loading">
+                <div class="text10">Generating (~10-15 seconds)</div>
+                <div class="ai-loader">
+                    <div class="dot dot1"></div>
+                    <div class="dot dot2"></div>
+                    <div class="dot dot3"></div>
+                    <div class="dot dot4"></div>
+                    <div class="dot dot5"></div>
+                    <div class="dot dot6"></div>
                 </div>
-                <div id="transcriptionContentionText"></div>
             </div>
-            <!-- Rebuttal -->
-            <div class="rebuttal-box" id="RebuttalAI">
-                <div id="rebuttalHeaderAI">
-                    <h2><span id="Flow3"></span> Rebuttal: </h2>
-                    <button id="speakAIRebuttal">Speak</button>
+           </div>
+           <!-- RebuttalUser -->
+           <div class="rebuttal-box" id="RebuttalUser">
+               <div id="rebuttalHeaderUser">
+                   <h2><span id="Flow3"></span> Rebuttal: </h2>
+                   <button id="recordButtonRebuttal">Record</button>
+               </div>
+               <div id="transcriptionRebuttalText"></div>
+               <div class="loadingRU">
+                <div class="text1">Generating (~10-15 seconds)</div>
+                <div class="ai-loader">
+                    <div class="dot dot1"></div>
+                    <div class="dot dot2"></div>
+                    <div class="dot dot3"></div>
+                    <div class="dot dot4"></div>
+                    <div class="dot dot5"></div>
+                    <div class="dot dot6"></div>
                 </div>
-                <div id="transcriptionRebuttalText"></div>
             </div>
-        </div>
-    </div>
+            <div class="listeningR">
+                <canvas id="visualizer1"></canvas>
+           </div>
+           </div>
 
-    <div class="small-text">User: <span id="selectedTurn"></span>, <span id="selectedSide"></span></div>
+           <!-- SummaryAI -->
+           <div class="summary-box" id="SummaryAI">
+                <div id="summaryHeaderAI">
+                    <h2><span id="Flow4"></span> Summary: </h2>
+                    <button id="GenerateAISummary">Generate</button>
+                    <button id="SpeakAISummary">Speak</button>
+                </div>
+                <div id="AISummaryText"></div>
+                <div class="loadingSA">
+                    <div class="text2">Generating (~10-15 seconds)</div>
+                    <div class="ai-loader">
+                        <div class="dot dot1"></div>
+                        <div class="dot dot2"></div>
+                        <div class="dot dot3"></div>
+                        <div class="dot dot4"></div>
+                        <div class="dot dot5"></div>
+                        <div class="dot dot6"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- FinalFocusUser(see if this is necessary)-->
+            <div class="ff-box" id="ffUser">
+                <div id="FFHeaderUser">
+                    <h2><span id="Flow5"></span> Final Focus: </h2>
+                    <button id="recordButtonFF">Record</button>
+                </div>
+                <div id="FFUserText"></div>
+                <div class="loadingFFU">
+                    <div class="text3">Generating (~10-15 seconds)</div>
+                    <div class="ai-loader">
+                        <div class="dot dot1"></div>
+                        <div class="dot dot2"></div>
+                        <div class="dot dot3"></div>
+                        <div class="dot dot4"></div>
+                        <div class="dot dot5"></div>
+                        <div class="dot dot6"></div>
+                    </div>
+                </div>
+                <div class="listeningF">
+                    <canvas id="visualizer3"></canvas>
+            </div>
+            </div>
+       </div>
 
-    <script src="script.js"></script>
+
+       <div class="content-box" id="UserFlow">
+           <!-- User case -->
+           <div class="case-box" id="transcriptionContention">
+               <div id="caseHeader">
+                   <h2><span id="Flow2"></span> Case: </h2>
+                   <button id="recordButtonContention">Record</button>
+               </div>
+               <div id="transcriptionContentionText"></div>
+               <div class="loadingU">
+                <div class="text4">Generating (~10-15 seconds)</div>
+                <div class="ai-loader">
+                    <div class="dot dot1"></div>
+                    <div class="dot dot2"></div>
+                    <div class="dot dot3"></div>
+                    <div class="dot dot4"></div>
+                    <div class="dot dot5"></div>
+                    <div class="dot dot6"></div>
+                </div>
+            </div>
+               <div class="listeningC">
+                <canvas id="visualizer"></canvas>
+                
+            </div>
+            
+           </div>
+           <!-- AIRebuttal -->
+           <div class="rebuttal-box" id="RebuttalAI">
+               <div id="rebuttalHeaderAI">
+                   <h2><span id="Flow3"></span> Rebuttal: </h2>
+                   <button id="GenerateAIRebuttal">Generate</button>
+                   <button id="speakAIRebuttal">Speak</button>
+               </div>
+               <div id="AIRebuttalText"></div>
+               <div class="loadingRA">
+                <div class="text5">Generating (~10-15 seconds)</div>
+                <div class="ai-loader">
+                    <div class="dot dot1"></div>
+                    <div class="dot dot2"></div>
+                    <div class="dot dot3"></div>
+                    <div class="dot dot4"></div>
+                    <div class="dot dot5"></div>
+                    <div class="dot dot6"></div>
+                </div>
+            </div>
+           </div>
+           <!-- UserSummary  -->
+           <div class="summary-box" id="SummaryUser">
+                <div id="summaryHeaderUser">
+                    <h2><span id="Flow4"></span> Summary: </h2>
+                    <button id="recordButtonSummary">Record</button>
+                </div>
+                <div id="SummaryUserText"></div>
+                <div class="loadingSU">
+                    <div class="text6">Generating (~10-15 seconds)</div>
+                    <div class="ai-loader">
+                        <div class="dot dot1"></div>
+                        <div class="dot dot2"></div>
+                        <div class="dot dot3"></div>
+                        <div class="dot dot4"></div>
+                        <div class="dot dot5"></div>
+                        <div class="dot dot6"></div>
+                    </div>
+                </div>
+                <div class="listeningS">
+                    <canvas id="visualizer2"></canvas>
+            </div>
+           </div>
+            <!-- FFAI -->
+            <div class="ff-box" id="FinalFocusAI">
+                <div id="FFHeaderAI">
+                    <h2><span id="Flow5"></span> Final Focus: </h2>
+                    <button id="GenerateAIFF">Generate</button>
+                    <button id="SpeakAIFF">Speak</button>
+                </div>
+                <div id="AIFFText"></div>
+                <div class="loadingFFA">
+                    <div class="text7">Generating (~10-15 seconds)</div>
+                    <div class="ai-loader">
+                        <div class="dot dot1"></div>
+                        <div class="dot dot2"></div>
+                        <div class="dot dot3"></div>
+                        <div class="dot dot4"></div>
+                        <div class="dot dot5"></div>
+                        <div class="dot dot6"></div>
+                    </div>
+                </div>
+            </div>
+       </div>
+   </div>
+
+
+   <div class="small-text">User: <span id="selectedTurn"></span>, <span id="selectedSide"></span></div>
+
+
+   <script src="script.js"></script>
 </body>
+
 
 </html>
