@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casewriter Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #EBF9FF, #99C9F9);
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align items at the top */
+            min-height: 100vh;
+            color: #333;
+        }
+        .loading {
+  text-align: center;
+  margin-top: 100px;
+  display: none;
+}
+
+.text10 {
+  font-size: 20px;
+  margin-bottom: 0px;
+  
+}
+
+.ai-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 10vh; /* Ensure it's centered in full view */
+}
+
+.dot {
+  width: 15px;
+  height: 15px;
+  margin: 0 5px;
+  border-radius: 50%;
+  background-color: #2e5adc;
+  animation: pulse 1.5s infinite;
+}
+
+.dot1 {
+  animation-delay: 0s;
+}
+.dot2 {
+  animation-delay: 0.2s;
+}
+.dot3 {
+  animation-delay: 0.4s;
+}
+.dot4 {
+  animation-delay: 0.6s;
+}
+.dot5 {
+  animation-delay: 0.8s;
+}
+.dot6 {
+  animation-delay: 1s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+  }
+  50% {
+      opacity: 1;
+      transform: scale(1.2);
+  }
+}
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 95%; /* Changed from 100% to occupy more width within the viewport */
+    max-width: 1400px; /* Increased maximum width */
+    background: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    height: 700px; /* Increased height */
+}
+        .controls {
+            flex: 1;
+            margin-right: 30px;
+        }
+        .output {
+            flex: 2;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .input-group input[type="text"], .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+            color: #333;
+            font-size: 1rem;
+        }
+        #contentionsGroup {
+            display: flex;
+            flex-direction: column;
+        }
+        #contentionsGroup label {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+            background: #f9f9f9;
+            font-weight: normal;
+        }
+        #contentionsGroup input[type="radio"] {
+            display: none;
+        }
+        #contentionsGroup input[type="radio"]:checked + label {
+            border-color: #007bff;
+            box-shadow: 0 0 10px #007bff;
+        }
+        #recordButton {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            color: white;
+            background: linear-gradient(90deg, #0099ff, #66a6ff);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 20px;
+            transition: background 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0, 150, 255, 0.3);
+        }
+        #recordButton:hover {
+            background: linear-gradient(90deg, #00ccff, #80d4ff);
+            transform: scale(1.05);
+        }
+        #Box-output {
+            border: 2px solid #ddd;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            height: 600px;
+            overflow-y: auto;
+            font-size: 1rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <h1>Casewriter Manager</h1>
+            <div class="input-group">
+                <label for="topic">Topic:</label>
+                <input type="text" id="topic" placeholder="Enter the topic">
+            </div>
+            <div class="input-group">
+                <label for="side">Select Side:</label>
+                <select id="side">
+                    <option value="" disabled selected hidden>Select Side</option>
+                    <option value="Affirmative">Affirmative</option>
+                    <option value="Negative">Negative</option>
+                </select>
+            </div>
+            <div class="input-group" id="contentionsGroup">
+                <input type="radio" id="one" name="contentions" value="1">
+                <label for="one">1 Contention</label>
+                <input type="radio" id="two" name="contentions" value="2" checked>
+                <label for="two">2 Contentions (default)</label>
+                <input type="radio" id="three" name="contentions" value="3">
+                <label for="three">3 Contentions</label>
+            </div>
+            <button id="recordButton" onclick="generateCase()">Generate</button>
+        </div>
+        <div class="output">
+            <h1>Generated Case</h1>
+            <div id = "Box-output">
+            <div id="Output"></div>
+            <div class="loading">
+                <div class="text10">Generating (~10-15 seconds)</div>
+                <div class="ai-loader">
+                    <div class="dot dot1"></div>
+                    <div class="dot dot2"></div>
+                    <div class="dot dot3"></div>
+                    <div class="dot dot4"></div>
+                    <div class="dot dot5"></div>
+                    <div class="dot dot6"></div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    
+    <script>
+        function generateCase() {
+            const topic = document.getElementById('topic').value;
+            const side = document.getElementById('side').value;
+            const contentions = document.querySelector('input[name="contentions"]:checked').value;
+           
+            // Add your logic for generating a case here
+            document.getElementById('Output').innerHTML = '';
+            // Show the loading animation
+            document.querySelector('.loading').style.display = 'block';
+
+            // Send the user's input to the Python backend for processing
+            fetch('http://localhost:6005/casewriter', {
+                method: 'POST', // Specify POST method
+                body: JSON.stringify({
+                    debateTopic: topic,
+                    nonselectedSide: side,
+                    contentions: contentions
+                }), // Send user input in the request body
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to process user input');
+                }
+                return response.json(); // Parse JSON response
+            })
+            .then(data => {
+                // Get the AI response from the data
+                const { AICasewriter } = data;
+
+                // Display the AI response
+                document.getElementById('Output').innerHTML = "<p>" + AICasewriter.replace(/\n/g, '<br>') + "</p>";
+            })
+            .catch(error => {
+                console.error('Error processing user input:', error);
+            })
+            .finally(() => {
+                // Hide the loading animation
+                document.querySelector('.loading').style.display = 'none';
+                
+                isGenerating = false;
+            });
+                }
+    </script>
+</body>
+</html>
