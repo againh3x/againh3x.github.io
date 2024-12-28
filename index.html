@@ -6,30 +6,56 @@
     <title>AI Start Page</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
-            background: linear-gradient(180deg, #EBF9FF, #99C9F9);
+            background: linear-gradient(180deg, #EBF9FF, #99C9F9, #6FA1E7);
+            text-align: center;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        header {
+            width: 100%;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #004085; /* Dark blue for emphasis */
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            margin: 40px auto 0 auto; /* Moved the description down */
+            max-width: 700px;
+            line-height: 1.6;
+            color: #004d99; /* Medium blue for readability */
         }
 
         .container {
             text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
+            background: linear-gradient(180deg, #99C9F9, #6FA1E7);
+            padding: 50px 30px; /* Equal padding above and below */
+            margin-top: 20px; /* Slight spacing below the description */
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            width: 90%; /* Keeps the container proportional on smaller screens */
+            max-width: 1000px; /* Limits the width for larger screens */
         }
 
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #ffffff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6); /* Added text shadow for better contrast */
+        .button-wrapper {
+            display: flex;
+            justify-content: space-around; /* Keeps buttons aligned in one row */
+            gap: 40px;
+            flex-wrap: nowrap; /* Ensures all buttons remain in a single line */
         }
 
         .button {
@@ -37,41 +63,36 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin: 10px;
             padding: 20px;
-            width: 300px; /* Set fixed width for uniformity */
-            height: 150px; /* Set fixed height for uniformity */
+            width: 300px;
+            height: 150px;
             font-size: 1rem;
-            color: white;
-            background-color: #007bff;
+            color: #fff;
+            background: linear-gradient(135deg, #007bff, #0056b3);
             border: none;
             border-radius: 15px;
             cursor: pointer;
             text-decoration: none;
-            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            padding: 15px 20px;
         }
 
         .button:hover {
-            background-color: #0056b3;
+            background: linear-gradient(135deg, #0056b3, #003d80);
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 255, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
 
         .button .title {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: bold;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
+            margin-bottom: 8px;
         }
 
         .button .description {
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-            letter-spacing: 0.5px;
-            color: #d3d3d3;
+            font-size: 1rem;
+            color: #e0e0e0;
         }
 
         .button .note {
@@ -79,27 +100,27 @@
             color: #b0b0b0;
             font-style: italic;
         }
-
-        .button-wrapper {
-            display: flex;
-            justify-content: center;
-            gap: 20px; /* Space between buttons */
-            flex-wrap: wrap; /* Ensure responsiveness for smaller screens */
-        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <header>
         <h1>Welcome to the Public Forum AI Tools</h1>
+        <p>
+            This website helps public forum debate students practice for rounds using tools powered by artificial intelligence. 
+            You can engage with the tools below to simulate a full public forum practice round against the AI or practice 
+            other skills like flowing and casewriting. Use a computer for the best experience.
+        </p>
+    </header>
+    <div class="container">
         <div class="button-wrapper">
             <a href="flower.html" class="button">
                 <span class="title">AI Flow</span>
-                <span class="description">Flow speeches in real-time</span>
+                <span class="description">Flow speeches in real-time with speech recognition</span>
             </a>
             <a href="setup.html" class="button">
                 <span class="title">Full AI Practice Round</span>
-                <span class="description">Take a full practice round against the AI with speech recognition</span>
-                <span class="note">(includes real-time flowing)</span>
+                <span class="description">Take a full practice round against the AI</span>
+                <span class="note">(includes real-time flowing and speech recognition)</span>
             </a>
             <a href="casewriter.html" class="button">
                 <span class="title">AI Case-writer</span>
