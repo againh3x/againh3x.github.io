@@ -233,7 +233,7 @@ function startGenerating(debateTopic, nonselectedSide) {
     document.querySelector('.loading').style.display = 'block';
 
     // Send the user's input to the Python backend for processing
-    fetch('http://localhost:6005/case', {
+    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/case', {
         method: 'POST', // Specify POST method
         body: JSON.stringify({
             debateTopic: debateTopic,
@@ -873,7 +873,7 @@ function stopRecordingF() {
 async function processTranscription(transcription, debateTopic, selectedSide) {
     document.querySelector('.loadingU').style.display = 'block';
     // Send the transcription to your Python backend for processing
-    const response = await fetch('http://localhost:6005/processC', {
+    const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processC', {
         method: 'POST', // Specify POST method
         body: JSON.stringify({
             transcription: transcription,
@@ -902,7 +902,7 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
 function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
     document.querySelector('.loadingRU').style.display = 'block';
     // Send the transcription to your Python backend for processing
-    fetch('http://localhost:6005/processR', {
+    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processR', {
         method: 'POST', // Specify POST method
         body: JSON.stringify({
             transcriptionR: transcriptionR,
@@ -939,7 +939,7 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
 function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
     document.querySelector('.loadingSU').style.display = 'block';
     // Send the transcription to your Python backend for processing
-    fetch('http://localhost:6005/processS', {
+    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processS', {
         method: 'POST', // Specify POST method
         body: JSON.stringify({
             transcriptionS: transcriptionS,
@@ -978,7 +978,7 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
     document.querySelector('.loadingFFU').style.display = 'block';
     // Send the transcription to your Python backend for processing
     transcriptionResultF.textContent = '';
-    fetch('http://localhost:6005/processF', {
+    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processF', {
         method: 'POST', // Specify POST method
         body: JSON.stringify({
             transcriptionF: transcriptionF,
@@ -1021,7 +1021,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
-        fetch('http://localhost:6005/secondrebuttal', {
+        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/secondrebuttal', {
             method: 'POST', // Specify POST method
             body: JSON.stringify({
                 debateTopic: debateTopic,
@@ -1061,7 +1061,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
             });
     }
     if (selectedTurn == "Second") {
-        fetch('http://localhost:6005/firstrebuttal', {
+        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/firstrebuttal', {
             method: 'POST', // Specify POST method
             body: JSON.stringify({
                 debateTopic: debateTopic,
@@ -1109,7 +1109,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
-        fetch('http://localhost:6005/secondsummary', {
+        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/secondsummary', {
             method: 'POST', // Specify POST method
             body: JSON.stringify({
                 debateTopic: debateTopic,
@@ -1153,7 +1153,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
             });
     }
     if (selectedTurn == "Second") {
-        fetch('http://localhost:6005/firstsummary', {
+        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/firstsummary', {
             method: 'POST', // Specify POST method
             body: JSON.stringify({
                 debateTopic: debateTopic,
@@ -1201,7 +1201,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, AICase, AIRebuttal, AISummary) {
     AIFFGenerateB.classList.remove('glowing');
     document.querySelector('.loadingFFA').style.display = 'block';
-    fetch('http://localhost:6005/finalfocus', {
+    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/finalfocus', {
         method: 'POST', // Specify POST method
         body: JSON.stringify({
             debateTopic: debateTopic,
