@@ -401,7 +401,7 @@
                 const speechType = document.querySelector('input[name="speech"]:checked').value;
                 // Send the transcription to your Python backend for processing
                 if (speechType == "constructive") {
-                    const response = await fetch('http://localhost:6005/processC', {
+                    const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processC', {
                         method: 'POST', // Specify POST method
                         body: JSON.stringify({
                             transcription: transcription,
@@ -427,7 +427,7 @@
                     }
                 }
                 if (speechType == "rebuttal") {
-                    const response = await fetch('http://localhost:6005/processR', {
+                    const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processR', {
                         method: 'POST', // Specify POST method
                         body: JSON.stringify({
                             transcriptionR: transcription,
@@ -453,7 +453,7 @@
                     }
                 }
                 if (speechType == "summary") {
-                    const response = await fetch('http://localhost:6005/processS', {
+                    const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processS', {
                         method: 'POST', // Specify POST method
                         body: JSON.stringify({
                             transcriptionS: transcription,
@@ -479,7 +479,7 @@
                     }
                 }
                 if (speechType == "finalFocus") {
-                    const response = await fetch('http://localhost:6005/processF', {
+                    const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processF', {
                         method: 'POST', // Specify POST method
                         body: JSON.stringify({
                             transcriptionF: transcription,
