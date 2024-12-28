@@ -1,6 +1,6 @@
 body {
     
-    font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(180deg, #EBF9FF, #99c9f9); /* Adjusted to match the image gradient */
     background-repeat: no-repeat;
     background-size: cover;
