@@ -1,266 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Free AI Public Forum Debater</title>
-  <style>
-    /* Basic Reset */
-    body, h1, h2, h3, p, input, button {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(180deg, #EBF9FF, #99C9F9);
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 0 20px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    header h1 {
-      font-size: 2rem;
-      color: #333;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      font-family: 'Helvetica Neue', sans-serif;
-    }
-
-    main {
-      background: rgba(255, 255, 255, 0.85);
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      backdrop-filter: blur(10px);
-      width: 100%;
-      max-width: 700px;
-      text-align: center;
-    }
-
-    section {
-      margin-bottom: 30px;
-    }
-
-    h2, h3 {
-      font-size: 1.5rem;
-      color: #333;
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-
-    label {
-      font-size: 1rem;
-      color: #555;
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0 20px;
-      border: 2px solid #0066cc; /* Original Blue */
-      border-radius: 10px;
-      font-size: 1rem;
-      color: #333;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-
-    input[type="text"]:focus {
-      border-color: #004d99; /* Darker blue on focus */
-      box-shadow: 0 0 10px rgba(0, 77, 153, 0.7);
-      outline: none;
-    }
-
-    button {
-      padding: 15px 25px;
-      font-size: 1.2rem;
-      color: #fff;
-      background-color: #0066cc; /* Original Blue */
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin: 10px;
-      transition: transform 0.2s, box-shadow 0.3s;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* Button hover effect with gradient and grow effect */
-    #go-button button {
-      transition: all 0.4s ease;
-    }
-
-    #go-button button:hover {
-      background: linear-gradient(45deg, #0066cc, #004d99);
-      background-size: 200% 200%;
-      animation: gradientShift 3s linear infinite;
-      transform: scale(1.1); /* Grow effect */
-      box-shadow: 0 0 20px rgba(0, 77, 153, 0.7), 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Keyframe animation for the gradient effect */
-    @keyframes gradientShift {
-      0% {
-        background-position: 200% 0;
-      }
-
-      50% {
-        background-position: -200% 0;
-      }
-
-      100% {
-        background-position: 200% 0;
-      }
-    }
-
-    button:active {
-      background-color: #004d99; /* Darker blue when clicked */
-      transform: translateY(0);
-      box-shadow: 0 0 15px rgba(0, 77, 153, 1), 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    .selected {
-      background-color: #003366; /* Darker blue when selected */
-      border-color: #004d99;
-      box-shadow: 0 0 15px rgba(0, 77, 153, 1), 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    footer {
-      margin-top: 30px;
-      text-align: center;
-      font-size: 1rem;
-      color: #777;
-    }
-
-    footer p {
-      margin: 10px 0;
-    }
-
-    .footer-link {
-      text-decoration: none;
-      color: #0066cc;
-    }
-
-    .footer-link:hover {
-      text-decoration: underline;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free AI Public Forum Debater</title>
+<style>
+/* Basic Reset */
+body, h1, h2, h3, p, input, button {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(180deg, #EBF9FF, #99C9F9);
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 0 20px;
+}
+header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+header h1 {
+  font-size: 2rem;
+  color: #333;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: 'Helvetica Neue', sans-serif;
+}
+main {
+  background: rgba(255, 255, 255, 0.85);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 700px;
+  text-align: center;
+}
+section {
+  margin-bottom: 30px;
+}
+h2, h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+label {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 10px;
+  display: block;
+}
+input[type="text"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0 20px;
+  border: 2px solid #0066cc; /* Original Blue */
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #333;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+input[type="text"]:focus {
+  border-color: #004d99; /* Darker blue on focus */
+  box-shadow: 0 0 10px rgba(0, 77, 153, 0.7);
+  outline: none;
+}
+button {
+  padding: 15px 25px;
+  font-size: 1.2rem;
+  color: #fff;
+  background-color: #0066cc; /* Original Blue */
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin: 10px;
+  transition: transform 0.2s, box-shadow 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+/* Button hover effect with gradient and grow effect */
+#go-button button {
+  transition: all 0.4s ease;
+}
+#go-button button:hover {
+  background: linear-gradient(45deg, #0066cc, #004d99);
+  background-size: 200% 200%;
+  animation: gradientShift 3s linear infinite;
+  transform: scale(1.1); /* Grow effect */
+  box-shadow: 0 0 20px rgba(0, 77, 153, 0.7), 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+/* Keyframe animation for the gradient effect */
+@keyframes gradientShift {
+  0% {
+    background-position: 200% 0;
+  }
+  50% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+button:active {
+  background-color: #004d99; /* Darker blue when clicked */
+  transform: translateY(0);
+  box-shadow: 0 0 15px rgba(0, 77, 153, 1), 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+.selected {
+  background-color: #003366; /* Darker blue when selected */
+  border-color: #004d99;
+  box-shadow: 0 0 15px rgba(0, 77, 153, 1), 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+.missing-input {
+  border-color: red !important; /* Red border for missing input */
+}
+footer {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 1rem;
+  color: #777;
+}
+footer p {
+  margin: 10px 0;
+}
+.footer-link {
+  text-decoration: none;
+  color: #0066cc;
+}
+.footer-link:hover {
+  text-decoration: underline;
+}
+</style>
 </head>
-
 <body>
-  <header>
-    <h1>Practice Round</h1>
-  </header>
+<header>
+<h1>Practice Round</h1>
+</header>
+<main>
+<section id="pf-debate">
+<h2>PF Debate</h2>
+<label for="debateTopic">Enter Debate Topic:</label>
+<input type="text" id="debateTopic" name="debateTopic" required>
+</section>
+<section id="affirmative-negative">
+<h3>Would you like to be affirmative or negative?</h3>
+<button onclick="selectOptionAffNegg('Aff')" id="affButton">Affirmative</button>
+<button onclick="selectOptionAffNegg('Neg')" id="negButton">Negative</button>
+</section>
+<section id="first-second">
+<h3>Would you like to go first or second?</h3>
+<button onclick="selectOptionFS('First')" id="firstButton">First</button>
+<button onclick="selectOptionFS('Second')" id="secondButton">Second</button>
+</section>
+<section id="go-button">
+<button id="startButton" onclick="goToLink()">Start PF Practice Round!</button>
+</section>
+</main>
+<footer>
+<p>&copy; 2024 PublicForumAI. All rights reserved.</p>
+</footer>
+<div id="selectedSide" style="display: none;"></div>
+<div id="selectedTurn" style="display: none;"></div>
+<script>
+var selectedSide = '';
+var selectedTurn = '';
 
-  <main>
-    <section id="pf-debate">
-      <h2>PF Debate</h2>
-      <label for="debateTopic">Enter Debate Topic:</label>
-      <input type="text" id="debateTopic" name="debateTopic" required>
-    </section>
-
-    <section id="affirmative-negative">
-      <h3>Would you like to be affirmative or negative?</h3>
-      <button onclick="selectOptionAffNegg('Aff')" id="affButton">Affirmative</button>
-      <button onclick="selectOptionAffNegg('Neg')" id="negButton">Negative</button>
-    </section>
-
-    <section id="first-second">
-      <h3>Would you like to go first or second?</h3>
-      <button onclick="selectOptionFS('First')" id="firstButton">First</button>
-      <button onclick="selectOptionFS('Second')" id="secondButton">Second</button>
-    </section>
-    <section id="go-button">
-        <button id="startButton" onclick="goToLink()" disabled>Start PF Practice Round!</button>
-      </section>
-  </main>
-
-  <footer>
-    <p>&copy; 2024 PublicForumAI. All rights reserved.</p>
-  </footer>
-
-  <div id="selectedSide" style="display: none;"></div>
-  <div id="selectedTurn" style="display: none;"></div>
-
-  <script>
-
-  var selectedSide = '';
-  var selectedTurn = '';
-  var debateTopic = '';
-
-  function selectOptionAffNegg(option) {
-    selectedSide = option;
-    // Reset other button states
-    document.getElementById('affButton').classList.remove('selected');
-    document.getElementById('negButton').classList.remove('selected');
-    // Mark selected button
-    if (option === 'Aff') {
-      document.getElementById('affButton').classList.add('selected');
-    } else {
-      document.getElementById('negButton').classList.add('selected');
-    }
-    checkAllInputs();
+function selectOptionAffNegg(option) {
+  selectedSide = option;
+  document.getElementById('affButton').classList.remove('selected');
+  document.getElementById('negButton').classList.remove('selected');
+  if (option === 'Aff') {
+    document.getElementById('affButton').classList.add('selected');
+  } else {
+    document.getElementById('negButton').classList.add('selected');
   }
+}
 
-  function selectOptionFS(option) {
-    selectedTurn = option;
-    // Reset other button states
-    document.getElementById('firstButton').classList.remove('selected');
-    document.getElementById('secondButton').classList.remove('selected');
-    // Mark selected button
-    if (option === 'First') {
-      document.getElementById('firstButton').classList.add('selected');
-    } else {
-      document.getElementById('secondButton').classList.add('selected');
-    }
-    checkAllInputs();
+function selectOptionFS(option) {
+  selectedTurn = option;
+  document.getElementById('firstButton').classList.remove('selected');
+  document.getElementById('secondButton').classList.remove('selected');
+  if (option === 'First') {
+    document.getElementById('firstButton').classList.add('selected');
+  } else {
+    document.getElementById('secondButton').classList.add('selected');
   }
+}
 
-  function checkDebateTopic() {
-    debateTopic = document.getElementById('debateTopic').value.trim();
-    checkAllInputs();
+function checkDebateTopic() {
+  var topicInput = document.getElementById('debateTopic');
+  if (topicInput.value.trim() !== '') {
+    topicInput.classList.remove('missing-input');
   }
+}
 
-  function checkAllInputs() {
-    const startButton = document.getElementById('startButton');
-    if (debateTopic !== '' && selectedSide !== '' && selectedTurn !== '') {
-      startButton.disabled = false;
-    } else {
-      startButton.disabled = true;
-    }
+function goToLink() {
+  var debateTopic = document.getElementById('debateTopic').value.trim();
+  const topicInput = document.getElementById('debateTopic');
+  let showAlert = false;
+
+  if (debateTopic === '') {
+    topicInput.classList.add('missing-input');
+    showAlert = true;
+  } else {
+    topicInput.classList.remove('missing-input');
   }
-
-  function goToLink() {
-    debateTopic = document.getElementById('debateTopic').value.trim();
-    document.getElementById('selectedSide').textContent = selectedSide;
-    document.getElementById('selectedTurn').textContent = selectedTurn;
-
-    var url = 'Flow.html';
-    url += '?selectedSide=' + encodeURIComponent(selectedSide) + 
-           '&selectedTurn=' + encodeURIComponent(selectedTurn) + 
-           '&debateTopic=' + encodeURIComponent(debateTopic);
-    window.location.href = url;
-  }
-
-  // Attach input event listener to the debate topic input
-  document.getElementById('debateTopic').addEventListener('input', checkDebateTopic);
   
+  if (selectedSide === '') {
+    showAlert = true;
+    alert('Please select a side.');
+  } else if (selectedTurn === '') {
+    showAlert = true;
+    alert('Please select whether to go first or second.');
+  }
+  
+  if (showAlert && debateTopic === '') {
+    alert('Please enter a debate topic.');
+    return; // Prevents proceeding to the link
+  }
+
+  var url = 'Flow.html';
+  url += '?selectedSide=' + encodeURIComponent(selectedSide) +
+    '&selectedTurn=' + encodeURIComponent(selectedTurn) +
+    '&debateTopic=' + encodeURIComponent(debateTopic);
+  window.location.href = url;
+}
+
+// Attach input event listener to the debate topic input to clear error state
+document.getElementById('debateTopic').addEventListener('input', checkDebateTopic);
 </script>
 </body>
-
 </html>
