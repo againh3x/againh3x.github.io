@@ -17,8 +17,6 @@ var AIFFSpeakB = document.getElementById('SpeakAIFF');
 var AIFFGenerateB = document.getElementById('GenerateAIFF');
 var recordButtonS = document.getElementById('recordButtonSummary');
 var recordButtonF = document.getElementById('recordButtonFF');
-
-
 var rebuttalFlowUpdated;
 var ToggleisSelectedSide;
 var recognition;
@@ -277,7 +275,6 @@ function startGenerating(debateTopic, nonselectedSide) {
             }
         });
 }
-
 toggleFlowButton.addEventListener('click', () => {
     const selectedSide = document.getElementById('selectedSide').textContent;
     const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
@@ -487,9 +484,6 @@ function startRecording() {
             console.error('Error accessing audio stream:', err);
         });
 }
-
-
-
 function startRecordingR() {
     fullTranscriptionRebuttal = ''
     // Initialize speech recognition
@@ -594,7 +588,6 @@ function startRecordingR() {
             console.error('Error accessing audio stream:', err);
         });
 }
-
 function startRecordingS() {
     fullTranscriptionSummary = ''
     // Initialize speech recognition
@@ -697,7 +690,6 @@ function startRecordingS() {
             console.error('Error accessing audio stream:', err);
         });
 }
-
 function startRecordingF() {
     fullTranscriptionFF = ''
     // Initialize speech recognition
@@ -821,8 +813,6 @@ function stopRecording() {
 
     }
 }
-
-
 function stopRecordingR() {
     if (recognitionR) {
         recognitionR.stop(); // Stop speech recognition
@@ -841,7 +831,6 @@ function stopRecordingR() {
 
     }
 }
-
 function stopRecordingS() {
     if (recognitionS) {
         recognitionS.stop(); // Stop speech recognition
@@ -881,7 +870,6 @@ function stopRecordingF() {
         }
     }
 }
-
 async function processTranscription(transcription, debateTopic, selectedSide) {
     document.querySelector('.loadingU').style.display = 'block';
     // Send the transcription to your Python backend for processing
@@ -1025,7 +1013,6 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
             document.querySelector('.loadingFFU').style.display = 'none';
         });
 }
-
 function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR) {
     const selectedTurn = document.getElementById('selectedTurn').textContent;
     fullAIRebuttal = ''; // Reset full AI rebuttal
@@ -1115,7 +1102,6 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
     }
 
 }
-
 function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, AICase, AIRebuttal) {
     const selectedTurn = document.getElementById('selectedTurn').textContent;
     AISummaryGenerateB.classList.remove('glowing');
