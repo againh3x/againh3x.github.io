@@ -224,7 +224,7 @@
             document.querySelector('.loading').style.display = 'block';
 
             // Send the user's input to the Python backend for processing
-            fetch('http://localhost:6005/casewriter', {
+            fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/casewriter', {
                 method: 'POST', // Specify POST method
                 body: JSON.stringify({
                     debateTopic: topic,
