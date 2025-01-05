@@ -225,56 +225,75 @@ function startSpeakingR() {
 
     }
 }
-function startGenerating(debateTopic, nonselectedSide) {
+
+async function startGenerating(debateTopic, nonselectedSide) {
     generateButtonAI.classList.remove('glowing');
-    fullAIContentionRaw = ''; // Reset full AI response
+    fullAIContentionRaw = '';
     document.getElementById('AIContentionText').innerHTML = '';
-    // Show the loading animation
     document.querySelector('.loading').style.display = 'block';
+    document.querySelector('.text10').textContent = 'Generating case. (~15s)';
 
-    // Send the user's input to the Python backend for processing
-    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/case', {
-        method: 'POST', // Specify POST method
-        body: JSON.stringify({
-            debateTopic: debateTopic,
-            nonselectedSide: nonselectedSide
-        }), // Send user input in the request body
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to process user input');
-            }
-            return response.json(); // Parse JSON response
-
-        })
-        .then(data => {
-            // Get the AI response from the data
-            const { AICase } = data;
-            // Display the AI response
-            document.getElementById('AIContentionText').innerHTML = "<p>" + AICase.replace(/\n/g, '<br>') + "</p>";
-        })
-        .catch(error => {
-            console.error('Error processing user input:', error);
-        })
-        .finally(() => {
-
-            // Hide the loading animation
-            document.querySelector('.loading').style.display = 'none';
-            generateButtonAI.textContent = 'Generate';
-            isGenerating = false;
-            const selectedTurn = document.getElementById('selectedTurn').textContent;
-            if (selectedTurn == "First") {
-                recordButtonR.classList.add('glowing');
-            }
-            if (selectedTurn == "Second") {
-                toggleFlowButton.classList.add('glowing');
-                recordButtonC.classList.add('glowing');
+    try {
+        // First API call to generate AI case
+        const response1 = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/generate_ai_case', {
+            method: 'POST',
+            body: JSON.stringify({
+                debateTopic: debateTopic,
+                nonselectedSide: nonselectedSide
+            }),
+            headers: {
+                'Content-Type': 'application/json'
             }
         });
+
+        if (!response1.ok) {
+            throw new Error('Failed to generate AI case');
+        }
+
+        const data1 = await response1.json();
+        const AICase = data1.AICase;
+
+        // Update loading text
+        document.querySelector('.text10').textContent = 'Finding sources. (~10s)';
+
+        // Second API call to get sources
+        const response2 = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/get_sources', {
+            method: 'POST',
+            body: JSON.stringify({
+                AICase: AICase
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response2.ok) {
+            throw new Error('Failed to find sources');
+        }
+
+        const data2 = await response2.json();
+        const modifiedAICase = data2.AICase;
+
+        // Display the AI case with sources
+        document.getElementById('AIContentionText').innerHTML = "<p>" + modifiedAICase.replace(/\n/g, '<br>') + "</p>";
+    } catch (error) {
+        console.error('Error processing user input:', error);
+    } finally {
+        // Hide the loading animation and reset UI elements
+        document.querySelector('.loading').style.display = 'none';
+        generateButtonAI.textContent = 'Generate';
+        isGenerating = false;
+        const selectedTurn = document.getElementById('selectedTurn').textContent;
+        if (selectedTurn == "First") {
+            recordButtonR.classList.add('glowing');
+        }
+        if (selectedTurn == "Second") {
+            toggleFlowButton.classList.add('glowing');
+            recordButtonC.classList.add('glowing');
+        }
+    }
 }
+
 toggleFlowButton.addEventListener('click', () => {
     const selectedSide = document.getElementById('selectedSide').textContent;
     const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
