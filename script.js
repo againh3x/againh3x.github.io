@@ -231,7 +231,7 @@ async function startGenerating(debateTopic, nonselectedSide) {
     fullAIContentionRaw = '';
     document.getElementById('AIContentionText').innerHTML = '';
     document.querySelector('.loading').style.display = 'block';
-    document.querySelector('.text10').textContent = 'Generating case. (~15s)';
+    document.querySelector('.text10').textContent = 'Generating Case (~15s)';
 
     try {
         // First API call to generate AI case
@@ -254,7 +254,7 @@ async function startGenerating(debateTopic, nonselectedSide) {
         const AICase = data1.AICase;
 
         // Update loading text
-        document.querySelector('.text10').textContent = 'Finding sources. (~10s)';
+        document.querySelector('.text10').textContent = 'Finding Sources (~10s)';
 
         // Second API call to get sources
         const response2 = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/get_sources', {
