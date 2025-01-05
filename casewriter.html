@@ -213,51 +213,69 @@
     </div>
     
     <script>
-        function generateCase() {
+async function generateCase() {
             const topic = document.getElementById('topic').value;
             const side = document.getElementById('side').value;
             const contentions = document.querySelector('input[name="contentions"]:checked').value;
-           
+
             // Add your logic for generating a case here
             document.getElementById('Output').innerHTML = '';
             // Show the loading animation
             document.querySelector('.loading').style.display = 'block';
+            document.querySelector('.text10').textContent = 'Generating case. (~15s)';
 
-            // Send the user's input to the Python backend for processing
-            fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/casewriter', {
-                method: 'POST', // Specify POST method
-                body: JSON.stringify({
-                    debateTopic: topic,
-                    nonselectedSide: side,
-                    contentions: contentions
-                }), // Send user input in the request body
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to process user input');
-                }
-                return response.json(); // Parse JSON response
-            })
-            .then(data => {
-                // Get the AI response from the data
-                const { AICasewriter } = data;
+            try {
+                // First API call to generate AI case
+                const response1 = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/generate_ai_casewriter', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        debateTopic: topic,
+                        nonselectedSide: side,
+                        contentions: contentions
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-                // Display the AI response
-                document.getElementById('Output').innerHTML = "<p>" + AICasewriter.replace(/\n/g, '<br>') + "</p>";
-            })
-            .catch(error => {
+                if (!response1.ok) {
+                    throw new Error('Failed to generate AI case');
+                }
+
+                const data1 = await response1.json();
+                const AICase = data1.AICase;
+
+                // Update loading text
+                document.querySelector('.text10').textContent = 'Finding sources. (~10s)';
+
+                // Second API call to get sources
+                const response2 = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/get_sources', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        AICase: AICase
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response2.ok) {
+                    throw new Error('Failed to find sources');
+                }
+
+                const data2 = await response2.json();
+                const modifiedAICase = data2.AICase;
+
+                // Display the AI case with sources
+                document.getElementById('Output').innerHTML = "<p>" + modifiedAICase.replace(/\n/g, '<br>') + "</p>";
+            } catch (error) {
                 console.error('Error processing user input:', error);
-            })
-            .finally(() => {
-                // Hide the loading animation
+            } finally {
+                // Hide the loading animation and reset UI elements
                 document.querySelector('.loading').style.display = 'none';
-                
                 isGenerating = false;
-            });
-                }
+            }
+        }
     </script>
 </body>
 </html>
