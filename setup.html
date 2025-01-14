@@ -229,9 +229,49 @@
       opacity: 1;
     }
 
+/* Updated styles for the Go to Home button */
+#homeButton {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  color: #fff;
+  background-color: #0066cc;
+  border: none;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.4s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#homeButton:hover {
+  background: linear-gradient(45deg, #0066cc, #004d99);
+  background-size: 200% 200%;
+  animation: gradientShift 3s linear infinite;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0, 77, 153, 0.7), 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Add keyframe animation if not already present */
+@keyframes gradientShift {
+  0% { background-position: 200% 0; }
+  50% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
   </style>
 </head>
 <body>
+  <!-- Added Go to Home Button -->
+  <a href="https://publicforumai.com" id="homeButton">
+    <span class="home-icon">&#x1F3E0;</span> <!-- This is the home icon -->
+    Go to Home
+  </a>
+  
+
   <header>
     <h1>Practice Round</h1>
   </header>
