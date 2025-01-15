@@ -174,6 +174,74 @@
             font-size: 1rem;
             color: #333;
         }
+
+    /* Styles for the info icon */
+    .info-icon {
+      cursor: pointer;
+      margin-left: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: #0066cc;
+      color: #fff;
+      font-size: 14px;
+      position: relative;
+    }
+
+    .info-icon:hover {
+      background-color: #004d99;
+    }
+
+    /* Tooltip styles */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .tooltip .tooltiptext {
+  visibility: hidden;
+  width: 300px;
+  background-color: #fff;
+  color: #333;
+  text-align: left;
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  z-index: 1;
+
+  /* Positioning for left-side pop-up */
+  top: 50%; /* Vertically center the tooltip */
+  right: 110%; /* Move the tooltip to the left of the icon */
+  transform: translateY(-50%); /* Vertically center the tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+
+  /* Arrow pointing to the right */
+  top: 50%; /* Center the arrow vertically */
+  right: 0; /* Align the arrow at the tooltip's right edge */
+  margin-top: -5px; /* Center the arrow */
+  transform: translateX(100%) translateY(-50%); /* Position outside the tooltip */
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent transparent #ccc;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
     </style>
 </head>
 <body>
@@ -181,8 +249,17 @@
         <div class="controls">
             <h1>Casewriter Manager</h1>
             <div class="input-group">
-                <label for="topic">Topic:</label>
-                <input type="text" id="topic" placeholder="Enter the topic">
+                <label for="topic">
+                    <div class="tooltip">
+                        <span class="info-icon">i</span>
+                        <span class="tooltiptext">
+                          This is the topic of the debate. <em>It should not be one or two words</em>, but a full resolution stating that something should or should not happen. For example, <em>"NATO should strengthen its relationship with Ukraine in order to deter further Russian aggression."</em>
+                        </span>
+                      </div>
+                    
+                    
+                    Full Resolution (topic):</label>
+                <input type="text" id="topic" placeholder="Enter the resolution">
             </div>
             <div class="input-group">
                 <label for="side">Select Side:</label>
