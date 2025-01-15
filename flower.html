@@ -226,6 +226,7 @@
                 </select>
             </div>
             <div class="input-group" id="speechType">
+                <p><strong>Select Speech:</strong></p>
                 <input type="radio" id="constructive" name="speech" value="constructive">
                 <label for="constructive">Constructive</label>
                 <input type="radio" id="rebuttal" name="speech" value="rebuttal">
@@ -235,7 +236,12 @@
                 <input type="radio" id="finalFocus" name="speech" value="finalFocus">
                 <label for="finalFocus">Final Focus</label>
             </div>
+            
+            
             <button id="recordButton" onclick="toggleRecording()">Record</button>
+            <p id="cautionNote" style="font-size: 12px; color: gray; margin-top: 4px;">
+                It may ask for your microphone to be enabled twice. If so, please press "allow" twice for speech recognition to work properly.
+            </p>
         </div>
         <div class="output">
             <h1>Flow Output</h1>
@@ -278,7 +284,7 @@
 
                 } else {
                     // Start recording
-                    recordButton.textContent = "Start"; // Change button text to "Stop"
+                    recordButton.textContent = "Record"; // Change button text to "Stop"
                     stopRecording();
 
                 }
