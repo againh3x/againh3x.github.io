@@ -215,9 +215,9 @@
   position: absolute;
   z-index: 1;
 
-  /* Positioning for left-side pop-up */
+  /* Positioning for right-side pop-up */
   top: 50%; /* Vertically center the tooltip */
-  right: 110%; /* Move the tooltip to the left of the icon */
+  left: 110%; /* Move the tooltip to the right of the icon */
   transform: translateY(-50%); /* Vertically center the tooltip */
   opacity: 0;
   transition: opacity 0.3s;
@@ -227,20 +227,21 @@
   content: "";
   position: absolute;
 
-  /* Arrow pointing to the right */
+  /* Arrow pointing to the left */
   top: 50%; /* Center the arrow vertically */
-  right: 0; /* Align the arrow at the tooltip's right edge */
+  left: 0; /* Align the arrow at the tooltip's left edge */
   margin-top: -5px; /* Center the arrow */
-  transform: translateX(100%) translateY(-50%); /* Position outside the tooltip */
+  transform: translateX(-100%) translateY(-50%); /* Position outside the tooltip */
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent transparent #ccc;
+  border-color: transparent #ccc transparent transparent;
 }
 
 .tooltip:hover .tooltiptext {
   visibility: visible;
   opacity: 1;
 }
+
 
     </style>
 </head>
@@ -250,6 +251,7 @@
             <h1>Casewriter Manager</h1>
             <div class="input-group">
                 <label for="topic">
+                    Full Resolution (topic):
                     <div class="tooltip">
                         <span class="info-icon">i</span>
                         <span class="tooltiptext">
@@ -258,7 +260,7 @@
                       </div>
                     
                     
-                    Full Resolution (topic):</label>
+                    </label>
                 <input type="text" id="topic" placeholder="Enter the resolution">
             </div>
             <div class="input-group">
