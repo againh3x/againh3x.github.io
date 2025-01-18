@@ -230,6 +230,10 @@
     }
 
 /* Updated styles for the Go to Home button */
+
+
+
+/* Default styles for the Home Button */
 #homeButton {
   position: absolute;
   top: 20px;
@@ -255,12 +259,20 @@
   box-shadow: 0 0 20px rgba(0, 77, 153, 0.7), 0 6px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Hide the Go to Home button on mobile devices */
+@media screen and (max-width: 768px) {
+  #homeButton {
+    display: none;
+  }
+}
+
 /* Add keyframe animation if not already present */
 @keyframes gradientShift {
   0% { background-position: 200% 0; }
   50% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
 
   </style>
 </head>
