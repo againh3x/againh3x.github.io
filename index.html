@@ -2,18 +2,14 @@
 <html lang="en">
 <head>
     <!-- Google tag (gtag.js) -->
-    
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    
-    
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-ERE3HL6LKB');
-</script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-ERE3HL6LKB');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Free Public Forum Debate AI Tools | AI-Generated Cases, Flows, and Full AI Debate Practice Rounds!</title>
@@ -23,7 +19,7 @@
     <link rel="manifest" href="/site.webmanifest">
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
@@ -37,44 +33,46 @@
 
         header {
             width: 100%;
-            padding: 40px 20px;
-            text-align: center;
+            padding: 50px 30px;
+            box-sizing: border-box;
         }
 
         header h1 {
-            font-family: 'Roboto', sans-serif; /* Use the same font for paragraph */
-            font-size: 3rem;
-            margin-bottom: 15px;
+            font-size: 2.6rem;
+            margin-bottom: 20px;
             font-weight: bold;
-            color: #004085; /* Dark blue for emphasis */
+            color: #004085;
             text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         header p {
-            font-family: 'Roboto', sans-serif; /* Use the same font for paragraph */
-            font-size: 1.3rem;
-            margin: 40px auto 0 auto; /* Moved the description down */
-            max-width: 700px;
-            line-height: 1.6;
-            color: #004d99; /* Medium blue for readability */
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #004d99;
+            max-width: 60%;
+            margin: 0 auto;
+            padding-top: 20px;
         }
 
         .container {
             text-align: center;
             background: linear-gradient(180deg, #99C9F9, #6FA1E7);
-            padding: 50px 30px; /* Equal padding above and below */
-            margin-top: 20px; /* Slight spacing below the description */
+            padding: 40px 20px;
+            margin-top: 30px;
             border-radius: 20px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-            width: 90%; /* Keeps the container proportional on smaller screens */
-            max-width: 1000px; /* Limits the width for larger screens */
+            width: 90%;
+            max-width: 800px;
         }
 
         .button-wrapper {
             display: flex;
-            justify-content: space-around; /* Keeps buttons aligned in one row */
-            gap: 40px;
-            flex-wrap: nowrap; /* Ensures all buttons remain in a single line */
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: nowrap;
         }
 
         .button {
@@ -93,14 +91,40 @@
             cursor: pointer;
             text-decoration: none;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
         .button:hover {
-            background: linear-gradient(135deg, #0056b3, #003d80);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(135deg, #0056b3, #004080);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.1), transparent, rgba(255, 255, 255, 0.1));
+            transform: skewX(-45deg);
+            transition: all 0.4s ease;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .button:hover::before {
+            left: 100%;
+            transition: all 0.6s ease;
+        }
+
+        .button span {
+            position: relative;
+            z-index: 2;
         }
 
         .button .title {
@@ -118,16 +142,39 @@
             font-size: 0.9rem;
             color: #b0b0b0;
             font-style: italic;
+            margin-top: 8px;
+        }
+
+        .button.full-ai::after {
+            content: '★';
+            color: #FFD700;
+            font-size: 1.5rem;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .button-wrapper {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .button {
+                flex: 0 1 calc(100% - 40px);
+                max-width: none;
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Debate Smarter with AI: Public Forum Cases, Flows & Full Practice Rounds</h1>
+        <h1>Debate Smarter with AI: Free Public Forum Cases, Flows & Full Practice Rounds</h1>
         <p>
             This website helps public forum debate students practice for rounds using tools powered by artificial intelligence. 
             You can engage with the tools below to simulate a full public forum practice round against the AI or practice 
-            other skills like flowing and casewriting. Use a computer for the best experience.
+            other skills like flowing and casewriting. All tools are free of cost. Use a computer for the best experience.
         </p>
     </header>
     <div class="container">
@@ -136,7 +183,7 @@
                 <span class="title">AI Flow</span>
                 <span class="description">Flow speeches in real-time with speech recognition</span>
             </a>
-            <a href="setup.html" class="button">
+            <a href="setup.html" class="button full-ai">
                 <span class="title">Full AI Practice Round</span>
                 <span class="description">Take a full practice round against the AI</span>
                 <span class="note">(includes real-time flowing and speech recognition)</span>
