@@ -13,23 +13,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Free AI Public Forum Debater</title>
   <style>
+
     /* Basic Reset */
-    body, h1, h2, h3, p, input, button {
+     h1, h2, h3, p, input, button {
       margin: 0;
-      padding: 0;
       box-sizing: border-box;
     }
 
     body {
       font-family: 'Arial', sans-serif;
-      background: linear-gradient(180deg, #EBF9FF, #99C9F9);
+      background: linear-gradient(180deg, #b4dcff, #3589dd, #1858b3, #06294d);
       color: #333;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 0 20px;
+      
     }
 
     header {
@@ -47,7 +47,8 @@
     }
 
     main {
-      background: rgba(255, 255, 255, 0.85);
+      
+    
       padding: 30px;
       border-radius: 15px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -273,23 +274,503 @@
   100% { background-position: 200% 0; }
 }
 
+.toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 30px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
 
+        .toolbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 25%,
+                rgba(0, 255, 255, 0.1) 50%,
+                transparent 75%
+            );
+            animation: scanner-beam 8s infinite linear;
+        }
+
+        @keyframes scanner-beam {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+
+        .logo img {
+            height: 40px;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover img {
+            filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 100px;
+            position: relative;
+        }
+
+        .nav-links a {
+            color: #00f3ff !important;
+            text-decoration: none;
+            font-weight: 600;
+            position: relative;
+            padding: 5px 0;
+            background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
+            background-size: 200% 100%;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #00f3ff;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background-position: -100% 0;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+
+        @keyframes border-glow {
+            0% { opacity: 0.6; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.6; }
+        }
+
+        /* Adjust body margin */
+        body {
+            margin-top: 0px;
+            padding-top: 100px;
+        }
+
+        .button.orange {
+            background: linear-gradient(135deg,#FFD700, #F57C00);
+            width: 300px;  /* Wider than the default 300px */
+            height: 50px;  /* Much smaller than the default 150px */
+            padding: 0;    /* Remove extra padding to keep height compact */
+        }
+
+        .button.orange:hover {
+            background: linear-gradient(135deg, #F57C00, #E65100);
+        }
+        .button {
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            width: 300px;
+            height: 150px;
+            font-size: 1rem;
+            color: #fff;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button:hover {
+            background: linear-gradient(135deg, #0056b3, #004080);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+
+        .button-wrapper {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: nowrap;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #0056b3, #004080);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.1), transparent, rgba(255, 255, 255, 0.1));
+            transform: skewX(-45deg);
+            transition: all 0.4s ease;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .button:hover::before {
+            left: 100%;
+            transition: all 0.6s ease;
+        }
+
+        .button:hover::before {
+            left: 100%;
+            transition: all 0.6s ease;
+        }
+
+        .button span {
+            position: relative;
+            z-index: 2;
+        }
+
+        .button .title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0px;
+        }
+
+        .button .description {
+            font-size: 1rem;
+            color: #e0e0e0;
+        }
+
+        .button .note {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+            font-style: italic;
+            margin-top: 8px;
+        }
+
+        .button.full-ai::after {
+            content: '★';
+            color: #FFD700;
+            font-size: 1.5rem;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+        .button.orange {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .button.orange::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #FFD700, #F57C00, #FFD700);
+            z-index: -1;
+            border-radius: 25px;
+            animation: border-glow 2s linear infinite;
+            opacity: 0.6;
+        }
+        .logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-text {
+    color: #00f3ff;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+    letter-spacing: 0.5px;
+    margin-left: 10px;
+}
+.logo {
+    text-decoration: none !important;
+}
+
+.logo-text {
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+
+main {
+      background: linear-gradient(180deg, #b4dcff, #085eb3);
+      padding-top: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+      overflow: visible;
+    }
+
+    main::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0; /* Adjusted so it's not off-screen */
+  width: 100%; /* Static width */
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 75%
+  );
+  /* Animation removed */
+}
+
+    @keyframes panel-glow {
+      100% { transform: translateX(100%); }
+    }
+
+    /* Enhanced Section Styling */
+    section {
+      margin-bottom: 40px;
+      padding: 25px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.6);
+      transition: transform 0.3s ease;
+      position: relative;
+      overflow: visible;
+    }
+
+    section:hover {
+      transform: translateY(-3px);
+    }
+
+    h2, h3 {
+      font-size: 1.8rem;
+      color: #1a1f4b;
+      margin-bottom: 15px;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      position: relative;
+      display: inline-block;
+      padding-bottom: 5px;
+    }
+
+    h2::after, h3::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, #0066cc 0%, #00f3ff 100%);
+      border-radius: 2px;
+    }
+
+    /* Enhanced Input Field */
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0 20px;
+      border: 2px solid #0066cc;
+      border-radius: 10px;
+      font-size: 1rem;
+      color: #333;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #004d99;
+      box-shadow: 0 0 10px rgba(0, 77, 153, 0.7);
+      outline: none;
+    }
+
+    /* Enhanced Button Styling */
+    .skill-level-section button,
+    #affirmative-negative button,
+    #first-second button {
+      min-width: 160px;
+      padding: 12px 25px;
+      border-radius: 8px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #1a1f4b, #0066cc);
+      position: relative;
+      overflow: hidden;
+      border: none;
+    }
+
+    button.selected {
+      background: linear-gradient(135deg, #004d99, #002966);
+      box-shadow: 0 4px 15px rgba(0, 77, 153, 0.4);
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      transform: rotate(45deg);
+      transition: all 0.5s ease;
+    }
+
+    button:hover::before {
+      animation: button-glow 1.5s infinite;
+    }
+
+    @keyframes button-glow {
+      0% { left: -50%; }
+      100% { left: 150%; }
+    }
+
+    /* Enhanced Start Button */
+    #startButton {
+      font-size: 1.3rem;
+      padding: 18px 35px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #00f3ff, #0066cc);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    #pf-debate h2 {
+  margin-bottom: 25px;
+}
+
+#pf-debate label {
+  display: block;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Stack skill level buttons horizontally */
+.skill-level-section {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.skill-level-section button {
+  margin: 0;
+  flex: 0 1 200px;
+}
+
+/* Make selected buttons more obvious */
+button.selected {
+  background: linear-gradient(135deg, #00f3ff, #0066cc) !important;
+  border: 2px solid #00ffff !important;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5) !important;
+  position: relative;
+  
+}
+
+button.selected::after {
+  
+  position: absolute;
+  
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 1.2em;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Adjust info tooltip positioning */
+.tooltip {
+  display: inline-block;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* Refine input field styling */
+input[type="text"] {
+  margin-top: 15px;
+}
+
+.skill-level-section {
+  text-align: center;
+  margin: 25px 0;
+}
+
+.skill-level-section h3 {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 0px;
+}
+
+
+.skill-level-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+}
+
+.skill-level-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+
+}
+#pf-debate {
+  margin-bottom: 20px; /* reduce the gap; adjust the value as needed */
+}
+main {
+  border: none;
+}
   </style>
 </head>
 <body>
-  <!-- Added Go to Home Button -->
-  <a href="https://publicforumai.com" id="homeButton">
-    <span class="home-icon">&#x1F3E0;</span> <!-- This is the home icon -->
-    Go to Home
-  </a>
-  
+  <nav class="toolbar">
+    <a href="https://publicforumai.com" class="logo">
+        <img src="android-chrome-192x192.png" alt="Public Forum AI Logo">
+        <span class="logo-text">PublicForumAI&copy;</span>
+    </a>
+    
+    <div class="nav-links">
+        <a href="https://publicforumai.com/flower.html">AI Flow</a>
+        <a href="https://publicforumai.com/setup.html">AI Practice Round</a>
+        <a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
+    </div>
 
-  <header>
-    <h1>Practice Round</h1>
-  </header>
+    <a href="https://publicforumai.com/n2d-round-structure.html" target="_blank">
+      <div class="button orange">
+          <span class="title">New2Debate</span>
+      </div>
+  </a>
+</nav>
+  
   <main>
     <section id="pf-debate">
-      <h2>PF Debate</h2>
+      <h2>PF Practice Round</h2>
       <label for="debateTopic">
         Enter Resolution (Topic):
         <div class="tooltip">
@@ -300,6 +781,21 @@
         </div>
       </label>
       <input type="text" id="debateTopic" name="debateTopic" required>
+    </section>
+    <section class="skill-level-section">
+      <h3>
+        What is your skill level?
+        <div class="tooltip">
+          <span class="info-icon">i</span>
+          <span class="tooltiptext">
+            Selecting middle school will make the AI far simpler and more accessible. Most users use the high school version.
+          </span>
+        </div>
+      </h3>
+      <div class="skill-level-buttons">
+        <button onclick="selectSkillLevel('middle')" id="middleButton">Middle School</button>
+        <button onclick="selectSkillLevel('high')" id="highButton">High<br>School</button>
+      </div>
     </section>
     <section id="affirmative-negative">
       <h3>Would you like to be affirmative or negative?</h3>
@@ -312,7 +808,7 @@
       <button onclick="selectOptionFS('Second')" id="secondButton">Second</button>
     </section>
     <section id="go-button">
-      <button id="startButton" onclick="goToLink()">Start PF Practice Round!</button>
+      <button id="startButton" onclick="goToLink()">Start Round!</button>
     </section>
   </main>
  
@@ -321,6 +817,14 @@
   <script>
     var selectedSide = '';
     var selectedTurn = '';
+    var selectedSkill = '';
+
+    function selectSkillLevel(level) {
+      selectedSkill = level;
+      document.getElementById('middleButton').classList.remove('selected');
+      document.getElementById('highButton').classList.remove('selected');
+      document.getElementById(level + 'Button').classList.add('selected');
+    }
 
     function selectOptionAffNegg(option) {
       selectedSide = option;
@@ -351,33 +855,47 @@
       }
     }
 
-    function goToLink() {
+        function goToLink() {
       var debateTopic = document.getElementById('debateTopic').value.trim();
       const topicInput = document.getElementById('debateTopic');
       let showAlert = false;
 
+      // Existing validation checks
       if (debateTopic === '') {
         topicInput.classList.add('missing-input');
         showAlert = true;
-      } else {
-        topicInput.classList.remove('missing-input');
       }
 
       if (selectedSide === '') {
         showAlert = true;
         alert('Please select a side.');
-      } else if (selectedTurn === '') {
+      }
+
+      if (selectedTurn === '') {
         showAlert = true;
         alert('Please select whether to go first or second.');
       }
 
-      if (showAlert && debateTopic === '') {
-        alert('Please enter a debate topic.');
-        return; // Prevents proceeding to the link
+      // New skill level validation
+      if (selectedSkill === '') {
+        showAlert = true;
+        alert('Please select your skill level.');
       }
 
+      if (showAlert) {
+        if (debateTopic === '') {
+          alert('Please enter a debate topic.');
+        }
+        return;
+      }
+
+      // Update URL with skill parameter
       var url = 'Flow.html';
-      url += '?selectedSide=' + encodeURIComponent(selectedSide) + '&selectedTurn=' + encodeURIComponent(selectedTurn) + '&debateTopic=' + encodeURIComponent(debateTopic);
+      url += '?selectedSide=' + encodeURIComponent(selectedSide);
+      url += '&selectedTurn=' + encodeURIComponent(selectedTurn);
+      url += '&debateTopic=' + encodeURIComponent(debateTopic);
+      url += '&skillLevel=' + encodeURIComponent(selectedSkill);
+      
       window.location.href = url;
     }
 
