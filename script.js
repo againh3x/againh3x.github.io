@@ -33,7 +33,7 @@ var fullAIRebuttal = '';
 var fullTranscriptionRebuttal = '';
 var fullTranscriptionSummary = '';
 var fullTranscriptionFF = '';
-var isSpeaking = false;
+let isSpeaking = false;
 var isRebutting = false;
 var isGenerating = false;
 var isSpeakingR = false;
@@ -41,6 +41,9 @@ var isSpeakingS = false;
 var isSpeakingF = false;
 var isSummarying = false;
 var isFFing = false;
+let currentAudio = null;
+
+
 
 document.addEventListener('DOMContentLoaded', function () {
     // Parse URL parameters
@@ -103,6 +106,7 @@ AISummaryGenerateB.addEventListener('click', () => {
 });
 AISummarySpeakB.addEventListener('click', () => {
     if (!isSpeakingS) {
+
         AISummarySpeakB.textContent = 'Stop';
         startSpeakingS();
     } else {
@@ -188,18 +192,213 @@ AIRebuttalButton.addEventListener('click', () => {
     }
 
 });
-function startSpeaking() {
+async function startSpeaking() {
     if (!isSpeaking) {
-        var msg = new SpeechSynthesisUtterance();
-        msg.text = document.getElementById('AIContentionText').innerHTML;
-        window.speechSynthesis.speak(msg);
-        isSpeaking = true;
+        let text = document.getElementById('AIContentionText').textContent;
+        text = text.replace(/\[\d+\]/g, '');
+
+        // Remove "Sources:" and everything that follows (works across multiple lines)
+        text = text.replace(/Sources:[\s\S]*$/, '');
+        const chunks = generateDynamicChunks(text, 10); 
+        const audioQueue = [];
+
+        // Fetch audio for each chunk
+        for (let i = 0; i < chunks.length; i += 2) {
+            const responses = await Promise.allSettled([
+                fetchAudioFromServer(chunks[i]),
+                chunks[i + 1] ? fetchAudioFromServer(chunks[i + 1]) : null
+            ]);
+
+            responses.forEach(result => {
+                if (result.status === 'fulfilled' && result.value) {
+                    audioQueue.push(result.value);
+                }
+            });
+
+            // Start playing if queue has audio
+            if (audioQueue.length > 0 && !isSpeaking) {
+                playAudioQueue(audioQueue);
+            }
+        }
     }
 }
+
+async function fetchAudioFromServer(text) {
+    try {
+        const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/tts', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                input: { text: text },
+                voice: {
+                    languageCode: "en-US",
+                    name: "en-US-Chirp3-HD-Orus"
+                },
+                audioConfig: {
+                    audioEncoding: "LINEAR16",
+                    pitch: 0,
+                    speakingRate: 1.19,
+                    effectsProfileId: ["small-bluetooth-speaker-class-device"]
+                }
+            }),
+        });
+
+        if (!response.ok) {
+            console.error("TTS API error:", response.statusText);
+            return null;
+        }
+
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return null;
+    }
+}
+
+function generateDynamicChunks(text, numChunks) {
+    const words = text.split(' ');
+    const totalWords = words.length;
+    // Using a fixed distribution for 10 chunks; adjust if needed.
+    const chunkPercents = [5, 7, 10, 12, 13, 15, 15, 10, 7, 6];
+    let chunks = [];
+    let start = 0;
+  
+    for (let i = 0; i < chunkPercents.length; i++) {
+      if (start >= totalWords) break;
+      // Calculate a target index based on the percentage
+      let targetCount = Math.floor((chunkPercents[i] / 100) * totalWords);
+      let targetIndex = start + targetCount;
+      if (targetIndex >= totalWords) targetIndex = totalWords - 1;
+  
+      let boundary = targetIndex;
+      let foundPeriod = false;
+      
+      // Search forward from targetIndex for the closest word containing a period.
+      for (let j = targetIndex; j < totalWords; j++) {
+        if (words[j].includes('.')) {
+          boundary = j + 1; // Include the word with the period.
+          foundPeriod = true;
+          break;
+        }
+      }
+      
+      // If not found forward, search backward from targetIndex.
+      if (!foundPeriod) {
+        for (let j = targetIndex; j >= start; j--) {
+          if (words[j].includes('.')) {
+            boundary = j + 1;
+            foundPeriod = true;
+            break;
+          }
+        }
+      }
+      
+      // If no period is found at all, use the target index.
+      if (!foundPeriod) {
+        boundary = targetIndex;
+      }
+      
+      // Ensure we do not go past the end.
+      if (boundary > totalWords) boundary = totalWords;
+      
+      // Create the chunk.
+      const chunk = words.slice(start, boundary).join(' ');
+      chunks.push(chunk);
+      
+      // Update start for the next chunk.
+      start = boundary;
+    }
+    
+    // If any words remain, append them to the final chunk.
+    if (start < totalWords) {
+      const remaining = words.slice(start).join(' ');
+      if (chunks.length > 0) {
+        chunks[chunks.length - 1] += ' ' + remaining;
+      } else {
+        chunks.push(remaining);
+      }
+    }
+    
+    return chunks;
+  }
+  
+
+  function playAudioQueue(queue) {
+    if (queue.length === 0) return;
+    isSpeaking = true;
+
+    const audio = new Audio(queue.shift());
+    window.currentAudio = audio; // Save reference to the current audio
+    audio.play();
+
+    audio.onended = () => {
+        if (queue.length > 0) {
+            playAudioQueue(queue);
+        } else {
+            isSpeaking = false;
+            window.currentAudio = null;
+        }
+    };
+}
+function playAudioQueueR(queue) {
+    if (queue.length === 0) return;
+    isSpeakingR = true;
+
+    const audio = new Audio(queue.shift());
+    window.currentAudio = audio; // Save reference to the current audio
+    audio.play();
+
+    audio.onended = () => {
+        if (queue.length > 0) {
+            playAudioQueue(queue);
+        } else {
+            isSpeakingR = false;
+            window.currentAudio = null;
+        }
+    };
+}
+function playAudioQueueS(queue) {
+    if (queue.length === 0) return;
+    isSpeakingS = true;
+
+    const audio = new Audio(queue.shift());
+    window.currentAudio = audio; // Save reference to the current audio
+    audio.play();
+
+    audio.onended = () => {
+        if (queue.length > 0) {
+            playAudioQueue(queue);
+        } else {
+            isSpeakingS = false;
+            window.currentAudio = null;
+        }
+    };
+}
+function playAudioQueueF(queue) {
+    if (queue.length === 0) return;
+    isSpeakingF = true;
+
+    const audio = new Audio(queue.shift());
+    window.currentAudio = audio; // Save reference to the current audio
+    audio.play();
+
+    audio.onended = () => {
+        if (queue.length > 0) {
+            playAudioQueue(queue);
+        } else {
+            isSpeakingF = false;
+            window.currentAudio = null;
+        }
+    };
+}
+
 function stopSpeaking() {
-    if (isSpeaking) {
-        speechSynthesis.cancel();
-        isSpeaking = false;
+    isSpeaking = false;
+    if (window.currentAudio) {
+        window.currentAudio.pause();
+        window.currentAudio.currentTime = 0;
+        window.currentAudio = null;
     }
 }
 function stopGenerating() {
@@ -209,23 +408,63 @@ function stopGeneratingAIRebuttal() {
 
 }
 function stopSpeakingR() {
-    if (isSpeakingR) {
-        speechSynthesis.cancel();
-        isSpeakingR = false;
+    isSpeakingR = false;
+    if (window.currentAudio) {
+        window.currentAudio.pause();
+        window.currentAudio.currentTime = 0;
+        window.currentAudio = null;
     }
 
+}
+function stopSpeakingS() {
+    isSpeakingS = false;
+    if (window.currentAudio) {
+        window.currentAudio.pause();
+        window.currentAudio.currentTime = 0;
+        window.currentAudio = null;
+    }
 
 }
-function startSpeakingR() {
+function stopSpeakingF() {
+    isSpeakingF = false;
+    if (window.currentAudio) {
+        window.currentAudio.pause();
+        window.currentAudio.currentTime = 0;
+        window.currentAudio = null;
+    }
+
+}
+
+async function startSpeakingR() {
     if (!isSpeakingR) {
-        var msg1 = new SpeechSynthesisUtterance();
-        msg1.text = document.getElementById('AIRebuttalText').innerHTML;
-        window.speechSynthesis.speak(msg1);
-        isSpeakingR = true;
+        let text = document.getElementById('AIRebuttalText').textContent;
+        text = text.replace(/\[\d+\]/g, '');
 
+        // Remove "Sources:" and everything that follows (works across multiple lines)
+        text = text.replace(/Sources:[\s\S]*$/, '');
+        const chunks = generateDynamicChunks(text, 10); 
+        const audioQueue = [];
+
+        // Fetch audio for each chunk
+        for (let i = 0; i < chunks.length; i += 2) {
+            const responses = await Promise.allSettled([
+                fetchAudioFromServer(chunks[i]),
+                chunks[i + 1] ? fetchAudioFromServer(chunks[i + 1]) : null
+            ]);
+
+            responses.forEach(result => {
+                if (result.status === 'fulfilled' && result.value) {
+                    audioQueue.push(result.value);
+                }
+            });
+
+            // Start playing if queue has audio
+            if (audioQueue.length > 0 && !isSpeakingR) {
+                playAudioQueueR(audioQueue);
+            }
+        }
     }
 }
-
 async function startGenerating(debateTopic, nonselectedSide) {
     generateButtonAI.classList.remove('glowing');
     fullAIContentionRaw = '';
@@ -1272,33 +1511,65 @@ function stopGeneratingAISummary() {
 function stopGeneratingAIFF() {
 
 }
-function startSpeakingS() {
+
+async function startSpeakingS() {
     if (!isSpeakingS) {
-        var msg2 = new SpeechSynthesisUtterance();
-        msg2.text = document.getElementById('AISummaryText').innerHTML;
-        window.speechSynthesis.speak(msg2);
-        isSpeakingS = true;
+        let text = document.getElementById('AISummaryText').textContent;
+        text = text.replace(/\[\d+\]/g, '');
 
+        // Remove "Sources:" and everything that follows (works across multiple lines)
+        text = text.replace(/Sources:[\s\S]*$/, '');
+        const chunks = generateDynamicChunks(text, 10); 
+        const audioQueue = [];
+
+        // Fetch audio for each chunk
+        for (let i = 0; i < chunks.length; i += 2) {
+            const responses = await Promise.allSettled([
+                fetchAudioFromServer(chunks[i]),
+                chunks[i + 1] ? fetchAudioFromServer(chunks[i + 1]) : null
+            ]);
+
+            responses.forEach(result => {
+                if (result.status === 'fulfilled' && result.value) {
+                    audioQueue.push(result.value);
+                }
+            });
+
+            // Start playing if queue has audio
+            if (audioQueue.length > 0 && !isSpeakingS) {
+                playAudioQueueS(audioQueue);
+            }
+        }
     }
 }
-function startSpeakingF() {
+async function startSpeakingF() {
     if (!isSpeakingF) {
-        var msg3 = new SpeechSynthesisUtterance();
-        msg3.text = document.getElementById('AIFFText').innerHTML;
-        window.speechSynthesis.speak(msg3);
-        isSpeakingF = true;
+        let text = document.getElementById('AIFFText').textContent;
+        text = text.replace(/\[\d+\]/g, '');
 
+        // Remove "Sources:" and everything that follows (works across multiple lines)
+        text = text.replace(/Sources:[\s\S]*$/, '');
+        const chunks = generateDynamicChunks(text, 10); 
+        const audioQueue = [];
+
+        // Fetch audio for each chunk
+        for (let i = 0; i < chunks.length; i += 2) {
+            const responses = await Promise.allSettled([
+                fetchAudioFromServer(chunks[i]),
+                chunks[i + 1] ? fetchAudioFromServer(chunks[i + 1]) : null
+            ]);
+
+            responses.forEach(result => {
+                if (result.status === 'fulfilled' && result.value) {
+                    audioQueue.push(result.value);
+                }
+            });
+
+            // Start playing if queue has audio
+            if (audioQueue.length > 0 && !isSpeakingF) {
+                playAudioQueueF(audioQueue);
+            }
+        }
     }
 }
-function stopSpeakingS() {
-    if (isSpeakingS) {
-        speechSynthesis.cancel();
-        isSpeakingS = false;
-    }
-}
-function stopSpeakingF() {
-    if (isSpeakingF) {
-        speechSynthesis.cancel();
-        isSpeakingF = false;
-    }
-}
+
