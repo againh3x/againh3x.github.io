@@ -16,7 +16,7 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(180deg, #EBF9FF, #99C9F9);
+            background: linear-gradient(180deg, #b4dcff, #3589dd, #1858b3, #06294d);
             margin: 0;
             padding: 40px;
             display: flex;
@@ -242,10 +242,271 @@
   opacity: 1;
 }
 
+.toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 30px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .toolbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 25%,
+                rgba(0, 255, 255, 0.1) 50%,
+                transparent 75%
+            );
+            animation: scanner-beam 8s infinite linear;
+        }
+
+        @keyframes scanner-beam {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+
+        .logo img {
+            height: 40px;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover img {
+            filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 100px;
+            position: relative;
+        }
+
+        .nav-links a {
+            color: #00f3ff !important;
+            text-decoration: none;
+            font-weight: 600;
+            position: relative;
+            padding: 5px 0;
+            background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
+            background-size: 200% 100%;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #00f3ff;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background-position: -100% 0;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+
+        @keyframes border-glow {
+            0% { opacity: 0.6; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.6; }
+        }
+
+        /* Adjust body margin */
+        body {
+            margin-top: 80px;
+            padding: 20px;
+        }
+
+        .button.orange {
+            background: linear-gradient(135deg,#FFD700, #F57C00);
+            width: 300px;  /* Wider than the default 300px */
+            height: 50px;  /* Much smaller than the default 150px */
+            padding: 0;    /* Remove extra padding to keep height compact */
+        }
+
+        .button.orange:hover {
+            background: linear-gradient(135deg, #F57C00, #E65100);
+        }
+        .button {
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            width: 300px;
+            height: 150px;
+            font-size: 1rem;
+            color: #fff;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button:hover {
+            background: linear-gradient(135deg, #0056b3, #004080);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+
+        .button-wrapper {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: nowrap;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #0056b3, #004080);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.1), transparent, rgba(255, 255, 255, 0.1));
+            transform: skewX(-45deg);
+            transition: all 0.4s ease;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .button:hover::before {
+            left: 100%;
+            transition: all 0.6s ease;
+        }
+
+        .button:hover::before {
+            left: 100%;
+            transition: all 0.6s ease;
+        }
+
+        .button span {
+            position: relative;
+            z-index: 2;
+        }
+
+        .button .title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0px;
+        }
+
+        .button .description {
+            font-size: 1rem;
+            color: #e0e0e0;
+        }
+
+        .button .note {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+            font-style: italic;
+            margin-top: 8px;
+        }
+
+        .button.full-ai::after {
+            content: '★';
+            color: #FFD700;
+            font-size: 1.5rem;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+        .button.orange {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .button.orange::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #FFD700, #F57C00, #FFD700);
+            z-index: -1;
+            border-radius: 25px;
+            animation: border-glow 2s linear infinite;
+            opacity: 0.6;
+        }
+        .logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-text {
+    color: #00f3ff;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+    letter-spacing: 0.5px;
+    margin-left: 10px;
+}
+.logo {
+    text-decoration: none !important;
+}
+
+.logo-text {
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
 
     </style>
 </head>
 <body>
+    <nav class="toolbar">
+        <a href="https://publicforumai.com" class="logo">
+            <img src="android-chrome-192x192.png" alt="Public Forum AI Logo">
+            <span class="logo-text">PublicForumAI&copy;</span>
+        </a>
+        
+        <div class="nav-links">
+            <a href="https://publicforumai.com/flower.html">AI Flow</a>
+            <a href="https://publicforumai.com/setup.html">AI Practice Round</a>
+            <a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
+        </div>
+    
+        <a href="https://publicforumai.com/n2d-casewriting.html" target="_blank">
+            <div class="button orange">
+                <span class="title">New2Debate</span>
+            </div>
+        </a>
+    </nav>
+
     <div class="container">
         <div class="controls">
             <h1>Casewriter Manager</h1>
