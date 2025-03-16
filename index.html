@@ -25,7 +25,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: linear-gradient(180deg, #EBF9FF, #99C9F9, #6FA1E7);
+            background: linear-gradient(180deg, #b4dcff, #085eb3, #10448c, #06294d);
             text-align: center;
             color: #333;
             min-height: 100vh;
@@ -43,7 +43,7 @@
             font-weight: bold;
             color: #004085;
             text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
-            max-width: 80%;
+            max-width: 90%;
             margin-left: auto;
             margin-right: auto;
         }
@@ -52,15 +52,16 @@
             font-size: 1.2rem;
             line-height: 1.8;
             color: #004d99;
-            max-width: 60%;
+            max-width: 80%;
             margin: 0 auto;
             padding-top: 20px;
         }
 
+        /* Container now only wraps the three main buttons */
         .container {
             text-align: center;
             background: linear-gradient(180deg, #99C9F9, #6FA1E7);
-            padding: 40px 20px;
+            padding: 40px 20px 60px;
             margin-top: 30px;
             border-radius: 20px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
@@ -154,6 +155,18 @@
             right: 5px;
         }
 
+        /* New orange button styling remains unchanged */
+        .button.orange {
+            background: linear-gradient(135deg,#FFD700, #F57C00);
+            width: 500px;  /* Wider than the default 300px */
+            height: 50px;  /* Much smaller than the default 150px */
+            padding: 0;    /* Remove extra padding to keep height compact */
+        }
+
+        .button.orange:hover {
+            background: linear-gradient(135deg, #F57C00, #E65100);
+        }
+
         @media (max-width: 768px) {
             .button-wrapper {
                 flex-wrap: wrap;
@@ -177,6 +190,8 @@
             other skills like flowing and casewriting. All tools are free of cost and tailored toward Public Forum-style debate. Please use a computer for the best experience.
         </p>
     </header>
+
+    <!-- Container for the three primary buttons -->
     <div class="container">
         <div class="button-wrapper">
             <a href="flower.html" class="button">
@@ -194,5 +209,160 @@
             </a>
         </div>
     </div>
+        <!-- New2Debate button is now outside of the container -->
+        <div style="margin-top: -20px; margin-bottom: 80px;">
+            <a href="new2debate.html" class="button orange">
+                <span class="title">New2Debate</span>
+            </a>
+        </div>
+        <!-- Add this right before the closing </body> tag -->
+<section id="ai-page" class="hidden">
+    <div class="ai-content">
+        <img src="android-chrome-192x192.png" class="ai-logo">
+        
+        <div class="mission-statement">
+            <h2>Mission Statement</h2>
+            <p>PublicForumAI is dedicated to making public forum debate more accessible. We provide resources and guidance to help debaters of all levels improve, especially those without access to traditional support. Our goal is to equip students with the skills and confidence to succeed in debate.</p>
+        </div>
+
+        <div class="ai-faq">
+            <h3>AI System FAQs</h3>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h4>How does the AI work?</h4>
+                    <p>Our hybrid architecture combines several large language models and web search APIs that are fed example cases and combined through natural language processing techniques. </p>
+                </div>
+                <div class="faq-item">
+                    <h4>Is This Cheating?</h4>
+                    <p>No. Our AI tools are not meant to be used in real rounds, and will not generate links to sources in rebuttal and summary for this reason. PublicForumAI is meant to help users prepare for rounds through real debate experience that can be accessed without human opponents from anywhere at anytime.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Can AI replace human judges?</h4>
+                    <p>No. Our systems are designed as training tools, not replacements for human evaluation. They provide metrics, not subjective judgments.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>How current is the information?</h4>
+                    <p>Our knowledge base updates in real-time, incorporating new resolutions, case literature, and tournament results through continuous learning algorithms.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* AI Page Styles */
+    #ai-page {
+    position: relative;
+    padding: 80px 20px;
+    background: #0A2342;
+    color: #e0e0e0;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 1s ease;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px; /* Add rounded corners */
+    overflow: hidden; /* Ensures content does not spill out of the rounded corners */
+    max-width: 95%; /* Ensures it does not take the full width */
+    margin: 20px auto; /* Centers the section and adds spacing */
+}
+
+    #ai-page.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .ai-content {
+        max-width: 1200px;
+        width: 90%;
+    }
+
+    .ai-logo {
+        width: 80px;
+        height: 80px;
+        margin: -40px auto 30px;
+        filter: drop-shadow(0 0 15px rgba(125, 211, 252, 0.6));
+    }
+
+    .mission-statement {
+        text-align: center;
+        margin-bottom: 60px;
+        padding: 30px;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+        background: rgba(10, 35, 66, 0.9); /* Match opacity */
+        border: 1px solid #7AE7C7; /* Mint accent */
+    }
+
+    .mission-statement h2 {
+        font-size: 2.2rem;
+        color: #7dd3fc;
+        margin-bottom: 25px;
+        text-shadow: 0 0 15px rgba(125, 211, 252, 0.4);
+    }
+
+    .ai-faq h3 {
+        font-size: 1.8rem;
+        color: #2dd4bf;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .faq-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+    }
+
+    .faq-item {
+        
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid rgba(125, 211, 252, 0.3);
+        transition: transform 0.3s ease;
+        border: 1px solid #7AE7C7; /* Consistent accents */
+    }
+
+    .faq-item:hover {
+        transform: translateY(-5px);
+    }
+
+    .faq-item h4 {
+        color: #7dd3fc;
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+    }
+
+    .faq-item p {
+        line-height: 1.6;
+        font-size: 0.95rem;
+        color: #c0c0c0;
+    }
+
+    @media (max-width: 768px) {
+        .mission-statement h2 {
+            font-size: 1.8rem;
+        }
+        
+        .ai-faq h3 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<script>
+    // Add this right before the closing tag in body
+    window.addEventListener('scroll', () => {
+        const aiPage = document.getElementById('ai-page');
+        const scrollPosition = window.scrollY;
+        const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+        if (scrollPosition > pageHeight * 0.3) { // Adjust trigger point as needed
+            aiPage.classList.add('active');
+        }
+    });
+</script>
 </body>
 </html>
