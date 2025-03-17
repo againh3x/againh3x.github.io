@@ -148,7 +148,8 @@ generateButtonAI.addEventListener('click', () => {
     if (!isGenerating) {
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
-        startGenerating(debateTopic, nonselectedSide);
+        const selectedSkill = document.getElementById('skillLevel').textContent
+        startGenerating(debateTopic, nonselectedSide, selectedSkill);
         generateButtonAI.textContent = 'Stop'; // Change button text to "Stop"
         isGenerating = true;
     } else {
@@ -465,7 +466,7 @@ async function startSpeakingR() {
         }
     }
 }
-async function startGenerating(debateTopic, nonselectedSide) {
+async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
     generateButtonAI.classList.remove('glowing');
     fullAIContentionRaw = '';
     document.getElementById('AIContentionText').innerHTML = '';
@@ -478,7 +479,8 @@ async function startGenerating(debateTopic, nonselectedSide) {
             method: 'POST',
             body: JSON.stringify({
                 debateTopic: debateTopic,
-                nonselectedSide: nonselectedSide
+                nonselectedSide: nonselectedSide,
+                selectedSkill: selectedSkill
             }),
             headers: {
                 'Content-Type': 'application/json'
@@ -1572,4 +1574,3 @@ async function startSpeakingF() {
         }
     }
 }
-
