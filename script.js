@@ -47,22 +47,20 @@ let currentAudio = null;
 
 document.addEventListener('DOMContentLoaded', function () {
     // Parse URL parameters
-    const params = new URLSearchParams(window.location.search);
-    // Retrieve the values of selectedSide and selectedTurn from URL parameters
-    const selectedSide = params.get('selectedSide');
-    const selectedTurn = params.get('selectedTurn');
-    debateTopic = params.get('debateTopic'); // Assign to the global variable directly
-    console.log("Debate Topic:", debateTopic);
-
-
-    // Display the values in the desired location on the page
-    document.getElementById('selectedSide').textContent = selectedSide;
-    document.getElementById('selectedTurn').textContent = selectedTurn;
-    document.getElementById('selectedSkill').textContent = params.get('selectedSkill');
-
-
+        const params = new URLSearchParams(window.location.search);
+        
+        // Get all parameters
+        const selectedSide = params.get('selectedSide');
+        const selectedTurn = params.get('selectedTurn');
+        const selectedSkill = params.get('selectedSkill'); // Add this line
+        debateTopic = params.get('debateTopic');
+    
+        // Set text content for ALL parameters
+        document.getElementById('selectedSide').textContent = selectedSide;
+        document.getElementById('selectedTurn').textContent = selectedTurn;
+        document.getElementById('selectedSkill').textContent = selectedSkill; // This was missing
     // Update the other occurrence of selectedSide
-    document.querySelector('.small-text span:last-of-type').textContent = selectedSide;
+    
 
     // Set the first occurrence of selectedSide to the same value
     document.querySelector('#selectedSide').textContent = selectedSide;
