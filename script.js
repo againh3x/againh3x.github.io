@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Display the values in the desired location on the page
     document.getElementById('selectedSide').textContent = selectedSide;
     document.getElementById('selectedTurn').textContent = selectedTurn;
+    document.getElementById('selectedSkill').textContent = params.get('selectedSkill');
 
 
     // Update the other occurrence of selectedSide
