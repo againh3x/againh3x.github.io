@@ -901,8 +901,14 @@ main {
       selectedSkill = level;
       document.getElementById('middleButton').classList.remove('selected');
       document.getElementById('highButton').classList.remove('selected');
-      document.getElementById(level + 'Button').classList.add('selected');
+      if (option === 'Middle') {
+        document.getElementById('middleButton').classList.remove('selected');
+      } else {
+        document.getElementById('highButton').classList.add('selected');
+      
     }
+    }
+    
 
     function selectOptionAffNegg(option) {
       selectedSide = option;
