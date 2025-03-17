@@ -148,7 +148,7 @@ generateButtonAI.addEventListener('click', () => {
     if (!isGenerating) {
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
-        const selectedSkill = document.getElementById('skillLevel').textContent
+        const selectedSkill = document.getElementById('skillLevel').textContent;
         startGenerating(debateTopic, nonselectedSide, selectedSkill);
         generateButtonAI.textContent = 'Stop'; // Change button text to "Stop"
         isGenerating = true;
