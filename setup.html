@@ -746,6 +746,84 @@ input[type="text"] {
 main {
   border: none;
 }
+.bottom-tab {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
+  border-top: 1px solid rgba(0, 255, 255, 0.2);
+  padding: 15px 20px;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.bottom-tab::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 25%,
+    rgba(0, 255, 255, 0.1) 50%,
+    transparent 75%
+  );
+  animation: scanner-beam 8s infinite linear;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-around;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-link {
+  color: #00f3ff !important;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 10px 15px;
+  position: relative;
+  transition: all 0.3s ease;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
+  background-size: 200% 100%;
+}
+
+.footer-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #00f3ff;
+  transition: width 0.3s ease;
+}
+
+.footer-link:hover {
+  background-position: -100% 0;
+  text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+}
+
+.footer-link:hover::after {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .footer-link {
+    padding: 8px 0;
+  }
+}
   </style>
 </head>
 <body>
@@ -811,7 +889,7 @@ main {
       <button id="startButton" onclick="goToLink()">Start Round!</button>
     </section>
   </main>
- 
+  <div id="selectedSkill" style="display: none"></div>
   <div id="selectedSide" style="display: none;"></div>
   <div id="selectedTurn" style="display: none;"></div>
   <script>
@@ -894,7 +972,7 @@ main {
       url += '?selectedSide=' + encodeURIComponent(selectedSide);
       url += '&selectedTurn=' + encodeURIComponent(selectedTurn);
       url += '&debateTopic=' + encodeURIComponent(debateTopic);
-      url += '&skillLevel=' + encodeURIComponent(selectedSkill);
+      url += '&selectedSkill=' + encodeURIComponent(selectedSkill);
       
       window.location.href = url;
     }
@@ -903,5 +981,6 @@ main {
     document.getElementById('debateTopic').addEventListener('input', checkDebateTopic);
 
   </script>
+
 </body>
 </html>
