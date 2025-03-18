@@ -484,6 +484,13 @@
     text-decoration: none !important;
     border-bottom: none !important;
 }
+.contentions-label {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 5px; /* Add margin below the label */
+    display: block; /* Ensure the label is block-level */
+}
 
     </style>
 </head>
@@ -532,7 +539,18 @@
                     <option value="Negative">Negative</option>
                 </select>
             </div>
+            <div class="input-group">
+                <label for="skillLevel">Skill Level:</label>
+                <select id="skillLevel">
+                    <option value="high" selected>High School (default)</option>
+                    <option value="middle">Middle School</option>
+                </select>
+            </div>
+            <label for="contentions" class="contentions-label"># of Contentions:</label>
+
+
             <div class="input-group" id="contentionsGroup">
+                
                 <input type="radio" id="one" name="contentions" value="1">
                 <label for="one">1 Contention</label>
                 <input type="radio" id="two" name="contentions" value="2" checked>
@@ -565,6 +583,7 @@
 async function generateCase() {
             const topic = document.getElementById('topic').value;
             const side = document.getElementById('side').value;
+            const skill = document.getElementById('skillLevel').value;
             const contentions = document.querySelector('input[name="contentions"]:checked').value;
 
             // Add your logic for generating a case here
@@ -580,6 +599,7 @@ async function generateCase() {
                     body: JSON.stringify({
                         debateTopic: topic,
                         nonselectedSide: side,
+                        selectedSkill: skill,
                         contentions: contentions
                     }),
                     headers: {
