@@ -179,6 +179,42 @@
                 margin-bottom: 20px;
             }
         }
+        .mission-statement p {
+    font-size: 1.2rem; /* Changed from 0.95rem */
+    line-height: 1.8;
+    max-width: 800px;
+    margin: 0 auto;
+    color: #e0e0e0;
+}
+/* Remove the star */
+.button.full-ai::after {
+    content: none;
+}
+
+/* Add glow animation to title */
+.button.full-ai .title {
+    animation: title-glow 2s ease-in-out infinite;
+    position: relative;
+}
+
+@keyframes title-glow {
+    0%, 100% {
+        text-shadow: 0 0 10px rgba(125, 211, 252, 0.8),
+                     0 0 20px rgba(125, 211, 252, 0.6),
+                     0 0 30px rgba(125, 211, 252, 0.4);
+    }
+    50% {
+        text-shadow: 0 0 15px rgba(125, 211, 252, 1),
+                     0 0 30px rgba(125, 211, 252, 0.8),
+                     0 0 45px rgba(125, 211, 252, 0.6);
+    }
+}
+
+/* Enhance button border glow */
+.button.full-ai {
+    border: 2px solid #7dd3fc;
+    box-shadow: 0 0 15px rgba(125, 211, 252, 0.4);
+}
     </style>
 </head>
 <body>
@@ -237,12 +273,12 @@
                     <p>No. Our AI tools are not meant to be used in real rounds, and will not generate links to sources in rebuttal and summary for this reason. PublicForumAI is meant to help users prepare for rounds through real debate experience that can be accessed without human opponents from anywhere at anytime.</p>
                 </div>
                 <div class="faq-item">
-                    <h4>Can AI replace human judges?</h4>
-                    <p>No. Our systems are designed as training tools, not replacements for human evaluation. They provide metrics, not subjective judgments.</p>
+                    <h4>Can I recieve feedback after my round?</h4>
+                    <p>Yes, you will recieve structured AI feedback upon completing a full practice round.</p>
                 </div>
                 <div class="faq-item">
-                    <h4>How current is the information?</h4>
-                    <p>Our knowledge base updates in real-time, incorporating new resolutions, case literature, and tournament results through continuous learning algorithms.</p>
+                    <h4>Is there a crossfire feature?</h4>
+                    <p>While it is definitely possible, we do not yet have a crossfire feature that would be fast enough to replicate a real round. However, its in the works!</p>
                 </div>
             </div>
         </div>
