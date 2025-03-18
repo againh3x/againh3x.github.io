@@ -1,482 +1,499 @@
 body {
     
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(180deg, #EBF9FF, #99c9f9); /* Adjusted to match the image gradient */
-    background-repeat: no-repeat;
-    background-size: cover;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #EBF9FF, #99c9f9); /* Adjusted to match the image gradient */
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+    
+    
+    
+    h1 {
+      color: #333;
+    }
+    
+    
+    button {
+      padding: 10px 20px;
+      /* Add padding to make the button larger */
+      background-color: #007bff;
+      /* Change the background color */
+      color: #fff;
+      /* Change the text color */
+      border: none;
+      /* Remove the border */
+      border-radius: 5px;
+      /* Add border radius for rounded corners */
+      cursor: pointer;
+      /* Change cursor to pointer on hover */
+    }
+    
+    
+    button:hover {
+      background-color: #0056b3;
+      /* Darker background color on hover */
+    }
+    
+    
+    .small-text {
+      position: absolute;
+      top: 30px;
+      right: 100px;
+      font-size: 12px;
+      color: black;
+    }
+    
+    
+    .header {
+      display: flex;
+      align-items: center;
+      
+    }
+    
+    
+    #toggle-flow {
+      margin-left: 10px;
+      /* Adjust the margin as needed */
+    }
+    
+    
+    #debateTopic {
+      width: 500px;
+      /* Set the width of the text box */
+      height: 40px;
+      /* Set the height of the text box */
+      padding: 8px;
+      /* Add padding inside the text box */
+      font-size: 16px;
+      /* Set the font size */
+      border: 1px solid #ccc;
+      /* Add a border */
+      border-radius: 5px;
+      /* Add border radius for rounded corners */
+    }
+    
+    
+    .case-box,
+    .rebuttal-box,
+    .summary-box,
+    .ff-box {
+      border: 2px solid #10014e;
+      padding: 0px 10px 10px;
+      width: 25%;
+      height: 100vh;
+      overflow: auto;
+      box-sizing: border-box;
+      float: left;
+      /* Float the boxes to arrange them side by side */
+    }
+    
+    
+    .case-box h2,
+    .rebuttal-box h2,
+    .summary-box h2,
+    .ff-box h2 {
+      margin-right: 20px;
+      width: auto;
+    }
+    
+    
+    #caseHeader,
+    #rebuttalHeaderUser,
+    #rebuttalHeaderAI,
+    #summaryHeaderUser,
+    #summaryHeaderAI,
+    #FFHeaderUser,
+    #FFHeaderAI {
+      display: flex;
+      align-items: center;
+      width: calc(100%);
+      font-size: 14px;
+    }
+    
+    
+    #transcriptionContentionText,
+    #AIContentionText {
+      width: auto;
+      margin-top: 10px;
+      
+      /* Add some top margin for spacing */
+    }
+    
+    #AIRebuttalText {
+      width: auto;
+      margin-top: 10px;
+      /* Add some top margin for spacing */
+    }
+    
+    #UserFlow,
+    #AIFlow {
+      display: flex;
+      /* Use flexbox to arrange the elements */
+    }
+    
+    
+    #caseHeader,
+    #caseHeaderAI {
+      display: flex;
+      align-items: center;
+      width: calc(75%);
+      font-size: 14px;
+    }
+    
+    
+    #caseHeader button,
+    #caseHeaderAI button,
+    #rebuttalHeaderUser button,
+    #rebuttalHeaderAI button,
+    #summaryHeaderUser button,
+    #summaryHeaderAI button,
+    #FFHeaderUser button,
+    #FFHeaderAI button {
+      margin-left: -3px;
+      /* Adjust margin between button and text */
+    }
+    
+    
+    #caseHeader h2,
+    #caseHeaderAI h2 {
+      margin-right: 20px;
+      width: auto;
+    }
+    
+    
+    .spinner {
+      border: 8px solid #f3f3f3;
+      /* Light grey */
+      border-top: 8px solid #007bff;
+      /* Blue */
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 2s linear infinite;
+      margin: 20px auto;
+      /* Center the spinner horizontally */
+    }
+    
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+    
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    
+    .loading-container {
+      display: none;
+      /* Hidden by default */
+      text-align: center;
+      /* Center the spinner container */
+    }
+  
+  
+  
+  
+  .loading {
+    text-align: center;
+    margin-top: 100px;
+    display: none;
+  }
+  
+  .text10 {
+    font-size: 20px;
+    margin-bottom: 0px;
+    
+  }
+  
+  .ai-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 10vh; /* Ensure it's centered in full view */
+  }
+  
+  .dot {
+    width: 15px;
+    height: 15px;
+    margin: 0 5px;
+    border-radius: 50%;
+    background-color: #2e5adc;
+    animation: pulse 1.5s infinite;
+  }
+  
+  .dot1 {
+    animation-delay: 0s;
+  }
+  .dot2 {
+    animation-delay: 0.2s;
+  }
+  .dot3 {
+    animation-delay: 0.4s;
+  }
+  .dot4 {
+    animation-delay: 0.6s;
+  }
+  .dot5 {
+    animation-delay: 0.8s;
+  }
+  .dot6 {
+    animation-delay: 1s;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+  }
+  
+  .listeningC {
+    text-align: center;
+    display: none;
+  }
+  .listeningR {
+    text-align: center;
+    display: none;
+  }
+  
+  .text100 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    
+  }
+  .listening-container {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    height: 40px; /* Adjust as needed */
+  }
+  
+  .listening-container .stroke{
+    display: block;
+    position: relative;
+    background: #2505c4;
+    height: 100%;
+    width: 10px;
+    border-radius: 50px;
+    margin: 0 5px;
+    animation: animate 1.2s linear infinite
+  }
+  @keyframes animate {
+    50% {
+       height: 20%;
+    }
+    100% {
+       height: 100%;
+    }
+  }
+  
+  .stroke:nth-child(1) {
+    animation-delay: 0s;
+  }
+  .stroke:nth-child(2) {
+    animation-delay: 0.3s;
+  }
+  .stroke:nth-child(3) {
+    animation-delay: 0.6s;
+  }
+  .stroke:nth-child(4) {
+    animation-delay: 0.9s;
+  }
+  .stroke:nth-child(5) {
+    animation-delay: 0.6s;
+  }
+  .stroke:nth-child(6) {
+    animation-delay: 0.3s;
+  }
+  .stroke:nth-child(7) {
+    animation-delay: 0s;
+  }
+  
+  .loadingU {
+    text-align: center;
+    margin-top: 100px;
+    display: none;
+  }
+  .loadingRA {
+    text-align: center;
+    margin-top: 100px;
+    display: none;
+  }
+  .loadingRU {
+    text-align: center;
+    margin-top: 100px;
+    display: none;
+  }
+  .loadingSU {
+    text-align: center;
+    margin-top: 100px;
+    display: none;
+  }
+  .loadingFFU {
+    text-align: center;
+    margin-top: 100px;
+    display: none;
+  }
+  
+  .loadingSA {
+    text-align: center;
+    margin-top: 100px;
+    display: none;
+  }
+  .loadingFFA {
+    text-align: center;
+    margin-top: 100px;
+    display: none;
   }
   
   
+  .text10 {
+    font-size: 20px;
+    margin-bottom: 0px;
+    
+  }
   
-  h1 {
-    color: #333;
+  .ai-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 10vh; /* Ensure it's centered in full view */
+  }
+  
+  .dot {
+    width: 15px;
+    margin: 0 5px;
+    border-radius: 50%;
+    background-color: #2e5adc;
+    animation: pulse 1.5s infinite;
+  }
+  
+  .dot1 {
+    animation-delay: 0s;
+  }
+  .dot2 {
+    animation-delay: 0.2s;
+  }
+  .dot3 {
+    animation-delay: 0.4s;
+  }
+  .dot4 {
+    animation-delay: 0.6s;
+  }
+  .dot5 {
+    animation-delay: 0.8s;
+  }
+  .dot6 {
+    animation-delay: 1s;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
   }
   
   
   button {
-    padding: 10px 20px;
-    /* Add padding to make the button larger */
-    background-color: #007bff;
-    /* Change the background color */
-    color: #fff;
-    /* Change the text color */
+    font-family: sans-serif;
+    font-size: 5px;
+    padding: 0px 0px;
+    margin: 10px;
+    color: #ffffff;
+    background: linear-gradient(45deg, #007BFF, #1E90FF);
     border: none;
-    /* Remove the border */
-    border-radius: 5px;
-    /* Add border radius for rounded corners */
+    border-radius: 25px;
     cursor: pointer;
-    /* Change cursor to pointer on hover */
+    box-shadow: 0px 4px 10px rgba(30, 144, 255, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
   }
   
+  button:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
+    transform: skewX(-45deg);
+    transition: left 0.4s ease;
+  }
+  
+  button:hover:before {
+    left: 150%;
+  }
   
   button:hover {
-    background-color: #0056b3;
-    /* Darker background color on hover */
+    transform: scale(1.05);
+    box-shadow: 0px 6px 15px rgba(30, 144, 255, 0.7);
   }
   
-  
-  .small-text {
-    position: absolute;
-    top: 30px;
-    right: 100px;
-    font-size: 12px;
-    color: black;
+  button:active {
+    transform: scale(1);
+    box-shadow: 0px 2px 8px rgba(30, 144, 255, 0.7);
   }
   
-  
-  .header {
-    display: flex;
-    align-items: center;
-    
+  /* Specific buttons with extra effects */
+  #toggle-flow, #GenerateAIContention, #SpeakAIContention, 
+  #recordButtonRebuttal, #GenerateAISummary, #SpeakAISummary, 
+  #recordButtonFF, #recordButtonContention, #GenerateAIRebuttal, 
+  #speakAIRebuttal, #recordButtonSummary, #GenerateAIFF, #SpeakAIFF {
+    flex-shrink: 0; /* Prevent shrinking */
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-align:center;
+    width: 95px; /* Set your desired width */
+    height: 45px; /* Set your desired height */
+    font-weight: bold;
   }
-  
-  
+  /* Specific buttons with extra effects */
+   #SpeakAIContention, 
+   #SpeakAISummary, 
+  #speakAIRebuttal, #SpeakAIFF {
+    flex-shrink: 0; /* Prevent shrinking */
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-align:center;
+    width: 80px; /* Set your desired width */
+    height: 45px; /* Set your desired height */
+    font-weight: bold;
+  }
   #toggle-flow {
-    margin-left: 10px;
-    /* Adjust the margin as needed */
+    width: 150px; /* Set your desired width */
+  
   }
-  
-  
-  #debateTopic {
-    width: 500px;
-    /* Set the width of the text box */
-    height: 40px;
-    /* Set the height of the text box */
-    padding: 8px;
-    /* Add padding inside the text box */
-    font-size: 16px;
-    /* Set the font size */
-    border: 1px solid #ccc;
-    /* Add a border */
-    border-radius: 5px;
-    /* Add border radius for rounded corners */
-  }
-  
-  
-  .case-box,
-  .rebuttal-box,
-  .summary-box,
-  .ff-box {
-    border: 2px solid #10014e;
-    padding: 0px 10px 10px;
-    width: 25%;
-    height: 100vh;
-    overflow: auto;
-    box-sizing: border-box;
-    float: left;
-    /* Float the boxes to arrange them side by side */
-  }
-  
-  
-  .case-box h2,
-  .rebuttal-box h2,
-  .summary-box h2,
-  .ff-box h2 {
-    margin-right: 20px;
-    width: auto;
-  }
-  
-  
-  #caseHeader,
-  #rebuttalHeaderUser,
-  #rebuttalHeaderAI,
-  #summaryHeaderUser,
-  #summaryHeaderAI,
-  #FFHeaderUser,
-  #FFHeaderAI {
-    display: flex;
-    align-items: center;
-    width: calc(100%);
-    font-size: 14px;
-  }
-  
-  
-  #transcriptionContentionText,
-  #AIContentionText {
-    width: auto;
-    margin-top: 10px;
-    
-    /* Add some top margin for spacing */
-  }
-  
-  #AIRebuttalText {
-    width: auto;
-    margin-top: 10px;
-    /* Add some top margin for spacing */
-  }
-  
-  #UserFlow,
-  #AIFlow {
-    display: flex;
-    /* Use flexbox to arrange the elements */
-  }
-  
-  
-  #caseHeader,
-  #caseHeaderAI {
-    display: flex;
-    align-items: center;
-    width: calc(75%);
-    font-size: 14px;
-  }
-  
-  
-  #caseHeader button,
-  #caseHeaderAI button,
-  #rebuttalHeaderUser button,
-  #rebuttalHeaderAI button,
-  #summaryHeaderUser button,
-  #summaryHeaderAI button,
-  #FFHeaderUser button,
-  #FFHeaderAI button {
-    margin-left: -3px;
-    /* Adjust margin between button and text */
-  }
-  
-  
-  #caseHeader h2,
-  #caseHeaderAI h2 {
-    margin-right: 20px;
-    width: auto;
-  }
-  
-  
-  .spinner {
-    border: 8px solid #f3f3f3;
-    /* Light grey */
-    border-top: 8px solid #007bff;
-    /* Blue */
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 2s linear infinite;
-    margin: 20px auto;
-    /* Center the spinner horizontally */
-  }
-  
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-  
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-  
-  .loading-container {
-    display: none;
-    /* Hidden by default */
-    text-align: center;
-    /* Center the spinner container */
+  .glowing {
+    box-shadow: 0 0 20px 4px rgba(0, 255, 0, 0.8)  /* Green glow */ !important;
+    transition: box-shadow 0.3s ease-in-out;
   }
 
-
-
-
-.loading {
-  text-align: center;
-  margin-top: 100px;
-  display: none;
+  @keyframes shine {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
 }
 
-.text10 {
-  font-size: 20px;
-  margin-bottom: 0px;
-  
+@keyframes border-glow {
+    0%, 100% { border-color: rgba(0, 168, 255, 0.3); }
+    50% { border-color: rgba(0, 168, 255, 0.7); }
 }
 
-.ai-loader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 10vh; /* Ensure it's centered in full view */
-}
+
 
 .dot {
-  width: 15px;
-  height: 15px;
-  margin: 0 5px;
-  border-radius: 50%;
-  background-color: #2e5adc;
-  animation: pulse 1.5s infinite;
-}
-
-.dot1 {
-  animation-delay: 0s;
-}
-.dot2 {
-  animation-delay: 0.2s;
-}
-.dot3 {
-  animation-delay: 0.4s;
-}
-.dot4 {
-  animation-delay: 0.6s;
-}
-.dot5 {
-  animation-delay: 0.8s;
-}
-.dot6 {
-  animation-delay: 1s;
-}
-
-@keyframes pulse {
-  0%, 100% {
-      opacity: 0.3;
-      transform: scale(1);
-  }
-  50% {
-      opacity: 1;
-      transform: scale(1.2);
-  }
-}
-
-.listeningC {
-  text-align: center;
-  display: none;
-}
-.listeningR {
-  text-align: center;
-  display: none;
-}
-
-.text100 {
-  font-size: 20px;
-  margin-bottom: 10px;
-  
-}
-.listening-container {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  justify-content: center;
-  height: 40px; /* Adjust as needed */
-}
-
-.listening-container .stroke{
-  display: block;
-  position: relative;
-  background: #2505c4;
-  height: 100%;
-  width: 10px;
-  border-radius: 50px;
-  margin: 0 5px;
-  animation: animate 1.2s linear infinite
-}
-@keyframes animate {
-  50% {
-     height: 20%;
-  }
-  100% {
-     height: 100%;
-  }
-}
-
-.stroke:nth-child(1) {
-  animation-delay: 0s;
-}
-.stroke:nth-child(2) {
-  animation-delay: 0.3s;
-}
-.stroke:nth-child(3) {
-  animation-delay: 0.6s;
-}
-.stroke:nth-child(4) {
-  animation-delay: 0.9s;
-}
-.stroke:nth-child(5) {
-  animation-delay: 0.6s;
-}
-.stroke:nth-child(6) {
-  animation-delay: 0.3s;
-}
-.stroke:nth-child(7) {
-  animation-delay: 0s;
-}
-
-.loadingU {
-  text-align: center;
-  margin-top: 100px;
-  display: none;
-}
-.loadingRA {
-  text-align: center;
-  margin-top: 100px;
-  display: none;
-}
-.loadingRU {
-  text-align: center;
-  margin-top: 100px;
-  display: none;
-}
-.loadingSU {
-  text-align: center;
-  margin-top: 100px;
-  display: none;
-}
-.loadingFFU {
-  text-align: center;
-  margin-top: 100px;
-  display: none;
-}
-
-.loadingSA {
-  text-align: center;
-  margin-top: 100px;
-  display: none;
-}
-.loadingFFA {
-  text-align: center;
-  margin-top: 100px;
-  display: none;
-}
-
-
-.text10 {
-  font-size: 20px;
-  margin-bottom: 0px;
-  
-}
-
-.ai-loader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 10vh; /* Ensure it's centered in full view */
-}
-
-.dot {
-  width: 15px;
-  margin: 0 5px;
-  border-radius: 50%;
-  background-color: #2e5adc;
-  animation: pulse 1.5s infinite;
-}
-
-.dot1 {
-  animation-delay: 0s;
-}
-.dot2 {
-  animation-delay: 0.2s;
-}
-.dot3 {
-  animation-delay: 0.4s;
-}
-.dot4 {
-  animation-delay: 0.6s;
-}
-.dot5 {
-  animation-delay: 0.8s;
-}
-.dot6 {
-  animation-delay: 1s;
-}
-
-@keyframes pulse {
-  0%, 100% {
-      opacity: 0.3;
-      transform: scale(1);
-  }
-  50% {
-      opacity: 1;
-      transform: scale(1.2);
-  }
-}
-
-
-button {
-  font-family: sans-serif;
-  font-size: 5px;
-  padding: 0px 0px;
-  margin: 10px;
-  color: #ffffff;
-  background: linear-gradient(45deg, #007BFF, #1E90FF);
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  box-shadow: 0px 4px 10px rgba(30, 144, 255, 0.5);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-button:before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -50%;
-  width: 200%;
-  height: 100%;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
-  transform: skewX(-45deg);
-  transition: left 0.4s ease;
-}
-
-button:hover:before {
-  left: 150%;
-}
-
-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0px 6px 15px rgba(30, 144, 255, 0.7);
-}
-
-button:active {
-  transform: scale(1);
-  box-shadow: 0px 2px 8px rgba(30, 144, 255, 0.7);
-}
-
-/* Specific buttons with extra effects */
-#toggle-flow, #GenerateAIContention, #SpeakAIContention, 
-#recordButtonRebuttal, #GenerateAISummary, #SpeakAISummary, 
-#recordButtonFF, #recordButtonContention, #GenerateAIRebuttal, 
-#speakAIRebuttal, #recordButtonSummary, #GenerateAIFF, #SpeakAIFF {
-  flex-shrink: 0; /* Prevent shrinking */
-  font-size: 14px;
-  letter-spacing: 1px;
-  text-align:center;
-  width: 95px; /* Set your desired width */
-  height: 45px; /* Set your desired height */
-  font-weight: bold;
-}
-/* Specific buttons with extra effects */
- #SpeakAIContention, 
- #SpeakAISummary, 
-#speakAIRebuttal, #SpeakAIFF {
-  flex-shrink: 0; /* Prevent shrinking */
-  font-size: 14px;
-  letter-spacing: 1px;
-  text-align:center;
-  width: 80px; /* Set your desired width */
-  height: 45px; /* Set your desired height */
-  font-weight: bold;
-}
-#toggle-flow {
-  width: 150px; /* Set your desired width */
-
-}
-.glowing {
-  box-shadow: 0 0 20px 4px rgba(0, 255, 0, 0.8)  /* Green glow */ !important;
-  transition: box-shadow 0.3s ease-in-out;
+    background-color: #00a8ff;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.4);
 }
