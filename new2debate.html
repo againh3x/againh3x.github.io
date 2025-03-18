@@ -1,1 +1,159 @@
-<iframe src="https://docs.google.com/presentation/d/e/2PACX-1vR56Gl6Ug854QF1HrrY-sI3vuMcuja84tP8ZRGeNfutc-tDh6zPjAWkGM4Gh_GQxUzo3a0tW9PYgRYD/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debate Training Module | AI-Powered Learning</title>
+  <style>
+    /* Previous CSS remains unchanged */
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #0a0a0a;
+      font-family: 'Arial', sans-serif;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    .container {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+    }
+    .toc {
+      width: 300px;
+      padding: 30px;
+      border-right: 2px solid #00ffff;
+      background: linear-gradient(45deg, #001919, #000000);
+    }
+    .toc h2 {
+      color: #00ffff;
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 30px;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+    .toc-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .toc-item {
+      margin: 15px 0;
+      transition: transform 0.3s ease;
+    }
+    .toc-item a {
+      display: block;
+      padding: 15px;
+      color: #fff;
+      text-decoration: none;
+      background: rgba(0, 255, 255, 0.1);
+      border-radius: 8px;
+      border: 1px solid #00ffff;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .toc-item a:hover {
+      background: rgba(0, 255, 255, 0.2);
+      transform: translateX(10px);
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    }
+    .slides-container {
+      flex: 1;
+      padding: 20px;
+      position: relative;
+    }
+    iframe {
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+      width: 100%;
+      height: 569px;
+    }
+    .glow {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 50%, 
+          rgba(0, 255, 255, 0.1),
+          rgba(0, 0, 0, 0));
+      pointer-events: none;
+      z-index: -1;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="container">
+    <nav class="toc">
+      <h2>Training Modules</h2>
+      <ul class="toc-list">
+        <li class="toc-item"><a onclick="goToSlide(1)">Round Structure</a></li>
+        <li class="toc-item"><a onclick="goToSlide(9)">Case Writing</a></li>
+        <li class="toc-item"><a onclick="goToSlide(15)">Rebuttal</a></li>
+        <li class="toc-item"><a onclick="goToSlide(31)">Weighing</a></li>
+        <li class="toc-item"><a onclick="goToSlide(37)">Flowing</a></li>
+        <li class="toc-item"><a onclick="goToSlide(42)">Crossfire</a></li>
+      </ul>
+    </nav>
+
+    <div class="slides-container">
+      <iframe id="slidesIframe" 
+              src="https://docs.google.com/presentation/d/e/2PACX-1vR56Gl6Ug854QF1HrrY-sI3vuMcuja84tP8ZRGeNfutc-tDh6zPjAWkGM4Gh_GQxUzo3a0tW9PYgRYD/embed?start=false&loop=false&rm=minimal" 
+              frameborder="0" 
+              allowfullscreen="true" 
+              mozallowfullscreen="true" 
+              webkitallowfullscreen="true"></iframe>
+    </div>
+  </div>
+
+  <script>
+        const slideOrder = [1, 9, 15, 31, 37, 42];
+        let currentIndex = 0;
+
+        const slideIds = {
+            1: 'id.p',
+            9: 'id.g34429f5d0e6_0_3',
+            15: 'id.g3442fce0591_0_0',
+            31: 'id.g3442fce0591_0_1533',
+            37: 'id.g34429f5d0e6_0_273',
+            42: 'id.g3442fce0591_0_2151'
+        };
+
+        function goToSlide(slideNumber) {
+            currentIndex = slideOrder.indexOf(slideNumber);
+            const iframe = document.getElementById('slidesIframe');
+            const baseUrl = 'https://docs.google.com/presentation/d/e/2PACX-1vR56Gl6Ug854QF1HrrY-sI3vuMcuja84tP8ZRGeNfutc-tDh6zPjAWkGM4Gh_GQxUzo3a0tW9PYgRYD/embed?';
+            const params = new URLSearchParams({
+                start: false,
+                slide: slideIds[slideNumber],
+                loop: false,
+                rm: 'minimal',
+                t: Date.now()
+            });
+            
+            iframe.style.opacity = '0';
+            setTimeout(() => {
+                iframe.src = baseUrl + params.toString();
+                iframe.style.opacity = '1';
+            }, 200);
+        }
+
+        function nextSlide() {
+            currentIndex = (currentIndex + 1) % slideOrder.length;
+            goToSlide(slideOrder[currentIndex]);
+        }
+
+        function prevSlide() {
+            currentIndex = (currentIndex - 1 + slideOrder.length) % slideOrder.length;
+            goToSlide(slideOrder[currentIndex]);
+        }
+
+        // Initialize first slide
+        goToSlide(1);
+  </script>
+</body>
+</html>
