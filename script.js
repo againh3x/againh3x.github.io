@@ -177,7 +177,7 @@ GenerateAIRebuttalB.addEventListener('click', () => {
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
         const transcription = fullTranscriptionContention;
-        const transcriptionR = fullTranscriptionRebuttal
+        const transcriptionR = fullTranscriptionRebuttal;
         const selectedSkill = document.getElementById('selectedSkill').textContent;
         GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, selectedSkill);
         GenerateAIRebuttalB.textContent = 'Stop'; // Change button text to "Stop"
@@ -1270,7 +1270,7 @@ async function stopRecording() {
 
                 if (!response.ok) throw new Error('Transcription failed');
                 const { transcript } = await response.json();
-
+                fullTranscriptionContention = transcript;
                 // Rest of your existing processing code
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscription(transcript, debateTopic, selectedSide);
@@ -1338,7 +1338,7 @@ async function stopRecordingR() {
                 if (!response.ok) throw new Error('Transcription failed');
                 const { transcript } = await response.json();
 
-
+                fullTranscriptionRebuttal = transcript;   
 
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscriptionR(transcript, debateTopic, selectedSide);
@@ -1404,7 +1404,7 @@ async function stopRecordingS() {
                 if (!response.ok) throw new Error('Transcription failed');
                 const { transcript } = await response.json();
 
-
+                fullTranscriptionSummary = transcript;
 
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscriptionS(transcript, debateTopic, selectedSide);
@@ -1471,7 +1471,7 @@ async function stopRecordingF() {
                 const { transcript } = await response.json();
 
 
-
+                fullTranscriptionFF = transcript;
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscriptionF(transcript, debateTopic, selectedSide);
 
