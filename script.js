@@ -46,7 +46,7 @@ let mediaRecorder;
 let audioChunks = [];
 let audioStream;
 let animationFrame;
-
+let recordingStartTime;
 
 
 
@@ -825,7 +825,7 @@ async function startRecording() {
            audioChunks.push(e.data);
        };
        mediaRecorder.start();
-
+       recordingStartTime = Date.now();
 
        // Show listening animation
        document.querySelector('.listeningC').style.display = 'block';
@@ -955,6 +955,7 @@ async function startRecordingR() {
            audioChunks.push(e.data);
        };
        mediaRecorder.start();
+       recordingStartTime = Date.now();
 
 
        // Show listening animation
@@ -1085,6 +1086,7 @@ async function startRecordingS() {
            audioChunks.push(e.data);
        };
        mediaRecorder.start();
+       recordingStartTime = Date.now();
 
 
        // Show listening animation
@@ -1217,6 +1219,7 @@ async function startRecordingF() {
            audioChunks.push(e.data);
        };
        mediaRecorder.start();
+       recordingStartTime = Date.now();
 
 
        // Show listening animation
@@ -1237,6 +1240,19 @@ async function stopRecording() {
 
         mediaRecorder.onstop = async () => {
             document.querySelector('.listeningC').style.display = 'none';
+            
+            const durationSeconds = (Date.now() - recordingStartTime) / 1000;
+            
+            if (durationSeconds < 10) {
+                // Hide loading and show error message
+                
+                transcriptionResultC.innerHTML = 'Please record a full public forum debate case';
+                
+                // Cleanup audio resources
+                audioStream.getTracks().forEach(track => track.stop());
+                return; // Exit early without backend request
+            }
+
             document.querySelector('.loading0U').style.display = 'block';
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
 
@@ -1288,6 +1304,20 @@ async function stopRecordingR() {
       
        mediaRecorder.onstop = async () => {
            document.querySelector('.listeningR').style.display = 'none';
+
+
+           const durationSeconds = (Date.now() - recordingStartTime) / 1000;
+            
+           if (durationSeconds < 10) {
+               // Hide loading and show error message
+               
+               transcriptionResultR.innerHTML = 'Please record a full public forum debate rebuttal';
+               
+               // Cleanup audio resources
+               audioStream.getTracks().forEach(track => track.stop());
+               return; // Exit early without backend request
+           }
+
            document.querySelector('.loading1U').style.display = 'block';
            // Create audio blob
            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -1342,6 +1372,19 @@ async function stopRecordingS() {
       
        mediaRecorder.onstop = async () => {
            document.querySelector('.listeningS').style.display = 'none';
+
+           const durationSeconds = (Date.now() - recordingStartTime) / 1000;
+            
+           if (durationSeconds < 10) {
+               // Hide loading and show error message
+               
+               transcriptionResultS.innerHTML = 'Please record a full public forum debate summary';
+               
+               // Cleanup audio resources
+               audioStream.getTracks().forEach(track => track.stop());
+               return; // Exit early without backend request
+           }
+
            document.querySelector('.loading2U').style.display = 'block';
           
            // Create audio blob
@@ -1397,6 +1440,17 @@ async function stopRecordingF() {
       
        mediaRecorder.onstop = async () => {
            document.querySelector('.listeningF').style.display = 'none';
+           const durationSeconds = (Date.now() - recordingStartTime) / 1000;
+            
+           if (durationSeconds < 10) {
+               // Hide loading and show error message
+               
+               transcriptionResultF.innerHTML = 'Please record a full public forum debate final focus';
+               
+               // Cleanup audio resources
+               audioStream.getTracks().forEach(track => track.stop());
+               return; // Exit early without backend request
+           }
            document.querySelector('.loading3U').style.display = 'block';
           
            // Create audio blob
@@ -1463,9 +1517,6 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
        }
    });
 
-
-
-
    if (response.ok) {
 
 
@@ -1473,15 +1524,18 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
        const { CaseFlow } = await response.json(); // Parse JSON response
        // Update the display with the generated debate flow
 
-
+       if (CaseFlow == '') {
+        transcriptionResultC.innerHTML = 'Your speech does not resemble a public forum debate case.'
+       } else {
        transcriptionResultC.innerHTML = "<p>" + CaseFlow.replace(/\n/g, '<br>') + "</p>";
-
+       }
        document.querySelector('.loadingU').style.display = 'none';
    } else {
        console.error('Failed to process transcription:', response.statusText);
        document.querySelector('.loadingU').style.display = 'none';
    }
 }
+
 function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
    document.querySelector('.loading1U').style.display = 'none';
    document.querySelector('.loadingRU').style.display = 'block';
