@@ -215,6 +215,202 @@
     border: 2px solid #7dd3fc;
     box-shadow: 0 0 15px rgba(125, 211, 252, 0.4);
 }
+    /* Base Button Colors */
+    .button {
+        background: linear-gradient(145deg, #4A90E2, #2D6AE2); /* Friendly blue */
+        border: 2px solid #7AE7C7; /* Mint accent */
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(74, 144, 226, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    /* Middle Button Special Styling */
+    .button.full-ai {
+        background: linear-gradient(145deg, #7B68EE, #5A4FCF); /* Royal purple */
+        border: 2px solid #A78BFA;
+        box-shadow: 0 0 30px rgba(123, 104, 238, 0.3);
+    }
+
+    /* Text Enhancements */
+    .button .title {
+        color: #F0FDF4;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        padding-bottom: 5px;
+    }
+
+    .button .title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 2px;
+        background: #7AE7C7;
+        opacity: 0.6;
+        transition: all 0.3s ease;
+    }
+
+    .button:hover .title::after {
+        width: 60px;
+        opacity: 1;
+    }
+
+    /* Description Text Animation */
+    .button .description {
+        color: #DCFCE7;
+        transition: all 0.3s ease;
+        opacity: 0.9;
+    }
+
+    .button:hover .description {
+        transform: translateY(2px);
+        opacity: 1;
+        text-shadow: 0 2px 4px rgba(122, 235, 199, 0.2);
+    }
+
+    /* Orange Button Update */
+    .button.orange {
+        background: linear-gradient(145deg, #F59E0B, #D97706);
+        border: 2px solid #FCD34D;
+    }
+
+    /* Floating Animation */
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+    }
+
+    .button.full-ai .title {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    /* Add Icon to Titles */
+    .button .title::before {
+        content: '➤';
+        margin-right: 8px;
+        color: #7AE7C7;
+        filter: drop-shadow(0 0 2px rgba(122, 235, 199, 0.5));
+    }
+
+    /* Hover Effects */
+    .button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+    }
+
+    .button.full-ai:hover {
+        box-shadow: 0 8px 25px rgba(123, 104, 238, 0.4);
+    }
+        /* Unified Button Color */
+    .button {
+        background: linear-gradient(145deg, #3B82F6, #2563EB); /* Consistent blue */
+        border: 2px solid rgba(164, 202, 254, 0.4);
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+        transition: all 0.2s ease;
+    }
+
+    /* Middle Button Glow Effect */
+    .button.full-ai {
+        position: relative;
+        animation: gentle-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes gentle-glow {
+        0%, 100% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.2); }
+        50% { box-shadow: 0 0 35px rgba(59, 130, 246, 0.3); }
+    }
+
+    /* Text Styling */
+    .button .title {
+        color: #EFF6FF;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .button .description {
+        color: #DBEAFE;
+        transition: opacity 0.2s ease;
+    }
+
+    /* Hover Effects */
+    .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(59, 130, 246, 0.25);
+        border-color: rgba(164, 202, 254, 0.6);
+    }
+
+    .button:hover .description {
+        opacity: 0.95;
+    }
+
+    /* Remove Arrow */
+    .button .title::before {
+        content: none;
+    }
+
+    /* Orange Button Matching Update */
+    .button.orange {
+        background: linear-gradient(145deg, #3B82F6, #2563EB); /* Same blue */
+        border: 2px solid rgba(164, 202, 254, 0.4);
+    }
+    .button {
+        background: linear-gradient(145deg, #3B82F6, #2563EB); /* Unified blue */
+        border: 2px solid #7dd3fc; /* Neon cyan border */
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    /* Middle Button Enhancements */
+    .button.full-ai {
+        background: linear-gradient(145deg, #3B82F6, #2563EB);
+        border: 2px solid #00fffb; /* Brighter neon border */
+        box-shadow: 0 0 25px rgba(0, 255, 251, 0.3);
+    }
+
+    /* Text Glow for Middle Button */
+    .button.full-ai .title {
+        animation: text-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes text-glow {
+        0%, 100% { text-shadow: 0 0 10px rgba(125, 211, 252, 0.8); }
+        50% { text-shadow: 0 0 20px rgba(125, 211, 252, 1); }
+    }
+
+    /* New2Debate Button (Purple) */
+    .button.orange {
+        background: linear-gradient(135deg, #7B68EE, #5A4FCF);
+        border: 2px solid #A78BFA;
+        box-shadow: 0 4px 20px rgba(123, 104, 238, 0.2);
+        width: 500px;
+        height: 50px;
+    }
+
+    .button.orange:hover {
+        background: linear-gradient(135deg, #5A4FCF, #483d8b);
+    }
+
+    /* Subtle Hover Effects */
+    .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(59, 130, 246, 0.25);
+    }
+
+    .button.full-ai:hover {
+        box-shadow: 0 0 30px rgba(0, 255, 251, 0.4);
+    }
+
+    /* Remove All Arrows */
+    .button .title::before {
+        content: none;
+    }
     </style>
 </head>
 <body>
