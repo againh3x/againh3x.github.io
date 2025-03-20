@@ -824,6 +824,25 @@ main {
     padding: 8px 0;
   }
 }
+.button.orange {
+    background: linear-gradient(135deg, #7B68EE, #5A4FCF);
+    border: 2px solid #A78BFA;
+    box-shadow: 0 4px 20px rgba(123, 104, 238, 0.2);
+    width: 300px;
+    height: 50px;
+    padding: 0;
+}
+
+.button.orange:hover {
+    background: linear-gradient(135deg, #5A4FCF, #483d8b);
+    border: 2px solid #A78BFA;
+    box-shadow: 0 4px 25px rgba(123, 104, 238, 0.3);
+}
+
+/* Remove the orange border glow animation */
+.button.orange::after {
+    content: none;
+}
   </style>
 </head>
 <body>
