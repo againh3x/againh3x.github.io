@@ -84,6 +84,7 @@ body {
       overflow: auto;
       box-sizing: border-box;
       float: left;
+      margin-bottom: 0px;
       /* Float the boxes to arrange them side by side */
     }
     
@@ -559,7 +560,8 @@ h1 {
     border-radius: 12px;
     box-shadow: 0 0 20px rgba(125, 211, 252, 0.1);
     padding: 15px;
-    margin: 10px;
+    
+    margin: 5px;
     color: #a3ddfc;
 }
 
@@ -577,6 +579,7 @@ h1 {
     padding-bottom: 5px;
     border-radius: 8px;
     margin-bottom: 10px;
+    
     border: 1px solid #7dd3fc;
 }
 
@@ -606,8 +609,8 @@ h1 {
 .rebuttal-box,
 .summary-box,
 .ff-box {
-    width: 24%;
-    height: calc(100vh - 150px);
+    width: calc(25vw - 15px);
+    height: calc(100vh - 120px);
     overflow: auto;
     box-sizing: border-box;
     float: left;
@@ -625,6 +628,7 @@ h1 {
 }
 
 body {
-    overflow: hidden; /* Prevent whole page scrolling */
-    padding: 20px 20px 0; /* Adjust bottom padding */
+    
+    padding: 10px 10px 0; /* Adjust bottom padding */
+    overflow: 'hidden';
 }
