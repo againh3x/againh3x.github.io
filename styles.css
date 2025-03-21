@@ -963,8 +963,8 @@ body {
 
 /* Save Button - Active Animation */
 .save-button button:first-child {
-    background: linear-gradient(145deg, #0decca, #08b4a0);
-    color: #042f2e;
+    background: linear-gradient(145deg, #dc4b76, #b40816);
+    color: #93b0b0;
     border: 1px solid #2dd4bf55;
     
 }
@@ -982,12 +982,7 @@ body {
 }
 
 /* Clear Button - Static Style */
-.save-button button:last-child {
-    background: linear-gradient(145deg, #4c1d95, #6d28d9);
-    color: #e9d5ff;
-    border: 1px solid #7c3aed55;
-    transition: all 0.2s ease;
-}
+
 
 /* Clear Button Interactions */
 .save-button button:last-child:hover {
@@ -1021,4 +1016,20 @@ body {
 @keyframes button-shine {
     0% { left: -50%; }
     100% { left: 150%; }
+}
+.save-note {
+    position: relative;
+    top: 2px;
+    right: 10px;
+    color: #7dd3fc;
+    font-size: 0.8em;
+    opacity: 0.8;
+    font-style: italic;
+    white-space: nowrap;
+    padding-right: 15px;
+    border-right: 1px solid #7dd3fc33;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    backdrop-filter: blur(2px);
 }
