@@ -80,7 +80,7 @@ body {
       border: 2px solid #10014e;
       padding: 0px 10px 10px;
       width: 25%;
-      height: 100vh;
+      height: calc(100vh - 90px);
       overflow: auto;
       box-sizing: border-box;
       float: left;
@@ -497,7 +497,7 @@ body {
   
   }
   .glowing {
-    box-shadow: 0 0 20px 4px rgba(0, 255, 0, 0.8)  /* Green glow */ !important;
+    box-shadow: 0 0 20px 4px rgba(162, 80, 255, 0.8)  /* Green glow */ !important;
     transition: box-shadow 0.3s ease-in-out;
   }
 
@@ -516,4 +516,115 @@ body {
 .dot {
     background-color: #00a8ff;
     box-shadow: 0 0 10px rgba(0, 168, 255, 0.4);
+}
+
+
+body {
+    
+    background: linear-gradient(180deg, #0a192f, #0a1a2f, #020d1a);
+    color: #b1e0f9;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+/* Header Styling */
+h1 {
+    color: #7dd3fc;
+    text-shadow: 0 0 15px rgba(125, 211, 252, 0.3);
+    font-size: 2rem;
+    margin: 20px 0;
+}
+
+/* Buttons - Match Home Page Style */
+
+
+/* Input Fields */
+#debateTopic {
+    background: rgba(15, 32, 55, 0.9);
+    border: 2px solid #7dd3fc;
+    color: #aae1ff;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 1rem;
+}
+
+/* Case Boxes */
+.case-box,
+.rebuttal-box,
+.summary-box,
+.ff-box {
+    background: rgba(15, 32, 55, 0.9);
+    border: 2px solid #7dd3fc;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(125, 211, 252, 0.1);
+    padding: 15px;
+    margin: 10px;
+    color: #a3ddfc;
+}
+
+/* Loading Animations */
+.dot {
+    background-color: #7dd3fc;
+    box-shadow: 0 0 10px rgba(125, 211, 252, 0.4);
+}
+
+/* Toolbar/Header */
+.header {
+    background: rgba(10, 35, 66, 0.9);
+    padding-left: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #7dd3fc;
+}
+
+/* Text Elements */
+.text10, .text100 {
+    color: #95cfff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Special Effects */
+
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+        box-shadow: 0 0 15px rgba(125, 211, 252, 0.6);
+    }
+}
+
+/* Preserve existing layout properties below this line */
+.case-box,
+.rebuttal-box,
+.summary-box,
+.ff-box {
+    width: 24%;
+    height: calc(100vh - 150px);
+    overflow: auto;
+    box-sizing: border-box;
+    float: left;
+    margin-bottom: 0px;
+}
+
+#debateTopic {
+    width: 500px;
+    height: 40px;
+}
+
+/* Keep all existing media queries and layout-specific rules */
+@media (max-width: 768px) {
+    /* Preserve responsive styles */
+}
+
+body {
+    overflow: hidden; /* Prevent whole page scrolling */
+    padding: 20px 20px 0; /* Adjust bottom padding */
 }
