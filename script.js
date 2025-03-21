@@ -600,6 +600,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
         generateButtonAI.textContent = 'Generate';
         isGenerating = false;
         const selectedTurn = document.getElementById('selectedTurn').textContent;
+        saveRound()
         if (selectedTurn == "First") {
             recordButtonR.classList.add('glowing');
         }
@@ -607,6 +608,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
             toggleFlowButton.classList.add('glowing');
             recordButtonC.classList.add('glowing');
         }
+        
     }
 }
 
@@ -1299,7 +1301,7 @@ async function stopRecording() {
                 // Rest of your existing processing code
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscription(transcript, debateTopic, selectedSide);
-
+                
                 // UI handling remains the same
                 const selectedTurn = document.getElementById('selectedTurn').textContent;
                 if (selectedTurn === "Second") {
@@ -1313,10 +1315,12 @@ async function stopRecording() {
                 console.error('Transcription error:', error);
                 // Handle error state
             }
-
+            
             audioStream.getTracks().forEach(track => track.stop());
+        
         };
     }
+    
 }
 
 
@@ -1337,7 +1341,7 @@ async function stopRecordingR() {
                 // Hide loading and show error message
 
                 transcriptionResultR.innerHTML = 'Please record a full public forum debate rebuttal';
-
+                saveRound()
                 // Cleanup audio resources
                 audioStream.getTracks().forEach(track => track.stop());
                 return; // Exit early without backend request
@@ -1367,7 +1371,7 @@ async function stopRecordingR() {
 
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscriptionR(transcript, debateTopic, selectedSide);
-
+                saveRound()
 
                 // Handle UI elements
                 const selectedTurn = document.getElementById('selectedTurn').textContent;
@@ -1404,7 +1408,7 @@ async function stopRecordingS() {
                 // Hide loading and show error message
 
                 transcriptionResultS.innerHTML = 'Please record a full public forum debate summary';
-
+                saveRound()
                 // Cleanup audio resources
                 audioStream.getTracks().forEach(track => track.stop());
                 return; // Exit early without backend request
@@ -1433,7 +1437,7 @@ async function stopRecordingS() {
 
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscriptionS(transcript, debateTopic, selectedSide);
-
+                saveRound()
 
                 // Handle UI elements
                 const selectedTurn = document.getElementById('selectedTurn').textContent;
@@ -1471,7 +1475,7 @@ async function stopRecordingF() {
                 // Hide loading and show error message
 
                 transcriptionResultF.innerHTML = 'Please record a full public forum debate final focus';
-
+                saveRound()
                 // Cleanup audio resources
                 audioStream.getTracks().forEach(track => track.stop());
                 return; // Exit early without backend request
@@ -1499,15 +1503,16 @@ async function stopRecordingF() {
                 fullTranscriptionFF = transcript;
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscriptionF(transcript, debateTopic, selectedSide);
-
+                
 
                 // Handle UI elements
                 const selectedTurn = document.getElementById('selectedTurn').textContent;
                 if (selectedTurn === "Second") {
-
+                    saveRound()
                 } else if (selectedTurn === "First") {
                     toggleFlowButton.classList.add('glowing');
                     AIFFGenerateB.classList.add('glowing');
+                    saveRound()
                 }
 
 
@@ -1551,8 +1556,10 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
         document.querySelector('.loadingU').style.display = 'none';
         if (CaseFlow == '') {
             transcriptionResultC.innerHTML = 'Your speech does not resemble a public forum debate case.'
+            saveRound()
         } else {
             transcriptionResultC.innerHTML = "<p>" + CaseFlow.replace(/\n/g, '<br>') + "</p>";
+            saveRound()
         }
         
     } else {
@@ -1591,7 +1598,7 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
             const { RebuttalFlow } = data; // Parse JSON response
             // Update the display with the generated debate flow
             transcriptionResultR.innerHTML = "<p>" + RebuttalFlow.replace(/\n/g, '<br>') + "</p>";
-
+            saveRound()
         })
         .catch(error => {
             console.error('Failed to process transcription:', error);
@@ -1599,6 +1606,7 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
         .finally(() => {
             // Hide the loading animation
             document.querySelector('.loadingRU').style.display = 'none';
+            
         });
 }
 function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
@@ -1633,7 +1641,7 @@ function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
 
 
             transcriptionResultS.innerHTML = "<p>" + SummaryFlow.replace(/\n/g, '<br>') + "</p>";
-
+            saveRound()
 
         })
         .catch(error => {
@@ -1677,7 +1685,7 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
 
 
             transcriptionResultF.innerHTML = "<p>" + FinalFocusFlow.replace(/\n/g, '<br>') + "</p>";
-
+            saveRound()
         })
         .catch(error => {
             console.error('Failed to process transcription:', error);
@@ -1685,6 +1693,7 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
         .finally(() => {
             // Hide the loading animation
             document.querySelector('.loadingFFU').style.display = 'none';
+            saveRound()
         });
 }
 function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, selectedSkill) {
@@ -1735,7 +1744,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
                 document.querySelector('.loadingRA').style.display = 'none';
                 GenerateAIRebuttalB.textContent = 'Generate';
                 recordButtonS.classList.add('glowing');
-
+                saveRound()
 
             });
     }
@@ -1779,7 +1788,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
                 GenerateAIRebuttalB.textContent = 'Generate';
                 toggleFlowButton.classList.add('glowing');
                 recordButtonR.classList.add('glowing');
-
+                saveRound()
 
             });
     }
@@ -1837,7 +1846,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
                 document.querySelector('.loadingSA').style.display = 'none';
                 AISummaryGenerateB.textContent = 'Generate';
                 recordButtonF.classList.add('glowing');
-
+                saveRound()
 
             });
     }
@@ -1886,7 +1895,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
                 AISummaryGenerateB.textContent = 'Generate';
                 toggleFlowButton.classList.add('glowing');
                 recordButtonS.classList.add('glowing');
-
+                saveRound()
 
             });
     }
@@ -1939,9 +1948,11 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
             document.querySelector('.loadingFFA').style.display = 'none';
             AIFFGenerateB.textContent = 'Generate';
             const selectedTurn = document.getElementById('selectedTurn').textContent;
+            saveRound()
             if (selectedTurn == "Second") {
                 toggleFlowButton.classList.add('glowing');
                 recordButtonF.classList.add('glowing');
+                saveRound()
             }
         });
 }
