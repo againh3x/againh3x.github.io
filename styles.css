@@ -632,3 +632,393 @@ body {
     padding: 10px 10px 0; /* Adjust bottom padding */
     overflow: 'hidden';
 }
+.save-load-buttons {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.save-load-buttons button {
+    background: linear-gradient(45deg, #007BFF, #1E90FF);
+    border: none;
+    border-radius: 25px;
+    color: #ffffff;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(30, 144, 255, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.save-load-buttons button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 6px 15px rgba(30, 144, 255, 0.7);
+}
+
+.save-load-buttons button:active {
+    transform: scale(1);
+    box-shadow: 0px 2px 8px rgba(30, 144, 255, 0.7);
+}
+.save-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.save-button button {
+    background: linear-gradient(45deg, #007BFF, #1E90FF);
+    border: none;
+    border-radius: 25px;
+    color: #ffffff;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(30, 144, 255, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.save-button button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 6px 15px rgba(30, 144, 255, 0.7);
+}
+
+.save-button button:active {
+    transform: scale(1);
+    box-shadow: 0px 2px 8px rgba(30, 144, 255, 0.7);
+}
+.save-button {
+    display: flex;
+    gap: 10px; /* Add spacing between buttons */
+}
+.save-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+}
+
+.save-button button {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0px;
+}
+
+/* Save Button */
+.save-button button:first-child {
+    background: linear-gradient(145deg, #00c853, #009624);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 200, 83, 0.3);
+}
+
+/* Clear Button */
+.save-button button:last-child {
+    background: linear-gradient(145deg, #ff1744, #d50000);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(255, 23, 68, 0.3);
+}
+
+.save-button button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 200, 83, 0.4), 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.save-button button:last-child:hover {
+    box-shadow: 0 6px 20px rgba(255, 23, 68, 0.4), 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.save-button button:active {
+    transform: translateY(0);
+    filter: brightness(0.9);
+}
+
+/* Small Text Styling */
+.small-text {
+    position: absolute;
+    top: 70px; /* Moved below buttons */
+    right: 20px;
+    font-size: 13px;
+    color: #b1e0f9;
+    background: rgba(15, 32, 55, 0.9);
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid #7dd3fc33;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+    display: flex;
+    gap: 8px;
+    z-index: 99;
+}
+
+.small-text span {
+    color: #7dd3fc;
+    font-weight: 600;
+}
+.save-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+}
+
+.save-button button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Save Button - Cyber Blue */
+.save-button button:first-child {
+    background: linear-gradient(145deg, #2563eb, #1d4ed8);
+    color: #bfdbfe;
+    border: 1px solid #3b82f677;
+}
+
+/* Clear Button - Cosmic Purple */
+.save-button button:last-child {
+    background: linear-gradient(145deg, #6d28d9, #4c1d95);
+    color: #e9d5ff;
+    border: 1px solid #7c3aed77;
+}
+
+/* Hover Effects */
+.save-button button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    filter: brightness(1.1);
+}
+
+.save-button button:last-child:hover {
+    box-shadow: 0 4px 20px rgba(109, 40, 217, 0.3);
+}
+
+/* Active State */
+.save-button button:active {
+    transform: translateY(0);
+    filter: brightness(0.95);
+}
+
+/* Glow Animation */
+@keyframes button-glow {
+    0% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+    100% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+}
+
+.save-button button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.15),
+        transparent
+    );
+    transition: left 0.6s ease;
+}
+.save-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+}
+
+.save-button button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Save Button - Cyber Teal */
+.save-button button:first-child {
+    background: linear-gradient(145deg, #0decca, #08b4a0);
+    color: #042f2e;
+    border: 1px solid #2dd4bf55;
+}
+
+/* Clear Button - Deep Space Purple */
+.save-button button:last-child {
+    background: linear-gradient(145deg, #6d28d9, #4c1d95);
+    color: #e9d5ff;
+    border: 1px solid #7c3aed55;
+}
+
+/* Other Action Buttons */
+#toggle-flow, #GenerateAIContention, #SpeakAIContention, 
+#recordButtonRebuttal, #GenerateAISummary, #SpeakAISummary, 
+#recordButtonFF, #recordButtonContention, #GenerateAIRebuttal, 
+#speakAIRebuttal, #recordButtonSummary, #GenerateAIFF, #SpeakAIFF {
+    
+    color: #bfdbfe;
+    border: 1px solid #3b82f655;
+}
+
+/* Hover Effects */
+.save-button button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+    box-shadow: 0 4px 20px rgba(13, 236, 202, 0.3);
+}
+
+.save-button button:last-child:hover {
+    box-shadow: 0 4px 20px rgba(109, 40, 217, 0.3);
+}
+
+/* Active States */
+.save-button button:active {
+    transform: translateY(0);
+    filter: brightness(0.95);
+}
+
+/* Shine Animation */
+.save-button button::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transform: rotate(45deg);
+    
+}
+
+@keyframes button-shine {
+    0% { left: -50%; }
+    100% { left: 150%; }
+}
+
+.save-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+}
+
+.save-button button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Save Button - Active Animation */
+.save-button button:first-child {
+    background: linear-gradient(145deg, #0decca, #08b4a0);
+    color: #042f2e;
+    border: 1px solid #2dd4bf55;
+    
+}
+
+@keyframes save-pulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(13, 236, 202, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(13, 236, 202, 0.5); }
+}
+
+/* Enhanced Click Effect for Save */
+.save-button button:first-child:active {
+    transform: scale(0.95);
+    filter: brightness(0.9);
+    box-shadow: 0 0 15px rgba(13, 236, 202, 0.6) !important;
+}
+
+/* Clear Button - Static Style */
+.save-button button:last-child {
+    background: linear-gradient(145deg, #4c1d95, #6d28d9);
+    color: #e9d5ff;
+    border: 1px solid #7c3aed55;
+    transition: all 0.2s ease;
+}
+
+/* Clear Button Interactions */
+.save-button button:last-child:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px rgba(109, 40, 217, 0.2);
+}
+
+.save-button button:last-child:active {
+    transform: scale(0.98);
+    filter: brightness(0.95);
+}
+
+/* Save Button Shine Animation */
+.save-button button:first-child::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transform: rotate(45deg);
+    
+}
+
+@keyframes button-shine {
+    0% { left: -50%; }
+    100% { left: 150%; }
+}
