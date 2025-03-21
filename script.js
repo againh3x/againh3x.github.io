@@ -94,7 +94,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     updateFlowValues(selectedSide, nonselectedSide);
+    // Auto-load saved round (add this at the end)
+    const savedState = localStorage.getItem('savedRound');
+    if (!savedState) return; // No saved data
 
+    const state = JSON.parse(savedState);
+
+    // Restore text content
+    document.getElementById('AIContentionText').innerHTML = state.AICase;
+    document.getElementById('AIRebuttalText').innerHTML = state.AIRebuttal;
+    document.getElementById('AISummaryText').innerHTML = state.AISummary;
+    document.getElementById('AIFFText').innerHTML = state.AIFF;
+
+    // Restore flow content
+    transcriptionResultC.innerHTML = state.ContentionFlow;
+    transcriptionResultR.innerHTML = state.RebuttalFlow;
+    transcriptionResultS.innerHTML = state.SummaryFlow;
+    transcriptionResultF.innerHTML = state.FFFlow;
+
+    // Restore full transcriptions
+    fullTranscriptionContention = state.transcriptionC;
+    fullTranscriptionRebuttal = state.transcriptionR;
+    fullTranscriptionSummary = state.transcriptionS;
+    fullTranscriptionFF = state.transcriptionF;
+    //ToggleisSelectedSide = state.toggle;
+
+    console.log('Round auto-loaded!');
 
 });
 AISummaryGenerateB.addEventListener('click', () => {
@@ -1997,4 +2022,34 @@ async function startSpeakingF() {
             }
         }
     }
+}
+
+function captureState() {
+    const state = {
+        // Save text content from boxes
+        AICase: document.getElementById('AIContentionText').innerHTML,
+        AIRebuttal: document.getElementById('AIRebuttalText').innerHTML,
+        AISummary: document.getElementById('AISummaryText').innerHTML,
+        AIFF: document.getElementById('AIFFText').innerHTML,
+        ContentionFlow: transcriptionResultC.innerHTML,
+        RebuttalFlow: transcriptionResultR.innerHTML,
+        SummaryFlow: transcriptionResultS.innerHTML,
+        FFFlow: transcriptionResultF.innerHTML,
+        transcriptionC: fullTranscriptionContention,
+        transcriptionR: fullTranscriptionRebuttal,
+        transcriptionS: fullTranscriptionSummary,
+        transcriptionF: fullTranscriptionFF,
+        toggle: ToggleisSelectedSide
+    };
+    return state;
+}
+function saveRound() {
+    const state = captureState();
+    localStorage.setItem('savedRound', JSON.stringify(state));
+    
+}
+function clearSavedRound() {
+    localStorage.removeItem('savedRound');
+    
+    location.reload(); // Optional: Reload the page to reset the state
 }
