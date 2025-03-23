@@ -498,7 +498,7 @@ body {
   
   }
   .glowing {
-    box-shadow: 0 0 20px 4px rgba(162, 80, 255, 0.8)  /* Green glow */ !important;
+    box-shadow: 0 0 20px 4px rgba(153, 255, 255, 0.8)  /* Green glow */ !important;
     transition: box-shadow 0.3s ease-in-out;
   }
 
@@ -1032,4 +1032,425 @@ body {
     display: flex;
     align-items: center;
     backdrop-filter: blur(2px);
+}
+/* Add to CSS */
+#results-btn {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 40px;
+    font-size: 1.6rem;
+    background: linear-gradient(145deg, #2563eb, #1d4ed8);
+    border: 2px solid #7dd3fc;
+    border-radius: 8px;
+    z-index: 1000;
+}
+
+.results-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 2000;
+}
+
+.modal-content {
+    position: relative;
+    background: #0a192f;
+    width: 75%;
+    height: 90%;
+    margin: 2rem auto;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #7dd3fc;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    margin-top: 0px;
+}
+
+.info-icon {
+    cursor: help;
+    position: relative;
+    font-size: 1.2rem;
+}
+
+.tooltip {
+    visibility: hidden;
+    width: 200px;
+    background: #1e3a8a;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    top: 100%;      /* Changed from bottom: 125% */
+    
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9rem;
+}
+
+.info-icon:hover .tooltip {
+    visibility: visible;
+}
+
+.judge-type-selector {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.judge-btn {
+    margin: 0 10px;
+    padding: 10px 30px;
+    font-size: 1rem;
+    background: linear-gradient(145deg, #3b82f6, #2563eb);
+}
+
+.feedback-content {
+    background: rgba(15, 32, 55, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    min-height: 300px;
+    height: 70%;
+    margin: 20px 0;
+    width: 90%;
+}
+
+.modal-footer {
+    text-align: center;
+}
+
+.download-btn {
+    font-size: 1rem;
+    background: linear-gradient(145deg, #10b981, #059669);
+    padding: 12px 35px;
+    flex: center;
+    display: inline-block;
+}
+/* Center the download button */
+.download-btn {
+  display: block;
+  margin: 20px auto; /* Vertical spacing + horizontal centering */
+  width: fit-content; /* Only needed if button is too wide */
+}
+
+/* If using flexbox for modal content */
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center horizontally */
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #7dd3fc;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.judge-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #0056b3;
+}
+
+
+
+/* Hover Effect */
+
+
+/* Active/Pressed State */
+
+
+
+
+button:hover::before {
+  opacity: 1;
+}
+
+@keyframes border-flow {
+  0% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* Special Judge Buttons */
+.judge-btn {
+  position: relative;
+  padding: 15px 35px;
+  border-width: 3px;
+  text-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
+}
+
+.judge-btn.active {
+  background: linear-gradient(145deg, #004466, #002233);
+  border-color: #7df9ff;
+  box-shadow: 0 0 25px rgba(125, 249, 255, 0.5),
+              inset 0 0 15px rgba(125, 249, 255, 0.3);
+}
+
+/* Generate Feedback Button */
+.download-btn {
+  background: linear-gradient(145deg, #00b4d8, #0077b6);
+  border-color: #90e0ef;
+  font-size: 1.1em;
+  padding: 15px 40px;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(144, 224, 239, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(144, 224, 239, 0.6); }
+}
+
+/* Record/Stop States */
+
+
+@keyframes alert-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(217, 4, 41, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(217, 4, 41, 0.6); }
+}
+
+/* Loading/Processing States */
+
+
+/* ===== Enhanced Visual Hierarchy ===== */
+#results-btn {
+  border-width: 3px;
+  font-size: 1.2em;
+  padding: 18px 45px;
+  background: linear-gradient(145deg, #00bbf9, #0067a5);
+}
+
+.judge-type-selector h3 {
+  text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+  color: #7df9ff;
+}
+
+.tooltip {
+  background: #001d3d;
+  border: 1px solid #00f3ff;
+  text-shadow: none;
+}
+.results-button-container {
+  position: relative;
+  text-align: center;
+  margin: 20px 0;
+}
+
+#results-placeholder {
+  opacity: 1;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  color: #7dd3fc;
+  font-style: italic;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#results-btn {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  position: relative;
+  pointer-events: none;
+}
+
+#results-btn.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+#results-placeholder.hidden {
+  opacity: 0;
+  transform: translate(-50%, 10px);
+  pointer-events: none;
+}
+
+/* Header Container */
+
+
+/* Results Container */
+.results-button-container {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    z-index: 1;
+}
+
+
+/* Results Button Styling */
+#results-btn {
+    order: 2;
+    padding: 10px 30px;
+    font-size: 1.1rem;
+    margin-top: 0px;
+}
+
+#results-placeholder {
+    order: 1;
+    font-size: 1rem;
+    
+}
+#results-placeholder {
+  min-width: 320px; /* Minimum width */
+  max-width: 600px; /* Maximum width */
+  width: auto;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+/* For smaller screens */
+@media (max-width: 1000px) {
+  #results-placeholder {
+      min-width: 50px;
+      max-width: 20%;
+      margin-top: -20px;
+      font-size: 0.7rem;
+      white-space: normal;
+  }
+}
+/* Save Button Group */
+.save-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 2;
+}
+
+#results-btn {
+  padding: 15px 45px; /* Increased padding */
+  font-size: 1.6rem; /* Larger text */
+  font-weight: bold;
+  margin-top: 10px;
+  background: linear-gradient(145deg, #00b4d8, #0067a5); /* Brighter gradient */
+  border: 3px solid #7dd3fc; /* Added border */
+  box-shadow: 0 0 25px rgba(125, 211, 252, 0.5); /* Stronger glow */
+  text-shadow: 0 0 10px rgba(125, 211, 252, 0.4); /* Text glow */
+  transition: all 0.3s ease;
+  animation: pulse-glow 1.5s infinite; /* Continuous animation */
+}
+
+#results-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 35px rgba(125, 211, 252, 0.7);
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+      box-shadow: 0 0 25px rgba(125, 211, 252, 0.5);
+      transform: scale(1);
+  }
+  50% {
+      box-shadow: 0 0 40px rgba(125, 211, 252, 0.8);
+      transform: scale(1.01);
+  }
+}
+
+/* Unified button styles */
+.judge-btn, .download-btn {
+  padding: 12px 35px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Judge button specific */
+.judge-btn {
+  background: linear-gradient(145deg, #3b82f6, #2563eb);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Generate/Download button */
+.download-btn {
+  background: linear-gradient(145deg, #10b981, #059669);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+/* Shared hover effects */
+.judge-btn:hover, .download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.1);
+}
+
+/* Active state */
+.judge-btn:active, .download-btn:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+/* Active judge state */
+.judge-btn.active {
+  background: linear-gradient(145deg, #004466, #002233);
+  border-color: #7df9ff;
+  box-shadow: 0 0 25px rgba(125, 249, 255, 0.3);
+}
+
+/* Button container alignment */
+.judge-type-selector {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin: 25px 0;
+}
+/* Judge button style (keep existing) */
+.judge-btn {
+  background: linear-gradient(145deg, #3b82f6, #2563eb);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  color: #bfdbfe;
+  border: 2px solid #3b82f655;
+}
+
+/* Generate/Download button - matching style with different color */
+.download-btn {
+  background: linear-gradient(145deg, #39e5ff, #176aa2);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  color: #ccfbf1;
+  border: 2px solid #10b98155;
+}
+
+/* Shared hover effects */
+.judge-btn:hover, .download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.1);
+}
+
+/* Active states */
+.judge-btn:active, .download-btn:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+/* Active judge state (keep existing) */
+.judge-btn.active {
+  background: linear-gradient(145deg, #004466, #002233);
+  border-color: #7df9ff;
+  box-shadow: 0 0 25px rgba(125, 249, 255, 0.3);
 }
