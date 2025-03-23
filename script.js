@@ -49,6 +49,7 @@ let audioStream;
 let animationFrame;
 let recordingStartTime;
 var judgeType = 'tech';
+var roundOver;
 
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -118,8 +119,10 @@ document.addEventListener('DOMContentLoaded', function () {
     fullTranscriptionRebuttal = state.transcriptionR;
     fullTranscriptionSummary = state.transcriptionS;
     fullTranscriptionFF = state.transcriptionF;
-    //ToggleisSelectedSide = state.toggle;
 
+    document.getElementById('feedback-content').innerHTML = state.feedback;
+    //ToggleisSelectedSide = state.toggle;
+    updateResultsVisibility()
     console.log('Round auto-loaded!');
 
 });
@@ -538,8 +541,9 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
     generateButtonAI.classList.remove('glowing');
     fullAIContentionRaw = '';
     document.getElementById('AIContentionText').innerHTML = '';
-    document.querySelector('.loading').style.display = 'block';
-    document.querySelector('.text10').textContent = 'Generating Case (~15s)';
+    document.querySelector('#AIContention .loading').style.display = 'block';
+    // Update text within AIContention's loading
+    document.querySelector('#AIContention .text10').textContent = 'Generating Case (~15s)';
 
 
     try {
@@ -567,7 +571,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
 
 
         // Update loading text
-        document.querySelector('.text10').textContent = 'Finding Sources (~10s)';
+        document.querySelector('#AIContention .text10').textContent = 'Finding Sources (~10s)';
 
 
         // Second API call to get sources
@@ -597,7 +601,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
         console.error('Error processing user input:', error);
     } finally {
         // Hide the loading animation and reset UI elements
-        document.querySelector('.loading').style.display = 'none';
+        document.querySelector('#AIContention .loading').style.display = 'none';
         generateButtonAI.textContent = 'Generate';
         isGenerating = false;
         const selectedTurn = document.getElementById('selectedTurn').textContent;
@@ -1695,9 +1699,9 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
         .finally(() => {
             // Hide the loading animation
             document.querySelector('.loadingFFU').style.display = 'none';
-            
+
             if (selectedTurn == 'Second') {
-            updateResultsVisibility()
+                updateResultsVisibility()
             }
             saveRound()
         });
@@ -2089,7 +2093,7 @@ function closeResultsModal() {
 function selectJudgeType(type) {
     if (['tech', 'lay'].includes(type)) {
         judgeType = type;
-      
+
         document.querySelectorAll('.judge-btn').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-type') === type);
         });
@@ -2097,6 +2101,8 @@ function selectJudgeType(type) {
 
 }
 function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, transcriptionF, AICase, AIRebuttal, AISummary, AIFinalFocus) {
+    document.getElementById('feedback-content').innerHTML = ''
+    document.querySelector('.loadingfeed').style.display = 'block';
     if (judgeType == 'tech') {
 
         fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/tech', {
@@ -2135,7 +2141,12 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
 
 
                 // Display the AI response
-                document.getElementById('feedback-content').innerHTML = "<p>" + TechFeedback.replace(/\n/g, '<br>') + "</p>";
+
+                document.getElementById('feedback-content').innerHTML = "<p>" +
+                    TechFeedback
+                        .replace('Decision:', '<br>Decision:')  // Add line break before Decision
+                        .replace(/\n/g, '<br>') +
+                    "</p>";
             })
             .catch(error => {
                 console.error('Error processing user input:', error);
@@ -2143,7 +2154,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
             .finally(() => {
 
                 saveRound()
-
+                document.querySelector('.loadingfeed').style.display = 'none';
             }
             );
     } else if (judgeType == 'lay') {
@@ -2191,7 +2202,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
             .finally(() => {
 
                 saveRound()
-
+                document.querySelector('.loadingfeed').style.display = 'none';
             }
             );
     }
@@ -2202,19 +2213,19 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
 
 
 generateFeedbackButton.addEventListener('click', () => {
-        const selectedSide = document.getElementById('selectedSide').textContent;
-        const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
-        const transcription = fullTranscriptionContention;
-        const transcriptionR = fullTranscriptionRebuttal;
-        const transcriptionS = fullTranscriptionSummary;
-        const transcriptionF = fullTranscriptionFF;
-        const AICase = document.getElementById('AIContentionText').innerHTML
-        const AIRebuttal = document.getElementById('AIRebuttalText').innerHTML
-        const AISummary = document.getElementById('AISummaryText').innerHTML
-        const AIFF = document.getElementById('AIFFText').innerHTML
-        judgeType = judgeType;
-        const selectedTurn = document.getElementById('selectedTurn').textContent;
-        generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, transcriptionF, AICase, AIRebuttal, AISummary, AIFF);
+    const selectedSide = document.getElementById('selectedSide').textContent;
+    const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
+    const transcription = fullTranscriptionContention;
+    const transcriptionR = fullTranscriptionRebuttal;
+    const transcriptionS = fullTranscriptionSummary;
+    const transcriptionF = fullTranscriptionFF;
+    const AICase = document.getElementById('AIContentionText').innerHTML
+    const AIRebuttal = document.getElementById('AIRebuttalText').innerHTML
+    const AISummary = document.getElementById('AISummaryText').innerHTML
+    const AIFF = document.getElementById('AIFFText').innerHTML
+    judgeType = judgeType;
+    const selectedTurn = document.getElementById('selectedTurn').textContent;
+    generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, transcriptionF, AICase, AIRebuttal, AISummary, AIFF);
 
 
 });
@@ -2222,21 +2233,21 @@ generateFeedbackButton.addEventListener('click', () => {
 function toggleResultsButton(show) {
     const resultsBtn = document.getElementById('results-btn');
     const placeholder = document.getElementById('results-placeholder');
-    
+
     if (show) {
-      // Show button and hide placeholder
-      placeholder.classList.add('hidden');
-      setTimeout(() => {
-        resultsBtn.classList.add('visible');
-      }, 50); // Short delay for smooth transition
+        // Show button and hide placeholder
+        placeholder.classList.add('hidden');
+        setTimeout(() => {
+            resultsBtn.classList.add('visible');
+        }, 50); // Short delay for smooth transition
     } else {
-      // Hide button and show placeholder
-      resultsBtn.classList.remove('visible');
-      setTimeout(() => {
-        placeholder.classList.remove('hidden');
-      }, 50);
+        // Hide button and show placeholder
+        resultsBtn.classList.remove('visible');
+        setTimeout(() => {
+            placeholder.classList.remove('hidden');
+        }, 50);
     }
-  }
+}
 
 
 function downloadRoundAsPDF() {
@@ -2258,14 +2269,15 @@ window.onclick = function (event) {
 
 function updateResultsVisibility() {
     toggleResultsButton(checkRoundCompletion());
-  }
+}
 
-  function checkRoundCompletion() { 
-    if (fullTranscriptionContention == '' || fullTranscriptionRebuttal == '' || fullTranscriptionSummary == '' || fullTranscriptionFF == '' || document.getElementById('AIContentionText').innerHTML == '' || document.getElementById('AIRebuttalText').innerHTML == '' || document.getElementById('AISummaryText').innerHTML == '' || document.getElementById('AIFFText').innerHTML == ''){
+function checkRoundCompletion() {
+    if (fullTranscriptionContention == '' || fullTranscriptionRebuttal == '' || fullTranscriptionSummary == '' || fullTranscriptionFF == '' || document.getElementById('AIContentionText').innerHTML == '' || document.getElementById('AIRebuttalText').innerHTML == '' || document.getElementById('AISummaryText').innerHTML == '' || document.getElementById('AIFFText').innerHTML == '') {
+        roundOver = false;
         return false;
-    } else{
+    } else {
+        roundOver = true;
         return true;
     }
 
-    }
-  
+}
