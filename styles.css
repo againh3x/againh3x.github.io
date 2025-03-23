@@ -321,6 +321,11 @@ body {
     margin-top: 100px;
     display: none;
   }
+  .loadingfeed {
+    text-align: center;
+    margin-top: 100px;
+    display: none;
+  }
   .loading0U {
     text-align: center;
     margin-top: 100px;
@@ -1120,9 +1125,10 @@ body {
     padding: 20px;
     border-radius: 8px;
     min-height: 300px;
-    height: 70%;
+    height: 80%;
     margin: 20px 0;
     width: 90%;
+    overflow: auto;
 }
 
 .modal-footer {
@@ -1454,3 +1460,10 @@ button:hover::before {
   border-color: #7df9ff;
   box-shadow: 0 0 25px rgba(125, 249, 255, 0.3);
 }
+.loadingfeed {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* ... rest of your styles */
+  }
