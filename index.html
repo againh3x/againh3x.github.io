@@ -17,6 +17,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -25,7 +27,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: linear-gradient(180deg, #b4dcff, #085eb3, #10448c, #06294d);
+            background: linear-gradient(180deg, #b4dcff, #024589, #062a5c, #01172d);
             text-align: center;
             color: #333;
             min-height: 100vh;
@@ -41,7 +43,7 @@
             font-size: 2.6rem;
             margin-bottom: 20px;
             font-weight: bold;
-            color: #004085;
+            color: #022953;
             text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
             max-width: 90%;
             margin-left: auto;
@@ -51,7 +53,7 @@
         header p {
             font-size: 1.2rem;
             line-height: 1.8;
-            color: #004d99;
+            color: #ffffff;
             max-width: 80%;
             margin: 0 auto;
             padding-top: 20px;
@@ -444,11 +446,13 @@
         border-color: #7AE7C7 !important;
     }
     body {
-        background: linear-gradient(180deg, #b4dcff, #085eb3, #10448c, #06294d);
+        background: linear-gradient(180deg, #85c6ff, #003d84, #002861, #01172d);
+        
+        
         color: #e0f4ff;
     }
     header h1 {
-        color: #004085; /* Darker blue from original header */
+        color: #013368; /* Darker blue from original header */
         text-shadow: 0 2px 4px rgba(255, 255, 255, 0.2); /* White shadow for contrast */
         font-size: 2.6rem;
         max-width: 80%;
@@ -456,18 +460,19 @@
         padding: 20px;
         border-radius: 15px;
         margin-bottom: 30px;
-        margin-top: 0px;
+        margin-top: -30px;
     }
 
     header p {
-        color: #004085; /* Darker blue from original header */
+        color: #033265; /* Darker blue from original header */
         line-height: 1.7;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
+        font-size: 1.2rem;
 
         max-width: 70%;
         margin: 20px auto;
-        margin-bottom: -30px;
+        margin-top: -10px;
+        margin-bottom: -40px;
     }
 
     /* Container Update */
@@ -488,6 +493,229 @@
         color: #c0e4ff !important;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
+    .site-footer {
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
+    color: #00f3ff;
+    padding: 40px 20px;
+    margin-top: 50px;
+    border-top: 1px solid rgba(0, 255, 255, 0.2);
+    width: 100%;
+  }
+
+  .footer-content {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin: 0 auto;
+    gap: 30px;
+  }
+
+  .footer-column {
+    flex: 1;
+    min-width: 250px;
+  }
+
+  .footer-column h4 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #00f3ff;
+    padding-bottom: 5px;
+  }
+
+  .feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .feedback-form input,
+  .feedback-form textarea {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #00f3ff;
+    background: rgba(255, 255, 255, 0.1);
+    color: #00f3ff;
+  }
+  .feedback-form textarea {
+    height: 100px;
+  }
+
+  .feedback-form button {
+    background: linear-gradient(135deg, #00f3ff, #0066cc);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .feedback-form button:hover {
+    transform: translateY(-2px);
+  }
+
+  .social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .social-link {
+    color: #00f3ff !important;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .social-link:hover {
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+  }
+
+  .footer-bottom {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0, 255, 255, 0.1);
+  }
+
+  @media (max-width: 768px) {
+    .footer-content {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .social-links {
+      align-items: center;
+    }
+  }
+ /* Add to existing footer styles */
+ .social-link.linkedin {
+    color: #0A66C2 !important;
+  }
+
+  .social-link.youtube {
+    color: #FF0000 !important;
+  }
+
+  .or-separator {
+    color: #00f3ff;
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    font-size: 0.9em;
+    opacity: 0.8;
+  }
+
+  .or-separator::before,
+  .or-separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #00f3ff;
+  }
+
+  /* Keep existing hover effects but with platform colors */
+  .social-link.linkedin:hover {
+    color: #004182 !important;
+    text-shadow: 0 0 10px rgba(10, 102, 194, 0.4);
+  }
+
+  .social-link.youtube:hover {
+    color: #CC0000 !important;
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+  }
+  .social-link.linkedin {
+    color: #0A66C2 !important; /* LinkedIn official blue */
+  }
+  .social-link.youtube {
+    color: #FF0000 !important; /* YouTube official red */
+  }
+  .social-link.reddit {
+    color: #FF4500 !important; /* Reddit official orange */
+  }
+
+  /* Hover Effects */
+  .social-link.linkedin:hover {
+    color: #004182 !important; /* Darker LinkedIn blue */
+    text-shadow: 0 0 10px rgba(10, 102, 194, 0.3);
+  }
+  .social-link.youtube:hover {
+    color: #CC0000 !important; /* Darker YouTube red */
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+  }
+  .social-link.reddit:hover {
+    color: #D93A00 !important; /* Darker Reddit orange */
+    text-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
+  }
+
+  /* Optional: Add platform backgrounds on hover */
+  .social-link {
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+    border-radius: 4px;
+  }
+  .social-link.linkedin:hover {
+    background: rgba(10, 102, 194, 0.1);
+  }
+  .social-link.youtube:hover {
+    background: rgba(255, 0, 0, 0.1);
+  }
+  .social-link.reddit:hover {
+    background: rgba(255, 69, 0, 0.1);
+  }
+  .plain-email {
+  color: #00f3ff !important;
+  text-decoration: none !important;
+  cursor: text !important; /* Shows text selection cursor */
+  
+}
+
+/* Replace the existing .plain-email styles with this */
+.plain-email {
+  color: #00f3ff !important;
+  
+  transition: none !important;
+  background: none !important;
+}
+
+.plain-email:hover {
+  color: #00c4d6 !important; /* Slightly darker shade for hover */
+  text-decoration: underline !important;
+  text-decoration: underline !important;
+}
+.feedback-form {
+  max-width: 500px;
+  margin: 20px auto;
+  margin-top: -20px;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.feedback-form input,
+.feedback-form textarea {
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px;
+  border: 2px solid #00f3ff;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #00f3ff;
+}
+
+.feedback-form button {
+  background: linear-gradient(135deg, #00f3ff, #0066cc);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
     </style>
 </head>
 <body>
@@ -519,7 +747,7 @@
         </div>
     </div>
         <!-- New2Debate button is now outside of the container -->
-        <div style="margin-top: -20px; margin-bottom: 80px;">
+        <div style="margin-top: -30px; margin-bottom: 80px;">
             <a href="new2debate.html" class="button orange">
                 <span class="title">New2Debate</span>
             </a>
@@ -557,7 +785,53 @@
         </div>
     </div>
 </section>
-
+<footer class="site-footer">
+    <div class="footer-content">
+      <!-- Brand Section -->
+      <div class="footer-column">
+        <a href="https://publicforumai.com" class="logo">
+          <img src="android-chrome-192x192.png" alt="Public Forum AI Logo">
+          <span class="logo-text">PublicForumAI&copy;</span>
+        </a>
+        <p>Empowering debaters through AI</p>
+      </div>
+  
+      <!-- Contact Section -->
+      <div class="footer-column">
+        <h4>Contact Us</h4>
+        <p><a href="mailto:arda_altintepe@horacemann.org" class="plain-email">arda_altintepe@horacemann.org</a></p>
+        <div class="or-separator">OR</div>
+        <div class="feedback-form">
+          <form id="feedbackForm">
+            <input type="email" name="from_email" placeholder="Your email" required>
+            <textarea name="message" placeholder="Your feedback" required></textarea>
+            <button type="submit">Submit Feedback</button>
+          </form>
+        </div>
+      </div>
+  
+      <!-- Social Links -->
+      <div class="footer-column">
+        <h4>Follow Us</h4>
+        <div class="social-links">
+          <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" class="social-link linkedin">
+            <i class="fab fa-linkedin"></i> LinkedIn
+          </a>
+          <a href="https://www.youtube.com/@PublicForumAI" target="_blank" class="social-link youtube">
+            <i class="fab fa-youtube"></i> YouTube
+          </a>
+          <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" class="social-link reddit">
+            <i class="fab fa-reddit-alien"></i> Reddit
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Copyright -->
+    <div class="footer-bottom">
+      <p>&copy; 2025 PublicForumAI. All rights reserved.</p>
+    </div>
+  </footer>
 <style>
     /* AI Page Styles */
     #ai-page {
@@ -672,6 +946,47 @@
             aiPage.classList.add('active');
         }
     });
+
+function submitFeedback() {
+  const email = document.getElementById('feedbackEmail').value;
+  const message = document.getElementById('feedbackMessage').value;
+  
+  if (!email || !message) {
+    alert('Please fill in all fields');
+    return;
+  }
+
+  // Here you would typically send this data to your backend
+  alert('Thank you for your feedback! We\'ll be in touch soon.');
+  document.getElementById('feedbackEmail').value = '';
+  document.getElementById('feedbackMessage').value = '';
+}
+
+(function() {
+emailjs.init('wgsczkr19C1FrKtLj'); // Your actual User ID
+})();
+
+// Handle form submission
+document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+e.preventDefault();
+
+const btn = this.querySelector('button');
+btn.disabled = true;
+btn.textContent = 'Sending...';
+
+emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', this)
+  .then(() => {
+    
+    this.reset();
+  }, (error) => {
+    alert('Failed to send feedback. Please try again later.');
+    console.error('Error:', error);
+  })
+  .finally(() => {
+    btn.disabled = false;
+    btn.textContent = 'Submit Feedback';
+  });
+});
 </script>
 </body>
 </html>
