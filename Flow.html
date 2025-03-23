@@ -26,38 +26,52 @@
         <div class="results-button-container">
             <div id="results-placeholder">Results will be available after the round is finished</div>
             <button id="results-btn" onclick="openResultsModal()">View Results</button>
-          </div>
+        </div>
     </div>
     <div id="results-modal" class="results-modal">
         <div class="modal-content">
-    
-                <div class="judge-type-selector">
-                    <h3>Choose Judge Type:
-                        <span class="info-icon" onmouseover="showTooltip()" onmouseout="hideTooltip()">ⓘ
-                            <span class="tooltip">Tech judges prefer technical debate, Lay judges prefer persuasive storytelling. Tech mode offers structured feedback for each speech that is often more helpful.</span>
-                        </span>
-                    </h3>
-                    <button class="judge-btn active" data-type="tech" onclick="selectJudgeType('tech')" id="techJudgeBtn">Tech (default)</button>
-                    <button class="judge-btn" data-type="lay" onclick="selectJudgeType('lay')">Lay</button>                
-                </div>
-                <button class="download-btn" id="download-btn">Generate Feedback and Results</button>
-            
-            
 
-    
+            <div class="judge-type-selector">
+                <h3>Choose Judge Type:
+                    <span class="info-icon" onmouseover="showTooltip()" onmouseout="hideTooltip()">ⓘ
+                        <span class="tooltip">Tech judges prefer technical debate, Lay judges prefer persuasive
+                            storytelling. Tech mode offers structured feedback for each speech that is often more
+                            helpful.</span>
+                    </span>
+                </h3>
+                <button class="judge-btn active" data-type="tech" onclick="selectJudgeType('tech')"
+                    id="techJudgeBtn">Tech (default)</button>
+                <button class="judge-btn" data-type="lay" onclick="selectJudgeType('lay')">Lay</button>
+            </div>
+            <button class="download-btn" id="download-btn">Generate Feedback and Results</button>
+
+
+
+            <div class="loadingfeed">
+                <div class="text10">Generating (~20 seconds)</div>
+                <div class="ai-loader">
+                    <div class="dot dot1"></div>
+                    <div class="dot dot2"></div>
+                    <div class="dot dot3"></div>
+                    <div class="dot dot4"></div>
+                    <div class="dot dot5"></div>
+                    <div class="dot dot6"></div>
+                </div>
+            </div>
             <div id="feedback-content" class="feedback-content">
+
                 <!-- Generated feedback will appear here -->
             </div>
-    
-            
-                
-            
+
+
+
+
         </div>
     </div>
     <div class="save-button">
         <div class="save-note">Rounds autosave</div>
         <button onclick="clearSavedRound()">New Round</button>
-        
+
     </div>
     <div id="container">
         <div class="content-box" id="AIFlow">
@@ -70,7 +84,7 @@
                 </div>
                 <div id="AIContentionText"></div>
                 <div class="loading">
-                    <div class="text10">Generating (~5 seconds)</div>
+                    <div class="text10">Generating (~15 seconds)</div>
                     <div class="ai-loader">
                         <div class="dot dot1"></div>
                         <div class="dot dot2"></div>
