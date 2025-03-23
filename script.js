@@ -1,4 +1,5 @@
 var toggleFlowButton = document.getElementById('toggle-flow');
+var generateFeedbackButton = document.getElementById('download-btn')
 var recordButtonC = document.getElementById('recordButtonContention');
 var speakButtonAI = document.getElementById('SpeakAIContention');
 var generateButtonAI = document.getElementById('GenerateAIContention')
@@ -47,7 +48,7 @@ let audioChunks = [];
 let audioStream;
 let animationFrame;
 let recordingStartTime;
-
+var judgeType = 'tech';
 
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -608,7 +609,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
             toggleFlowButton.classList.add('glowing');
             recordButtonC.classList.add('glowing');
         }
-        
+
     }
 }
 
@@ -1301,7 +1302,7 @@ async function stopRecording() {
                 // Rest of your existing processing code
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscription(transcript, debateTopic, selectedSide);
-                
+
                 // UI handling remains the same
                 const selectedTurn = document.getElementById('selectedTurn').textContent;
                 if (selectedTurn === "Second") {
@@ -1315,12 +1316,12 @@ async function stopRecording() {
                 console.error('Transcription error:', error);
                 // Handle error state
             }
-            
+
             audioStream.getTracks().forEach(track => track.stop());
-        
+
         };
     }
-    
+
 }
 
 
@@ -1367,7 +1368,7 @@ async function stopRecordingR() {
                 if (!response.ok) throw new Error('Transcription failed');
                 const { transcript } = await response.json();
 
-                fullTranscriptionRebuttal = transcript;   
+                fullTranscriptionRebuttal = transcript;
 
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscriptionR(transcript, debateTopic, selectedSide);
@@ -1503,7 +1504,7 @@ async function stopRecordingF() {
                 fullTranscriptionFF = transcript;
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscriptionF(transcript, debateTopic, selectedSide);
-                
+
 
                 // Handle UI elements
                 const selectedTurn = document.getElementById('selectedTurn').textContent;
@@ -1561,7 +1562,7 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
             transcriptionResultC.innerHTML = "<p>" + CaseFlow.replace(/\n/g, '<br>') + "</p>";
             saveRound()
         }
-        
+
     } else {
         console.error('Failed to process transcription:', response.statusText);
         document.querySelector('.loadingU').style.display = 'none';
@@ -1606,7 +1607,7 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
         .finally(() => {
             // Hide the loading animation
             document.querySelector('.loadingRU').style.display = 'none';
-            
+
         });
 }
 function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
@@ -1655,6 +1656,7 @@ function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
 function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
     document.querySelector('.loading3U').style.display = 'none';
     document.querySelector('.loadingFFU').style.display = 'block';
+    const selectedTurn = document.getElementById('selectedTurn').textContent;
     // Send the transcription to your Python backend for processing
     transcriptionResultF.textContent = '';
     fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processF', {
@@ -1693,6 +1695,10 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
         .finally(() => {
             // Hide the loading animation
             document.querySelector('.loadingFFU').style.display = 'none';
+            
+            if (selectedTurn == 'Second') {
+            updateResultsVisibility()
+            }
             saveRound()
         });
 }
@@ -1954,6 +1960,11 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
                 recordButtonF.classList.add('glowing');
                 saveRound()
             }
+            else {
+                updateResultsVisibility()
+                saveRound()
+
+            }
         });
 }
 function stopGeneratingAISummary() {
@@ -2050,6 +2061,7 @@ function captureState() {
         transcriptionR: fullTranscriptionRebuttal,
         transcriptionS: fullTranscriptionSummary,
         transcriptionF: fullTranscriptionFF,
+        feedback: document.getElementById('feedback-content').innerHTML,
         toggle: ToggleisSelectedSide
     };
     return state;
@@ -2057,10 +2069,203 @@ function captureState() {
 function saveRound() {
     const state = captureState();
     localStorage.setItem('savedRound', JSON.stringify(state));
-    
+
 }
 function clearSavedRound() {
     localStorage.removeItem('savedRound');
-    
+
     location.reload(); // Optional: Reload the page to reset the state
 }
+
+// Add to JavaScript
+function openResultsModal() {
+    document.getElementById('results-modal').style.display = 'block';
+}
+
+function closeResultsModal() {
+    document.getElementById('results-modal').style.display = 'none';
+}
+
+function selectJudgeType(type) {
+    if (['tech', 'lay'].includes(type)) {
+        judgeType = type;
+      
+        document.querySelectorAll('.judge-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-type') === type);
+        });
+    }
+
+}
+function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, transcriptionF, AICase, AIRebuttal, AISummary, AIFinalFocus) {
+    if (judgeType == 'tech') {
+
+        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/tech', {
+            method: 'POST', // Specify POST method
+            body: JSON.stringify({
+                debateTopic: debateTopic,
+                selectedSide: selectedSide,
+                nonselectedSide: nonselectedSide,
+                selectedTurn: selectedTurn,
+                transcription: transcription,
+                transcriptionR: transcriptionR,
+                transcriptionS: transcriptionS,
+                transcriptionF: transcriptionF,
+                AICase: AICase,
+                AIRebuttal: AIRebuttal,
+                AISummary: AISummary,
+                AIFinalFocus: AIFinalFocus
+            }), // Send user input in the request body
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+
+
+                if (!response.ok) {
+                    throw new Error('Failed to process user input');
+                }
+                return response.json(); // Parse JSON response
+            })
+            .then(data => {
+                // Get the AI response from the data
+                const { TechFeedback } = data;
+
+
+
+
+                // Display the AI response
+                document.getElementById('feedback-content').innerHTML = "<p>" + TechFeedback.replace(/\n/g, '<br>') + "</p>";
+            })
+            .catch(error => {
+                console.error('Error processing user input:', error);
+            })
+            .finally(() => {
+
+                saveRound()
+
+            }
+            );
+    } else if (judgeType == 'lay') {
+        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/lay', {
+            method: 'POST', // Specify POST method
+            body: JSON.stringify({
+                debateTopic: debateTopic,
+                selectedSide: selectedSide,
+                nonselectedSide: nonselectedSide,
+                selectedTurn: selectedTurn,
+                transcription: transcription,
+                transcriptionR: transcriptionR,
+                transcriptionS: transcriptionS,
+                transcriptionF: transcriptionF,
+                AICase: AICase,
+                AIRebuttal: AIRebuttal,
+                AISummary: AISummary,
+                AIFinalFocus: AIFinalFocus
+            }), // Send user input in the request body
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+
+
+                if (!response.ok) {
+                    throw new Error('Failed to process user input');
+                }
+                return response.json(); // Parse JSON response
+            })
+            .then(data => {
+                // Get the AI response from the data
+                const { LayFeedback } = data;
+
+
+
+
+                // Display the AI response
+                document.getElementById('feedback-content').innerHTML = "<p>" + LayFeedback.replace(/\n/g, '<br>') + "</p>";
+            })
+            .catch(error => {
+                console.error('Error processing user input:', error);
+            })
+            .finally(() => {
+
+                saveRound()
+
+            }
+            );
+    }
+
+}
+
+
+
+
+generateFeedbackButton.addEventListener('click', () => {
+        const selectedSide = document.getElementById('selectedSide').textContent;
+        const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
+        const transcription = fullTranscriptionContention;
+        const transcriptionR = fullTranscriptionRebuttal;
+        const transcriptionS = fullTranscriptionSummary;
+        const transcriptionF = fullTranscriptionFF;
+        const AICase = document.getElementById('AIContentionText').innerHTML
+        const AIRebuttal = document.getElementById('AIRebuttalText').innerHTML
+        const AISummary = document.getElementById('AISummaryText').innerHTML
+        const AIFF = document.getElementById('AIFFText').innerHTML
+        judgeType = judgeType;
+        const selectedTurn = document.getElementById('selectedTurn').textContent;
+        generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, transcriptionF, AICase, AIRebuttal, AISummary, AIFF);
+
+
+});
+
+function toggleResultsButton(show) {
+    const resultsBtn = document.getElementById('results-btn');
+    const placeholder = document.getElementById('results-placeholder');
+    
+    if (show) {
+      // Show button and hide placeholder
+      placeholder.classList.add('hidden');
+      setTimeout(() => {
+        resultsBtn.classList.add('visible');
+      }, 50); // Short delay for smooth transition
+    } else {
+      // Hide button and show placeholder
+      resultsBtn.classList.remove('visible');
+      setTimeout(() => {
+        placeholder.classList.remove('hidden');
+      }, 50);
+    }
+  }
+
+
+function downloadRoundAsPDF() {
+    // Implement PDF generation using jsPDF or similar
+    console.log('Downloading round as PDF...');
+    // Example: 
+    // const doc = new jsPDF();
+    // doc.text('Round Transcript', 10, 10);
+    // doc.save('debate-round.pdf');
+}
+
+// Close modal when clicking outside
+window.onclick = function (event) {
+    const modal = document.getElementById('results-modal');
+    if (event.target === modal) {
+        closeResultsModal();
+    }
+}
+
+function updateResultsVisibility() {
+    toggleResultsButton(checkRoundCompletion());
+  }
+
+  function checkRoundCompletion() { 
+    if (fullTranscriptionContention == '' || fullTranscriptionRebuttal == '' || fullTranscriptionSummary == '' || fullTranscriptionFF == '' || document.getElementById('AIContentionText').innerHTML == '' || document.getElementById('AIRebuttalText').innerHTML == '' || document.getElementById('AISummaryText').innerHTML == '' || document.getElementById('AIFFText').innerHTML == ''){
+        return false;
+    } else{
+        return true;
+    }
+
+    }
+  
