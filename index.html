@@ -27,7 +27,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: linear-gradient(180deg, #b4dcff, #024589, #062a5c, #01172d);
+            background: linear-gradient(180deg, #b4dcff, #00305f, #1273f9, #01172d);
             text-align: center;
             color: #333;
             min-height: 100vh;
@@ -447,6 +447,7 @@
     }
     body {
         background: linear-gradient(180deg, #85c6ff, #003d84, #002861, #01172d);
+        background: linear-gradient(180deg, #75bfff, #0015a1, #5ab2ff, #0015a1,  #012962, #000000);
         
         
         color: #e0f4ff;
@@ -459,7 +460,7 @@
         background: rgba(255, 255, 255, 0.1); /* Subtle background for readability */
         padding: 20px;
         border-radius: 15px;
-        margin-bottom: 30px;
+        margin-bottom: 30px; 
         margin-top: -30px;
     }
 
@@ -750,6 +751,9 @@
 }
 
     </style>
+
+
+
 </head>
 <body>
     <header>
@@ -808,7 +812,7 @@
                 </div>
                 <div class="faq-item">
                     <h4>Can I recieve feedback after my round?</h4>
-                    <p>Yes, you will recieve structured AI feedback upon completing a full practice round.</p>
+                    <p>Yes, you will recieve structured AI feedback and a chosen "winner" upon completing a full practice round. You also have the option to choose between a tech and a lay judge, though we often find the feedback from the AI tech judge to be more helpful. </p>
                 </div>
                 <div class="faq-item">
                     <h4>Is there a crossfire feature?</h4>
@@ -816,7 +820,46 @@
                 </div>
             </div>
         </div>
-    </div>
+
+        <div class="content-section">
+            <div class="journey-section">
+                <h2>Our Journey</h2>
+                <div class="journey-content">
+                    <p>Beginning in early 2024, during my sophomore year, it started as a basic script with countless flaws and plenty of room for improvement. It then became part of a computer science class project, and I made slight improvements. However, as the months went on, I worked on significantly improving the code and the "PF structure."" By March 2025, I made major improvements to the website, enhanced the algorithm, and greatly boosted its overall quality. I partnered with another student on Horace Mann's debate team familiar with entrepereneurship to significanty increase accessibility and promote PublicForumAI to debaters around the country. Now, we plan to continue making improvements and focus on increasing our reach.</p>
+                    
+                    <div class="vision-box">
+                        <h3>Vision</h3>
+                        <p>We are committed to improving. The PublicForumAI team plans to partner with schools and debate camps to better tailor our services to student needs. Additionally, we plan to create a mobile app for the website. Any feedback is welcome—please find and contact us on our Reddit page or by email, with all contact information at the footer.</p>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="about-section">
+                <h2>About Our Tools at PublicForumAI</h2>
+                <div class="about-grid">
+                 
+                    <div class="about-card">
+                        <h3>AI Flow</h3>
+                        <p>Pick the speech, and use voice recognition to flow debates automatically with PF structure, helping you track arguments and improve round strategy.</p>
+                    </div>
+                    <div class="about-card">
+                        <h3>AI Practice Round</h3>
+                        <p>Engage in a FULL PF DEBATE AGAINST AN AI! Record your speeches while the AI flows and generates responses in real-time, following the standard PF format. You can choose the level of difficulty, and RECEIVE DETAILED FEEDBACK with results at the end of rounds, highlighting your strengths and areas for improvement! </p>
+                    </div>
+                    
+                    <div class="about-card">
+                        <h3>AI Casewriter</h3>
+                        <p>Instantly generate structured cases with evidence for any topic and side, teaching you how to craft stronger arguments and contentions. We offer both a middle school and high school feature.</p>
+                    </div>
+                    
+                    <div class="about-card center-card">
+                        <h3>New2Debate</h3>
+                        <p>New to PF? Our beginner-friendly guide covers 6 key PF concepts. Even if you're familiar with these fundamentals, our content will help deepen your understanding and enhance your performance. All tools are 100% FREE and built specifically for Public Forum debate.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>        
 </section>
 <footer class="site-footer">
     <div class="footer-content">
@@ -966,6 +1009,133 @@
             font-size: 1.5rem;
         }
     }
+    
+    .journey-section {
+    padding: 40px;
+    background: rgba(10, 35, 66, 0.95);
+    border-radius: 15px;
+    margin: 40px 0;
+    border: 1px solid #7AE7C7; /* Mint accent from buttons */
+}
+
+.journey-section h2 {
+    color: #7dd3fc;
+    text-align: center;
+    font-size: 2.2rem;
+    margin-bottom: 30px;
+    text-shadow: 0 0 15px rgba(125, 211, 252, 0.3);
+}
+
+.journey-content p {
+    color: #e0f4ff;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    max-width: 800px;
+    margin: 0 auto 30px;
+}
+
+.vision-box {
+    padding: 25px;
+    border-radius: 12px;
+    background: rgba(18, 54, 92, 0.8);
+    border: 1px solid #7dd3fc55;
+    margin-top: 40px;
+}
+
+.vision-box h3 {
+    color: #7dd3fc;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+
+.vision-box p {
+    color: #c0e4ff;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* About Section */
+.about-section {
+    padding: 40px;
+    background: rgba(10, 35, 66, 0.95);
+    border-radius: 15px;
+    margin: 40px 0;
+}
+
+.about-section h2 {
+    color: #7dd3fc;
+    text-align: center;
+    font-size: 2.2rem;
+    margin-bottom: 40px;
+    text-shadow: 0 0 15px rgba(125, 211, 252, 0.3);
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.about-card {
+    padding: 25px;
+    border-radius: 12px;
+    background: rgba(18, 54, 92, 0.8);
+    border: 1px solid #7dd3fc;
+    transition: transform 0.3s ease;
+}
+
+.about-card:hover {
+    transform: translateY(-5px);
+}
+
+.about-card h3 {
+    color: #7dd3fc;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.about-card p {
+    color: #c0e4ff;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.center-card {
+    grid-column: 1 / -1;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Centered New2Debate Button */
+.center-button {
+    display: flex;
+    justify-content: center;
+    margin-top: -30px;
+    margin-bottom: 80px;
+}
+
+@media (max-width: 768px) {
+    .journey-section,
+    .about-section {
+        padding: 25px;
+    }
+    
+    .journey-content p {
+        font-size: 1rem;
+    }
+    
+    .about-card {
+        padding: 20px;
+    }
+    
+    .center-card {
+        grid-column: auto;
+    }
+}
+
 </style>
 
 <script>
