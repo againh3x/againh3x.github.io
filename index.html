@@ -827,6 +827,28 @@
             text-decoration: none !important;
             border-bottom: none !important;
         }
+
+        .tutorial-section {
+    width: 100%;
+    margin: 30px auto;
+    padding: 20px;
+    padding-bottom: 10px;
+}
+
+.video-wrapper {
+    width: 80%;
+    margin: 0 auto;
+    aspect-ratio: 16/9;
+    border-radius: 10px;
+    border: 2px solid #7dd3fc;
+    overflow: hidden;
+}
+
+.video-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
     </style>
 
 
@@ -871,16 +893,55 @@
     </div>
     <!-- Add this right before the closing </body> tag -->
     <section id="ai-page" class="hidden">
+        
         <div class="ai-content">
-            <img src="android-chrome-192x192.png" class="ai-logo">
+            
+            <section class="tutorial-section">
+                <h2>Video Tutorial</h2>
+                <div class="video-wrapper">
+                    <iframe src="https://www.youtube.com/embed/c61rg8KffEE" 
+                    title="YouTube video player" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+            </iframe>
+                </div>
+            
 
-            <div class="mission-statement">
-                <h2>Mission Statement</h2>
-                <p>PublicForumAI is dedicated to making public forum debate more accessible. We provide resources and
-                    guidance to help debaters of all levels improve, especially those without access to traditional
-                    support. Our goal is to equip students with the skills and confidence to succeed in debate.</p>
+            <div class="about-section">
+                <h2>About Our Tools at PublicForumAI</h2>
+                <div class="about-grid">
+
+                    <div class="about-card">
+                        <h3>AI Flow</h3>
+                        <p>Pick the speech, and use voice recognition to flow debates automatically with PF
+                            structure, helping you track arguments and improve round strategy.</p>
+                    </div>
+                    <div class="about-card">
+                        <h3>AI Practice Round</h3>
+                        <p>Engage in a FULL PF DEBATE AGAINST AN AI! Record your speeches while the AI flows and
+                            generates responses in real-time, following the standard PF format. You can choose the
+                            level of difficulty, and RECEIVE DETAILED FEEDBACK with results at the end of rounds,
+                            highlighting your strengths and areas for improvement! </p>
+                    </div>
+
+                    <div class="about-card">
+                        <h3>AI Casewriter</h3>
+                        <p>Instantly generate structured cases with evidence for any topic and side, teaching you
+                            how to craft stronger arguments and contentions. We offer both a middle school and high
+                            school feature.</p>
+                    </div>
+
+                    <div class="about-card center-card">
+                        <h3>New2Debate</h3>
+                        <p>New to PF? Our beginner-friendly guide covers 6 key PF concepts. Even if you're familiar
+                            with these fundamentals, our content will help deepen your understanding and enhance
+                            your performance. All tools are 100% FREE and built specifically for Public Forum
+                            debate.</p>
+                    </div>
+                </div>
             </div>
-
+        </section>
             <div class="ai-faq">
                 <h3>AI System FAQs</h3>
                 <div class="faq-grid">
@@ -917,7 +978,15 @@
                     </div>
                 </div>
             </div>
+            
 
+            <div class="mission-statement">
+                <img src="android-chrome-192x192.png" class="ai-logo">
+                <h2>Mission Statement</h2>
+                <p>PublicForumAI is dedicated to making public forum debate more accessible. We provide resources and
+                    guidance to help debaters of all levels improve, especially those without access to traditional
+                    support. Our goal is to equip students with the skills and confidence to succeed in debate.</p>
+            </div>
             <div class="content-section">
 
 
@@ -952,39 +1021,7 @@
                     </div>
                 </div>
 
-                <div class="about-section">
-                    <h2>About Our Tools at PublicForumAI</h2>
-                    <div class="about-grid">
-
-                        <div class="about-card">
-                            <h3>AI Flow</h3>
-                            <p>Pick the speech, and use voice recognition to flow debates automatically with PF
-                                structure, helping you track arguments and improve round strategy.</p>
-                        </div>
-                        <div class="about-card">
-                            <h3>AI Practice Round</h3>
-                            <p>Engage in a FULL PF DEBATE AGAINST AN AI! Record your speeches while the AI flows and
-                                generates responses in real-time, following the standard PF format. You can choose the
-                                level of difficulty, and RECEIVE DETAILED FEEDBACK with results at the end of rounds,
-                                highlighting your strengths and areas for improvement! </p>
-                        </div>
-
-                        <div class="about-card">
-                            <h3>AI Casewriter</h3>
-                            <p>Instantly generate structured cases with evidence for any topic and side, teaching you
-                                how to craft stronger arguments and contentions. We offer both a middle school and high
-                                school feature.</p>
-                        </div>
-
-                        <div class="about-card center-card">
-                            <h3>New2Debate</h3>
-                            <p>New to PF? Our beginner-friendly guide covers 6 key PF concepts. Even if you're familiar
-                                with these fundamentals, our content will help deepen your understanding and enhance
-                                your performance. All tools are 100% FREE and built specifically for Public Forum
-                                debate.</p>
-                        </div>
-                    </div>
-                </div>
+                
             </div>
         </div>
     </section>
@@ -1074,7 +1111,7 @@
         .ai-logo {
             width: 80px;
             height: 80px;
-            margin: -40px auto 30px;
+            
             filter: drop-shadow(0 0 15px rgba(125, 211, 252, 0.6));
         }
 
@@ -1088,6 +1125,7 @@
             /* Match opacity */
             border: 1px solid #7AE7C7;
             /* Mint accent */
+            margin-top: 30px;
         }
 
         .mission-statement h2 {
@@ -1244,6 +1282,7 @@
             text-align: center;
             max-width: 800px;
             margin: 0 auto;
+            margin-bottom: -50px;
         }
 
         /* Centered New2Debate Button */
@@ -1563,6 +1602,122 @@
                 font-size: 1rem;
             }
         }
+        .tutorial-section {
+        width: 100%;
+        
+       
+    
+        padding: 20px;
+        background: rgba(10, 35, 66, 0.9);
+        border-radius: 15px;
+        border: 1px solid #7dd3fc;
+        margin-top: 0px;
+        padding-bottom: -20px;
+        margin-bottom: 60px;
+    }
+
+    .tutorial-section h2 {
+        color: #7dd3fc;
+        font-size: 2rem;
+        margin-bottom: 20px;
+        text-align: center;
+        margin-top: 0px;
+    }
+
+    .video-wrapper {
+        position: relative;
+        
+      
+        overflow: hidden;
+        max-width: 70%;
+    }
+
+    .video-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 70%;
+        height: 100%;
+        border-radius: 10px;
+        border: 2px solid #7dd3fc;
+    }
+    .video-wrapper {
+        position: relative;
+        
+       
+        overflow: hidden;
+        max-width: 100%;
+        border-radius: 10px;
+        border: 2px solid #7dd3fc; /* Move border to wrapper */
+        box-sizing: border-box; /* Include border in dimensions */
+    }
+
+    .video-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none; /* Remove border from iframe */
+    }
+    .button.full-ai {
+    background: linear-gradient(145deg, #3B82F6, #2563EB);
+    border: 2px solid #00fffb;
+    box-shadow: 0 0 25px rgba(0, 255, 251, 0.3);
+}
+
+/* Add this hover state */
+.button.full-ai:hover {
+    background: linear-gradient(145deg, #2563EB, #1E4AAF);
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(0, 255, 251, 0.4);
+}
+
+
+.video-wrapper {
+    max-width: 80%; /* Add this line */
+    margin: 0 auto; /* Center the video wrapper */
+}
+.video-wrapper {
+
+    aspect-ratio: 16/9; /* Key change for proportional scaling */
+    border-radius: 10px;
+    border: 2px solid #7dd3fc;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+
+.video-wrapper {
+    width: 80%; /* Same as tutorial-section width reduction */
+    
+    margin: 0 auto; /* Center the video */
+    aspect-ratio: 16/9; /* Force proportional scaling */
+    border-radius: 10px;
+    border: 2px solid #7dd3fc;
+    overflow: hidden; /* Ensures border-radius clips content */
+}
+
+.video-wrapper iframe {
+    width: 100%;
+    height: 100%; /* Fill container */
+    border: none;
+}
+.video-wrapper {
+    width: 80%; /* Same as tutorial-section width reduction */
+    margin: 0 auto; /* Center the video */
+    aspect-ratio: 16/9; /* Key change for proportional scaling */
+    border-radius: 10px;
+    border: 2px solid #7dd3fc;
+    overflow: hidden; /* Ensures border-radius clips content */
+    margin-bottom: -30px;
+}
+
+.video-wrapper iframe {
+    width: 100%;
+    height: 100%; /* Fill container */
+    border: none;
+}
     </style>
 
     <script>
