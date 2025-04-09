@@ -857,6 +857,9 @@
 
 <body>
     <header>
+        <a href="#ai-page" class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </a>
         <h1>Debate Smarter with AI: Free Public Forum Cases, Flows & Full Practice Rounds</h1>
         <p>
             This website helps Public Forum (PF) debate students practice for rounds using tools powered by artificial
@@ -1718,6 +1721,58 @@
     height: 100%; /* Fill container */
     border: none;
 }
+/* Add to CSS */
+.scroll-indicator {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: bounce 2s infinite;
+    color: #7dd3fc;
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-20px);}
+    60% {transform: translateY(-10px);}
+}
+/* Update existing styles */
+.tutorial-section, .about-section, .mission-statement {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s ease-out;
+}
+
+.tutorial-section.visible, .about-section.visible, .mission-statement.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.scroll-indicator {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: bounce 2s infinite;
+    color: #7dd3fc;
+    font-size: 2rem;
+    opacity: 0.9;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.scroll-indicator.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);}
+    40% {transform: translate(-50%, -15px);}
+    60% {transform: translate(-50%, -7px);}
+}
     </style>
 
     <script>
@@ -1727,7 +1782,7 @@
             const scrollPosition = window.scrollY;
             const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
 
-            if (scrollPosition > pageHeight * 0.05) { // Adjust trigger point as needed
+            if (scrollPosition > pageHeight * 0.027) { // Adjust trigger point as needed
                 aiPage.classList.add('active');
             }
         });
@@ -1772,6 +1827,56 @@
                     btn.textContent = 'Submit Feedback';
                 });
         });
+        // Add this to existing JS
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, {
+    threshold: 0.1
+});
+
+document.querySelectorAll('.tutorial-section, .about-section, .mission-statement').forEach((el) => {
+    observer.observe(el);
+});
+
+// Scroll Indicator Logic
+const scrollIndicator = document.querySelector('.scroll-indicator');
+const aiPage = document.getElementById('ai-page');
+
+function handleScrollIndicatorClick() {
+    window.scrollBy({
+        top: window.innerHeight * 0.8,
+        behavior: 'smooth'
+    });
+}
+
+function checkAiPageVisibility() {
+    const rect = aiPage.getBoundingClientRect();
+    const isVisible = rect.top < window.innerHeight && rect.bottom >= 0;
+    
+    if (isVisible) {
+        scrollIndicator.classList.add('hidden');
+    }
+}
+
+// Event Listeners
+scrollIndicator.addEventListener('click', handleScrollIndicatorClick);
+window.addEventListener('scroll', checkAiPageVisibility);
+window.addEventListener('load', checkAiPageVisibility);
+
+// Initialize Intersection Observer for AI page
+const aiPageObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            scrollIndicator.classList.add('hidden');
+        }
+    });
+}, { threshold: 0.1 });
+
+aiPageObserver.observe(aiPage);
     </script>
 </body>
 
