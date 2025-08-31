@@ -1,28 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
 
+<html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
-    <script>
+<!-- Google tag (gtag.js) -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
         gtag('config', 'G-ERE3HL6LKB');
     </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Public Forum Debate AI Tools | AI-Generated Cases, Flows, and Full AI Debate Practice Rounds!</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="400x400" href="/ai_debate.png">
-
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Free Public Forum Debate AI Tools | AI-Generated Cases, Flows, and Full AI Debate Practice Rounds!</title>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/ai_debate.png" rel="icon" sizes="400x400" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
         body {
             font-family: 'Roboto', sans-serif;
             margin: 0;
@@ -40,6 +39,7 @@
             width: 100%;
             padding: 50px 30px;
             box-sizing: border-box;
+            margin-top: -15px;
         }
 
         header h1 {
@@ -48,16 +48,17 @@
             font-weight: bold;
             color: #022953;
             text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
-            max-width: 90%;
+  
             margin-left: auto;
             margin-right: auto;
+    
         }
 
         header p {
             font-size: 1.2rem;
             line-height: 1.8;
             color: #ffffff;
-            max-width: 80%;
+           
             margin: 0 auto;
             padding-top: 20px;
         }
@@ -66,18 +67,18 @@
         .container {
             text-align: center;
             background: linear-gradient(180deg, #99C9F9, #6FA1E7);
-            padding: 40px 20px 60px;
-            margin-top: 30px;
+            padding: 60px 60px 50px;
+            margin-top: -60px;
             border-radius: 20px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
             width: 90%;
-            max-width: 800px;
+            max-width: 1000px;
         }
 
         .button-wrapper {
             display: flex;
             justify-content: space-between;
-            gap: 20px;
+            gap: 60px;
             flex-wrap: nowrap;
         }
 
@@ -87,7 +88,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            width: 300px;
+            width: 250px;
             height: 150px;
             font-size: 1rem;
             color: #fff;
@@ -464,7 +465,7 @@
             /* Matches button borders */
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
             font-size: 2.5rem;
-            max-width: 800px;
+
         }
 
 
@@ -507,7 +508,7 @@
             text-shadow: 0 2px 4px rgba(154, 252, 255, 0.2);
             /* White shadow for contrast */
             font-size: 2.6rem;
-            max-width: 80%;
+
             background: rgba(255, 255, 255, 0.1);
             /* Subtle background for readability */
             padding: 20px;
@@ -523,7 +524,7 @@
             
             font-size: 1.2rem;
 
-            max-width: 70%;
+  
             margin: 20px auto;
             margin-top: -10px;
             margin-bottom: -40px;
@@ -850,154 +851,707 @@
     border: none;
 }
     </style>
+<style>
+.toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 30px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .toolbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 25%,
+                rgba(0, 255, 255, 0.1) 50%,
+                transparent 75%
+            );
+            animation: scanner-beam 8s infinite linear;
+        }
+
+        @keyframes scanner-beam {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+
+        .logo img {
+            height: 40px;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover img {
+            filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 100px;
+            position: relative;
+        }
+
+        .nav-links a {
+            color: #00f3ff !important;
+            text-decoration: none;
+            font-weight: 600;
+            position: relative;
+            padding: 5px 0;
+            background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
+            background-size: 200% 100%;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #00f3ff;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover 
+</style>
+<style>
+/* === TOOLBAR CONSISTENCY PATCH === */
+/* Match link spacing to 60px on all toolbars */
+nav.toolbar .nav-links { gap: 60px !important; }
+/* Ensure hover effect (background slide + underline expand) */
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
 
 
+/* === SIGN IN BUTTON REFRESH (toolbar only) === */
+nav.toolbar #authSlot .button.orange {
+  background: transparent !important;
+  border: 2px solid #00f3ff !important;
+  color: #00f3ff !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+nav.toolbar #authSlot .button.orange .title {
+  color: inherit !important;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1;
+  margin: 0;
+}
+nav.toolbar #authSlot .button.orange:hover {
+  background: #00f3ff !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.orange:hover .title {
+  color: #0a0e27 !important;
+}
 
+
+/* === HOME ONLY: prevent fixed toolbar overlap === */
+body { padding-top: 100px !important; }
+</style><style>
+/* === TOOLBAR STANDARDIZATION === */
+/* Colors, font-weight, spacing, and hover underline */
+nav.toolbar .logo-text {
+  color: #00f3ff !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+nav.toolbar .nav-links a {
+  color: #00f3ff !important;
+  font-weight: 700 !important;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #00f3ff;
+  transition: width 0.3s ease;
+}
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+/* === SIGN IN button (decoupled from .button.orange) === */
+nav.toolbar #authSlot .button.signin {
+  background: transparent !important;
+  border: 2px solid #00f3ff !important;
+  color: #00f3ff !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+nav.toolbar #authSlot .button.signin .title {
+  color: inherit !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: #00f3ff !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === FINAL TOOLBAR STANDARDIZATION === */
+nav.toolbar .logo-text {
+  color: #00f3ff !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+nav.toolbar .nav-links a {
+  color: #00f3ff !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 1rem !important;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #00f3ff;
+  transition: width 0.3s ease;
+}
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+/* Sign In button (decoupled from .button.orange CTA) */
+nav.toolbar #authSlot .button.signin {
+  background: transparent !important;
+  border: 2px solid #00f3ff !important;
+  color: #00f3ff !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+nav.toolbar #authSlot .button.signin .title {
+  color: inherit !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: #00f3ff !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === GLOBAL TOOLBAR ACCENT + CONSISTENCY === */
+nav.toolbar .logo-text {
+  color: #90D0F8 !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+nav.toolbar .nav-links a {
+  color: #90D0F8 !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 1rem !important;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(144, 208, 248, 0.15) 100%);
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #90D0F8;
+  transition: width 0.3s ease;
+}
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+/* Sign In button: use accent color; keep decoupled from .button.orange */
+nav.toolbar #authSlot .button.signin {
+  background: transparent !important;
+  border: 2px solid #90D0F8 !important;
+  color: #90D0F8 !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+nav.toolbar #authSlot .button.signin .title {
+  color: inherit !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: #90D0F8 !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === FINAL PASS: Bright accent + bold everywhere + Sign In styling === */
+:root { --toolbar-accent: #A3DCFF; }
+
+nav.toolbar .logo-text {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+nav.toolbar .nav-links a {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 1rem !important;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(163, 220, 255, 0.18) 100%);
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--toolbar-accent);
+  transition: width 0.3s ease;
+}
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+/* Sign In button (decoupled from New2Debate) */
+nav.toolbar #authSlot .button.signin {
+  background: transparent !important;
+  border: 2px solid var(--toolbar-accent) !important;
+  color: var(--toolbar-accent) !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+nav.toolbar #authSlot .button.signin .title {
+  color: inherit !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: var(--toolbar-accent) !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === TOOLBAR: Bluer accent + bold + consistent sizing === */
+:root { --toolbar-accent: #86C4FF; }
+
+nav.toolbar .logo-text {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+
+nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+nav.toolbar .nav-links a {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 1rem !important;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(134,196,255,0.18) 100%);
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--toolbar-accent);
+  transition: width 0.3s ease;
+}
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+/* === SIGN IN (decoupled, visible, same everywhere) === */
+nav.toolbar #authSlot .button.signin {
+  background: transparent !important;
+  border: 2px solid var(--toolbar-accent) !important;
+  color: var(--toolbar-accent) !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 10px 16px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px !important;
+  box-shadow: 0 0 0 2px rgba(134,196,255,0.08) inset !important;
+  transform: none !important;
+}
+/* Lock in typography so it can't be affected by other .title rules */
+nav.toolbar #authSlot .button.signin .title {
+  color: inherit !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: var(--toolbar-accent) !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === LIGHTER-BLUER ACCENT + SIGN IN UNDERLINE FIX === */
+:root { --toolbar-accent: #9FD6FF; }
+
+/* Ensure the Sign In anchor never picks up nav/CTA underline/hover effects */
+nav.toolbar #authSlot a,
+nav.toolbar #authSlot a:hover,
+nav.toolbar #authSlot a:focus {
+  text-decoration: none !important;
+  background: none !important;
+  position: static !important;
+}
+nav.toolbar #authSlot a::after { content: none !important; }
+
+/* Keep the button styling consistent and visible */
+nav.toolbar #authSlot .button.signin {
+  border: 2px solid var(--toolbar-accent) !important;
+  color: var(--toolbar-accent) !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: var(--toolbar-accent) !important;
+  color: #0a0e27 !important;
+}
+
+/* Bold everywhere for logo + links, with the new accent */
+nav.toolbar .logo-text {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+}
+nav.toolbar .nav-links a {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+}
+nav.toolbar .nav-links a::after {
+  background: var(--toolbar-accent) !important;
+}
+</style><style>
+/* === LIGHTER, BLUER ACCENT + ABSOLUTE UNDERLINE REMOVAL FOR SIGN IN === */
+:root { --toolbar-accent: #7FCDFF; }
+
+/* Accent + bold for logo/links */
+nav.toolbar .logo-text { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
+nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
+nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
+
+/* Kill any underline/pseudo-element bleed on Sign In (anchor, button, and title) */
+nav.toolbar #authSlot a,
+nav.toolbar #authSlot a:hover,
+nav.toolbar #authSlot .button.signin,
+nav.toolbar #authSlot .button.signin:hover,
+nav.toolbar #authSlot .button.signin .title,
+nav.toolbar #authSlot .button.signin .title:hover {
+  text-decoration: none !important;
+  background: none !important;
+  position: static !important;
+}
+nav.toolbar #authSlot a::after,
+nav.toolbar #authSlot .button.signin::after,
+nav.toolbar #authSlot .button.signin .title::after { content: none !important; }
+
+/* Keep the button visible/consistent */
+nav.toolbar #authSlot .button.signin {
+  border: 2px solid var(--toolbar-accent) !important;
+  color: var(--toolbar-accent) !important;
+  padding: 10px 16px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+nav.toolbar #authSlot .button.signin .title {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
+nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
+</style>
+<style>
+/* === FINAL OVERRIDE (Home only) === */
+:root { --toolbar-accent: #6FCBFF; }
+
+/* Kill leftover underline gap under Sign In title on HOME toolbar */
+nav.toolbar #authSlot .button.signin .title {
+  padding-bottom: 0 !important;
+}
+
+/* Ensure no pseudo-underline can appear for the Sign In on HOME */
+nav.toolbar #authSlot a::after,
+nav.toolbar #authSlot .button.signin::after,
+nav.toolbar #authSlot .button.signin .title::after { content: none !important; }
+
+/* Ensure toolbar items use the accent */
+nav.toolbar .logo-text,
+nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; }
+nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
+nav.toolbar #authSlot .button.signin {
+  border-color: var(--toolbar-accent) !important;
+  color: var(--toolbar-accent) !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: var(--toolbar-accent) !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style>
+
+<style>
+/* === FINAL OVERRIDE: Bold toolbar nav links === */
+nav.toolbar .nav-links a { font-weight: 700 !important; }
+</style>
 </head>
-
 <body>
-    <header>
-        <a href="#ai-page" class="scroll-indicator">
-            <i class="fas fa-chevron-down"></i>
-        </a>
-        <h1>Debate Smarter with AI: Free Public Forum Cases, Flows & Full Practice Rounds</h1>
-        <p>
-            This website helps Public Forum (PF) debate students practice for rounds using tools powered by artificial
-            intelligence.
-            Engage with the tools below to simulate a full public forum practice round against the AI or practice
-            other skills like flowing and casewriting. All tools are free of cost and tailored toward Public Forum-style
-            debate. Please use a computer for the best experience.
-        </p>
-    </header>
+<nav class="toolbar">
+<a class="logo" href="https://publicforumai.com">
+<img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
+<span class="logo-text">PublicForumAI©</span>
+</a>
+<div class="nav-links"><a href="https://publicforumai.com/flower.html">AI Flow</a>
+<a href="https://publicforumai.com/setup.html">AI Practice Round</a>
+<a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
+<a href="modules.html">Training Modules</a>
+</div>
+<div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+</nav>
+<header>
+<a class="scroll-indicator" href="#ai-page">
+<i class="fas fa-chevron-down"></i>
+</a>
+<h1 class="hero-title">Debate Smarter with AI: Free PF Cases, Flows &amp; Practice Rounds</h1>
 
-    <!-- Container for the three primary buttons -->
-    <div class="container">
-        <div class="button-wrapper">
-            <a href="flower.html" class="button">
-                <span class="title">AI Flow</span>
-                <span class="description">Flow speeches in real-time with speech recognition</span>
-            </a>
-            <a href="setup.html" class="button full-ai">
-                <span class="title">Full AI Practice Round</span>
-                <span class="description">Take a full practice round against the AI</span>
-                <span class="note">(includes real-time flowing and speech recognition)</span>
-            </a>
-            <a href="casewriter.html" class="button">
-                <span class="title">AI Case-writer</span>
-                <span class="description">Generate constructive cases in seconds</span>
-            </a>
-        </div>
+</header>
+<!-- Container for the three primary buttons -->
+<div class="container">
+    <div class="container-note" role="note" aria-label="How to use these tools">
+
+  <p>
+    This website helps Public Forum (PF) debate students practice for rounds using free tools powered by artificial intelligence.
+  </p>
+  <span class="device-pill"><i class="fa-solid fa-desktop"></i> Please use a computer or large screen</span>
     </div>
-    <!-- New2Debate button is now outside of the container -->
-    <div style="margin-top: -30px; margin-bottom: 80px;">
-        <a href="new2debate.html" class="button orange">
-            <span class="title">New2Debate</span>
-        </a>
-    </div>
-    <!-- Add this right before the closing </body> tag -->
-    <section id="ai-page" class="hidden">
-        
-        <div class="ai-content">
-            
-            <section class="tutorial-section">
-                <h2>Video Tutorial</h2>
-                <div class="video-wrapper">
-                    <iframe src="https://www.youtube.com/embed/c61rg8KffEE" 
-                    title="YouTube video player" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-            </iframe>
-                </div>
-            
-
-            <div class="about-section">
-                <h2>About Our Tools at PublicForumAI</h2>
-                <div class="about-grid">
-
-                    <div class="about-card">
-                        <h3>AI Flow</h3>
-                        <p>Pick the speech, and use voice recognition to flow debates automatically with PF
+<div class="button-wrapper">
+<a class="button" href="flower.html">
+<span class="title">AI Flow</span>
+<span class="description">Flow speeches in real-time with speech recognition</span>
+</a>
+<a class="button full-ai" href="setup.html">
+<span class="title">Full AI Practice Round</span>
+<span class="description">Take a full practice round against the AI</span>
+<span class="note">(includes real-time flowing and speech recognition)</span>
+</a>
+<a class="button" href="casewriter.html">
+<span class="title">AI Case-writer</span>
+<span class="description">Generate constructive cases in seconds</span>
+</a>
+</div>
+</div>
+<!-- New2Debate button is now outside of the container -->
+<div style="margin-top: -30px; margin-bottom: 80px;">
+<a id="new2debateBtn" class="button orange" href="modules.html">
+<span class="title">New2Debate</span>
+</a>
+</div>
+<!-- Add this right before the closing <script src="auth.js"></script>
+</body> tag -->
+<section class="hidden" id="ai-page">
+<div class="ai-content">
+<section class="tutorial-section">
+<h2>Video Tutorial</h2>
+<div class="video-wrapper">
+<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" frameborder="0" src="https://www.youtube.com/embed/c61rg8KffEE" title="YouTube video player">
+</iframe>
+</div>
+<div class="about-section">
+<h2>About Our Tools at PublicForumAI</h2>
+<div class="about-grid">
+<div class="about-card">
+<h3>AI Flow</h3>
+<p>Pick the speech, and use voice recognition to flow debates automatically with PF
                             structure, helping you track arguments and improve round strategy.</p>
-                    </div>
-                    <div class="about-card">
-                        <h3>AI Practice Round</h3>
-                        <p>Engage in a FULL PF DEBATE AGAINST AN AI! Record your speeches while the AI flows and
+</div>
+<div class="about-card">
+<h3>AI Practice Round</h3>
+<p>Engage in a FULL PF DEBATE AGAINST AN AI! Record your speeches while the AI flows and
                             generates responses in real-time, following the standard PF format. You can choose the
                             level of difficulty, and RECEIVE DETAILED FEEDBACK with results at the end of rounds,
                             highlighting your strengths and areas for improvement! </p>
-                    </div>
-
-                    <div class="about-card">
-                        <h3>AI Casewriter</h3>
-                        <p>Instantly generate structured cases with evidence for any topic and side, teaching you
+</div>
+<div class="about-card">
+<h3>AI Casewriter</h3>
+<p>Instantly generate structured cases with evidence for any topic and side, teaching you
                             how to craft stronger arguments and contentions. We offer both a middle school and high
                             school feature.</p>
-                    </div>
-
-                    <div class="about-card center-card">
-                        <h3>New2Debate</h3>
-                        <p>New to PF? Our beginner-friendly guide covers 6 key PF concepts. Even if you're familiar
+</div>
+<div class="about-card center-card">
+<h3>New2Debate</h3>
+<p>New to PF? Our beginner-friendly guide covers 6 key PF concepts. Even if you're familiar
                             with these fundamentals, our content will help deepen your understanding and enhance
                             your performance. All tools are 100% FREE and built specifically for Public Forum
                             debate.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-            <div class="ai-faq">
-                <h3>AI System FAQs</h3>
-                <div class="faq-grid">
-                    <div class="faq-item">
-                        <h4>How does the AI work?</h4>
-                        <p>Our hybrid architecture combines several large language models and web search APIs that are
+</div>
+</div>
+</div>
+</section>
+<div class="ai-faq">
+<h3>AI System FAQs</h3>
+<div class="faq-grid">
+<div class="faq-item">
+<h4>How does the AI work?</h4>
+<p>Our hybrid architecture combines several large language models and web search APIs that are
                             fed example cases and combined through natural language processing techniques. </p>
-                    </div> 
-                    <div class="faq-item">
-                        <h4>Is This Cheating?</h4>
-                        <p>No. Our AI tools are not meant to be used in real rounds, and will not generate links to
+</div>
+<div class="faq-item">
+<h4>Is This Cheating?</h4>
+<p>No. Our AI tools are not meant to be used in real rounds, and will not generate links to
                             sources in rebuttal and summary for this reason. PublicForumAI is meant to help users
                             prepare for rounds through real debate experience that can be accessed without human
                             opponents from anywhere at anytime.</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>Can I recieve feedback after my round?</h4>
-                        <p>Yes, you will recieve structured AI feedback and a chosen "winner" upon completing a full
+</div>
+<div class="faq-item">
+<h4>Can I recieve feedback after my round?</h4>
+<p>Yes, you will recieve structured AI feedback and a chosen "winner" upon completing a full
                             practice round. You also have the option to choose between a tech and a lay judge, though we
                             often find the feedback from the AI tech judge to be more helpful. </p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>Is there a crossfire feature?</h4>
-                        <p>While it is definitely possible, we do not yet have a crossfire feature that would be fast
+</div>
+<div class="faq-item">
+<h4>Is there a crossfire feature?</h4>
+<p>While it is definitely possible, we do not yet have a crossfire feature that would be fast
                             enough to replicate a real round. However, its in the works!</p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>How long will a round take?</h4>
-                        <p>The full practice round feature takes roughly the same amount of time as any PF round, just without crossfire. So, around 35 minutes with prep time. </p>
-                    </div>
-                    <div class="faq-item">
-                        <h4>What if I'm new to debate and not good enough to debate the AI?</h4>
-                        <p>We offer features meant to help debaters of all levels improve, including our new2debate and our middle school and high school levels.  </p>
-                    </div>
-                </div>
-            </div>
-            
-
-            <div class="mission-statement">
-                <img src="android-chrome-192x192.png" class="ai-logo">
-                <h2>Mission Statement</h2>
-                <p>PublicForumAI is dedicated to making public forum debate more accessible. We provide resources and
+</div>
+<div class="faq-item">
+<h4>How long will a round take?</h4>
+<p>The full practice round feature takes roughly the same amount of time as any PF round, just without crossfire. So, around 35 minutes with prep time. </p>
+</div>
+<div class="faq-item">
+<h4>What if I'm new to debate and not good enough to debate the AI?</h4>
+<p>We offer features meant to help debaters of all levels improve, including our new2debate and our middle school and high school levels.  </p>
+</div>
+</div>
+</div>
+<div class="mission-statement">
+<img class="ai-logo" src="android-chrome-192x192.png"/>
+<h2>Mission Statement</h2>
+<p>PublicForumAI is dedicated to making public forum debate more accessible. We provide resources and
                     guidance to help debaters of all levels improve, especially those without access to traditional
                     support. Our goal is to equip students with the skills and confidence to succeed in debate.</p>
-            </div>
-            <div class="content-section">
-
-
-                <div class="journey-section">
-                    <div class="journey-content">
-                        <div class="text-content">
-                            <h2>Our Journey</h2>
-                            <p>Beginning in early 2024, during my sophomore year, it started as a basic script with
+</div>
+<div class="content-section">
+<div class="journey-section">
+<div class="journey-content">
+<div class="text-content">
+<h2>Our Journey</h2>
+<p>Beginning in early 2024, during my sophomore year, it started as a basic script with
                                 countless flaws and plenty of room for improvement. It then became part of a computer
                                 science class project, and I made slight improvements. However, as the months went on, I
                                 worked on significantly improving the code and the "PF structure."" By March 2025, I
@@ -1008,76 +1562,68 @@
                                 entrepereneurship to significanty increase accessibility and promote PublicForumAI to
                                 debaters around the country. Now, we plan to continue making improvements and focus on
                                 increasing our reach.</p>
-                        </div>
-                        <div class="journey-image">
-                            <img src="ai_debate.png" alt="AI vs Human Debate" class="floating-debate">
-                        </div>
-                    </div>
-
-                    <!-- Move vision-content outside journey-content -->
-                    <div class="vision-content">
-                        <h3>Vision</h3>
-                        <p>We are committed to improving. The PublicForumAI team plans to partner with schools and
+</div>
+<div class="journey-image">
+<img alt="AI vs Human Debate" class="floating-debate" src="ai_debate.png"/>
+</div>
+</div>
+<!-- Move vision-content outside journey-content -->
+<div class="vision-content">
+<h3>Vision</h3>
+<p>We are committed to improving. The PublicForumAI team plans to partner with schools and
                             debate camps to better tailor our services to student needs. Additionally, we plan to
                             create a mobile app for the website. Any feedback is welcome—please find and contact us
                             on our Reddit page or by email, with all contact information at the footer.</p>
-                    </div>
-                </div>
-
-                
-            </div>
-        </div>
-    </section>
-    <footer class="site-footer">
-        <div class="footer-content">
-            <!-- Brand Section -->
-            <div class="footer-column">
-                <a href="https://publicforumai.com" class="logo">
-                    <img src="android-chrome-192x192.png" alt="Public Forum AI Logo">
-                    <span class="logo-text">PublicForumAI&copy;</span>
-                </a>
-               
-            </div>
-
-            <!-- Contact Section -->
-            <div class="footer-column">
-                <h4>Contact Us</h4>
-                <p><a href="mailto:arda_altintepe@horacemann.org" class="plain-email">arda_altintepe@horacemann.org</a>
-                </p>
-                <div class="or-separator">OR</div>
-                <div class="feedback-form">
-                    <form id="feedbackForm">
-                        <input type="email" name="from_email" placeholder="Your email" required>
-                        <textarea name="message" placeholder="Your feedback" required></textarea>
-                        <button type="submit">Submit Feedback</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Social Links -->
-            <div class="footer-column">
-                <h4>Follow Us</h4>
-                <div class="social-links">
-                    <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank"
-                        class="social-link linkedin">
-                        <i class="fab fa-linkedin"></i> LinkedIn
+</div>
+</div>
+</div>
+</div>
+</section>
+<footer class="site-footer">
+<div class="footer-content">
+<!-- Brand Section -->
+<div class="footer-column">
+<a class="logo" href="https://publicforumai.com">
+<img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
+<span class="logo-text">PublicForumAI©</span>
+</a>
+</div>
+<!-- Contact Section -->
+<div class="footer-column">
+<h4>Contact Us</h4>
+<p><a class="plain-email" href="mailto:arda_altintepe@horacemann.org">arda_altintepe@horacemann.org</a>
+</p>
+<div class="or-separator">OR</div>
+<div class="feedback-form">
+<form id="feedbackForm">
+<input name="from_email" placeholder="Your email" required="" type="email"/>
+<textarea name="message" placeholder="Your feedback" required=""></textarea>
+<button type="submit">Submit Feedback</button>
+</form>
+</div>
+</div>
+<!-- Social Links -->
+<div class="footer-column">
+<h4>Follow Us</h4>
+<div class="social-links">
+<a class="social-link linkedin" href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank">
+<i class="fab fa-linkedin"></i> LinkedIn
                     </a>
-                    <a href="https://www.youtube.com/@PublicForumAI" target="_blank" class="social-link youtube">
-                        <i class="fab fa-youtube"></i> YouTube
+<a class="social-link youtube" href="https://www.youtube.com/@PublicForumAI" target="_blank">
+<i class="fab fa-youtube"></i> YouTube
                     </a>
-                    <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" class="social-link reddit">
-                        <i class="fab fa-reddit-alien"></i> Reddit
+<a class="social-link reddit" href="https://www.reddit.com/r/PublicForumAI/" target="_blank">
+<i class="fab fa-reddit-alien"></i> Reddit
                     </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Copyright -->
-        <div class="footer-bottom">
-            <p>&copy; 2025 PublicForumAI. All rights reserved.</p>
-        </div>
-    </footer>
-    <style>
+</div>
+</div>
+</div>
+<!-- Copyright -->
+<div class="footer-bottom">
+<p>© 2025 PublicForumAI. All rights reserved.</p>
+</div>
+</footer>
+<style>
         /* AI Page Styles */
         #ai-page {
             position: relative;
@@ -1773,9 +2319,449 @@
     40% {transform: translate(-50%, -15px);}
     60% {transform: translate(-50%, -7px);}
 }
-    </style>
+/* ——— Integrated note inside the buttons container ——— */
+.container-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  background: rgba(255,255,255,0.04);           /* subtle glassy fill to match container */
+  border: 1px solid #7dd3fc;                    /* matches your cyan accents */
+  box-shadow: inset 0 0 30px rgba(125,211,252,0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: -10px -6px 22px;                      /* tucks to container edges, then adds bottom space */
+  color: #cfeaff;
+}
 
-    <script>
+.container-note i.fa-circle-info {
+  color: #7dd3fc;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(125,211,252,0.25));
+}
+
+.container-note p {
+  margin: 0;
+  line-height: 1.55;
+  font-size: 1rem;
+}
+
+/* Desktop tip “pill” */
+.container-note .device-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(125,211,252,0.5);
+  background: rgba(10,35,66,0.6);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  color: #e0f4ff;
+}
+
+.container-note .device-pill i {
+  font-size: 0.95rem;
+}
+
+/* On small screens, remove the pill to save space */
+@media (max-width: 520px) {
+  .container-note .device-pill { display: none; }
+  .container-note { padding: 12px 14px; }
+}/* ——— Integrated note inside the buttons container ——— */
+.container-note {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #7dd3fc;
+  box-shadow: inset 0 0 30px rgba(125,211,252,0.08);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin: -30px 0 30px;
+  color: #cfeaff;
+}
+
+.container-note .note-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #7dd3fc;
+  background: rgba(10,35,66,0.6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(125,211,252,0.25);
+}
+
+.container-note .note-icon i {
+  color: #7dd3fc;
+  font-size: 1.05rem;
+}
+
+.container-note p {
+  margin: 0;
+  max-width: 720px;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.container-note .device-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(125,211,252,0.45);
+  background: rgba(13,42,77,0.65);
+  font-size: 0.9rem;
+  color: #e0f4ff;
+}
+
+/* On small screens, hide the pill to save space */
+@media (max-width: 520px) {
+  .container-note .device-pill { display: none; }
+}
+
+
+/* === HERO TITLE (final override) === */
+header .hero-title {
+  display: inline-block;
+  margin: 0 auto 0px !important;
+  margin-top: -20px;
+  padding: 18px 0px;
+  max-width: 1100px;
+  text-align: center;
+  font-size: clamp(1.3rem, 2.2vw + 0.8rem, 2.2rem);
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: #c8e7ff !important;
+
+  /* Glassy card to match container */
+  background: linear-gradient(145deg, rgba(10,35,66,0.85), rgba(10,35,66,0.6));
+  border: 2px solid #7dd3fc;
+  border-radius: 16px;
+  box-shadow:
+    0 0 30px rgba(125,211,252,0.18),
+    inset 0 0 12px rgba(125,211,252,0.08);
+  backdrop-filter: blur(6px);
+
+  /* Subtle readable glow */
+  text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  text-wrap: balance;
+}
+
+/* Accent underline to echo nav/link accents */
+header .hero-title::after {
+  content: '';
+  display: block;
+  width: 150px;
+  height: 3px;
+  margin: 10px auto 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7dd3fc, rgba(125,211,252,0.0));
+  opacity: 0.9;
+}
+
+/* Tighten on small screens */
+@media (max-width: 768px) {
+  header .hero-title {
+    padding: 14px 16px;
+    margin-bottom: 18px !important;
+  }
+}
+
+/* === FINAL HERO TITLE OVERRIDE === */
+header .hero-title {
+  width: 100% !important;          /* allow almost full screen */
+  max-width: 1200px !important;   /* override earlier 800px cap */
+  margin: 0 auto 30px !important;
+  margin-top : -50px !important;
+  text-align: center !important;
+
+  /* Let text expand naturally */
+  text-wrap: normal !important;
+  white-space: normal !important;
+  word-break: normal !important;
+}
+
+
+/* FINAL fix: let the H1 actually use the box width */
+header .hero-title {
+  display: block !important;        /* avoid shrink-to-fit of inline-block */
+  width: 100% !important;           /* fill the card */
+  max-width: 1150px !important;     /* same as your card width cap */
+  text-wrap: normal !important;     /* turn off line balancing */
+  white-space: normal !important;
+  word-break: normal !important;
+}
+
+/* Optional: if any generic header h1 caps linger, neutralize them */
+header h1 {
+  max-width: 1100px !important;
+}
+
+.container {
+  position: relative;
+  padding: 60px 60px 50px;
+  margin-top: -60px;
+  border-radius: 20px;
+
+  /* Gradient border using background-clip */
+  background: linear-gradient(180deg, #0a2342, #0d3a6a) padding-box,
+              linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb) border-box;
+  border: 3px solid transparent; /* needed for gradient border to show */
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  width: 90%;
+  max-width: 1000px;
+}
+/* Gradient Border for Hero H1 */
+header h1 {
+  display: block;
+  margin: 0 auto 30px;
+  margin-top: -30px;
+  padding: 20px;
+  max-width: 1150px;
+  text-align: center;
+  font-size: 2.3rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 0.2px;
+  color: #c8e7ff;
+
+  /* Gradient border + fill background */
+  background: linear-gradient(145deg, rgba(10,35,66,0.9), rgba(10,35,66,0.6)) padding-box,
+              linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb) border-box;
+  border: 3px solid transparent;
+  border-radius: 16px;
+
+  box-shadow:
+    0 0 30px rgba(125,211,252,0.18),
+    inset 0 0 12px rgba(125,211,252,0.08);
+
+  backdrop-filter: blur(6px);
+
+  /* Glow on text */
+  text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+}
+header .hero-title {
+  display: block;
+  margin: 0 auto 30px;
+  margin-top: -50px;
+  padding: 20px;
+  max-width: 1200px;
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 0.2px;
+  color: #c8e7ff;
+
+  /* Gradient border + background */
+  background: linear-gradient(145deg, rgba(10,35,66,0.9), rgba(10,35,66,0.6)) padding-box,
+              linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb) border-box;
+  border: 3px solid transparent;
+  border-radius: 16px;
+
+  box-shadow:
+    0 0 30px rgba(125,211,252,0.18),
+    inset 0 0 12px rgba(125,211,252,0.08);
+
+  backdrop-filter: blur(6px);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+}
+header .hero-title {
+  width: auto !important;                 /* no full-width */
+  max-width: 1200px !important;           /* was ~1100px — give the text more room */
+  margin: 0 auto 30px !important;         /* keep centered */
+  padding: 30px !important;               /* keep your existing spacing */
+  border-radius: 16px !important;         /* preserve rounded card */
+  white-space: normal !important;
+  word-break: keep-all !important;        /* avoid early breaks */
+  text-wrap: pretty !important;           /* nicer line breaks where supported */
+  margin-top: -50px !important;        /* keep your existing offset */
+}
+
+/* Optional: allow a touch more width on very large screens */
+@media (min-width: 1600px) {
+  header .hero-title { max-width: 1550px !important; }
+}
+/* === THEME-ENHANCED BUTTON COLORS === */
+
+/* General buttons */
+.button {
+  background: linear-gradient(145deg, #0EA5E9, #0284C7); /* vibrant cyan-to-blue */
+  border: 2px solid #7dd3fc;
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.25);
+  border-radius: 15px;
+  transition: all 0.3s ease;
+}
+.button:hover {
+  background: linear-gradient(145deg, #0284C7, #0369A1);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.35);
+  transform: translateY(-3px);
+}
+
+/* Middle "Full AI Practice Round" button */
+.button.full-ai {
+  background: linear-gradient(145deg, #7B68EE, #5A4FCF); /* blue-to-purple glow */
+  border: 2px solid #A78BFA;
+  box-shadow: 0 0 25px rgba(123, 104, 238, 0.35);
+}
+.button.full-ai:hover {
+  background: linear-gradient(145deg, #5A4FCF, #483D8B);
+  box-shadow: 0 0 30px rgba(123, 104, 238, 0.45);
+}
+
+/* "New2Debate" purple button */
+.button.orange {
+  background: linear-gradient(145deg, #9333EA, #7E22CE);
+  border: 2px solid #C084FC;
+  box-shadow: 0 4px 15px rgba(147, 51, 234, 0.25);
+}
+.button.orange:hover {
+  background: linear-gradient(145deg, #7E22CE, #6B21A8);
+  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.35);
+}
+/* === NEW COLOR SCHEME === */
+
+/* Main 3 buttons (AI Flow, Full AI Practice Round, AI Casewriter) */
+.button {
+  background: linear-gradient(145deg, #0EA5E9, #0369A1); /* cyan → deep blue */
+  border: 2px solid #7DD3FC; /* cyan accent border */
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.25);
+  border-radius: 15px;
+  transition: all 0.3s ease;
+}
+.button:hover {
+  background: linear-gradient(145deg, #0369A1, #075985);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+  transform: translateY(-3px);
+}
+
+/* Highlight the middle button slightly more with a glow */
+.button.full-ai {
+  background: linear-gradient(145deg, #0EA5E9, #0284C7);
+  border: 2px solid #38BDF8;
+  box-shadow: 0 0 25px rgba(14, 165, 233, 0.3);
+}
+.button.full-ai:hover {
+  background: linear-gradient(145deg, #0284C7, #075985);
+  box-shadow: 0 0 30px rgba(14, 165, 233, 0.45);
+}
+
+/* New2Debate button now uses the purple from the old full-ai */
+.button.orange {
+  background: linear-gradient(145deg, #7B68EE, #5A4FCF); /* blue-purple gradient */
+  border: 2px solid #A78BFA;
+  box-shadow: 0 4px 20px rgba(123, 104, 238, 0.3);
+}
+.button.orange:hover {
+  background: linear-gradient(145deg, #5A4FCF, #483D8B);
+  box-shadow: 0 6px 25px rgba(123, 104, 238, 0.4);
+}
+/* === MAIN THREE BUTTONS (AI Flow, AI Casewriter) === */
+.button {
+  background: linear-gradient(145deg, #0EA5E9, #0369A1);
+  border: 2px solid rgba(125, 211, 252, 0.8); /* soft cyan border */
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.25);
+  border-radius: 15px;
+  transition: all 0.3s ease;
+}
+.button:hover {
+  background: linear-gradient(145deg, #0369A1, #075985);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+  transform: translateY(-3px);
+}
+
+/* === FEATURED BUTTON (Full AI Practice Round) === */
+.button.full-ai {
+  background: linear-gradient(145deg, #0EA5E9, #0284C7);
+  border: 2px solid #00F3FF; /* neon cyan border */
+  box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
+}
+.button.full-ai:hover {
+  background: linear-gradient(145deg, #0284C7, #075985);
+  box-shadow: 0 0 35px rgba(0, 243, 255, 0.5);
+}
+
+/* === CALL-TO-ACTION (New2Debate button) === */
+.button.orange {
+  background: linear-gradient(145deg, #7B68EE, #5A4FCF);
+  border: 2px solid #A78BFA;
+  box-shadow: 0 4px 20px rgba(123, 104, 238, 0.3);
+}
+.button.orange:hover {
+  background: linear-gradient(145deg, #5A4FCF, #483D8B);
+  box-shadow: 0 6px 25px rgba(123, 104, 238, 0.4);
+}
+/* === FEATURED BUTTON (Full AI Practice Round - toned down) === */
+.button.full-ai {
+  background: linear-gradient(145deg, #0EA5E9, #0369A1); /* deeper cyan gradient */
+  border: 2px solid rgba(125, 211, 252, 0.9);           /* softer cyan border */
+  box-shadow: 0 0 20px rgba(125, 211, 252, 0.25);       /* subtler glow */
+}
+.button.full-ai:hover {
+  background: linear-gradient(145deg, #0369A1, #075985);
+  box-shadow: 0 0 28px rgba(125, 211, 252, 0.35);
+}
+/* === FEATURED BUTTON (Full AI Practice Round with PF-style gradient border) === */
+/* === FEATURED BUTTON (Full AI Practice Round, same color but PF gradient border) === */
+.button.full-ai {
+  background: linear-gradient(145deg, #0EA5E9, #0369A1); /* keep original cyan-blue fill */
+  border: 3px solid transparent;
+  border-radius: 15px;
+
+  /* PF-style gradient border */
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+  background-image: linear-gradient(145deg, #0EA5E9, #0369A1), 
+                    linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb);
+
+  box-shadow: 0 0 20px rgba(125, 211, 252, 0.25);
+  transition: all 0.3s ease;
+}
+
+/* === FEATURED BUTTON (Full AI Practice Round with persistent PF gradient border) === */
+.button.full-ai {
+  border: 3px solid transparent;
+  border-radius: 15px;
+
+  /* Two layers: 1) Fill 2) Gradient border */
+  background-image: 
+    linear-gradient(145deg, #0EA5E9, #0369A1),               /* cyan-blue fill */
+    linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb);      /* gradient border */
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+
+  color: #e0f4ff;
+  box-shadow: 0 0 20px rgba(125, 211, 252, 0.25);
+  transition: all 0.3s ease;
+}
+
+.button.full-ai:hover {
+  /* Keep BOTH gradients so border never disappears */
+  background-image: 
+    linear-gradient(145deg, #0369A1, #075985),               /* darker fill */
+    linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb);      /* same gradient border */
+  box-shadow: 0 0 28px rgba(125, 211, 252, 0.35);
+  transform: translateY(-3px);
+}
+nav.toolbar .nav-links a {
+  font-weight: bold !important;
+}
+nav.toolbar .nav-links a {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  font-weight: 600 !important;
+}
+    </style>
+<script>
         // Add this right before the closing tag in body
         window.addEventListener('scroll', () => {
             const aiPage = document.getElementById('ai-page');
@@ -1878,6 +2864,25 @@ const aiPageObserver = new IntersectionObserver((entries) => {
 
 aiPageObserver.observe(aiPage);
     </script>
-</body>
 
+<script>
+// Gate New2Debate click: if signed in (per auth snapshot), go straight to modules.html;
+// otherwise, route to login with ?next=modules.html — avoids showing login then redirect.
+(function(){
+  var btn = document.getElementById('new2debateBtn');
+  if (!btn) return;
+  btn.addEventListener('click', function(e){
+    try {
+      var snapRaw = localStorage.getItem('pfai_auth_snapshot');
+      var snap = snapRaw ? JSON.parse(snapRaw) : null;
+      var signedIn = !!(snap && snap.uid);
+      if (!signedIn) {
+        e.preventDefault();
+        window.location.href = 'login.html?next=modules.html';
+      }
+    } catch(_) {}
+  });
+})();
+</script>
+<script defer="True" src="auth.js"></script></body>
 </html>
