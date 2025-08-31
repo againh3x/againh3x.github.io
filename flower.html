@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
 
+<html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
-    <script>
+<!-- Google tag (gtag.js) -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
 
         gtag('config', 'G-ERE3HL6LKB');
     </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Public Forum Debate AI Flow</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Public Forum Debate AI Flow</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
         body {
 
 
@@ -264,7 +264,7 @@
 
         .nav-links {
             display: flex;
-            gap: 100px;
+            gap: 60px;
             position: relative;
         }
 
@@ -725,141 +725,593 @@
   transition: transform 0.3s ease;
 }
     </style>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/><style>
+/* === SIGN IN BUTTON (match home page style) === */
+nav.toolbar #authSlot .button.orange {
+  background: transparent !important;
+  border: 2px solid #00f3ff !important;
+  color: #00f3ff !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+nav.toolbar #authSlot .button.orange .title {
+  color: inherit !important;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1;
+  margin: 0;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar #authSlot .button.orange:hover {
+  background: #00f3ff !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.orange:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === TOOLBAR STANDARDIZATION === */
+/* Colors, font-weight, spacing, and hover underline */
+nav.toolbar .logo-text {
+  color: #00f3ff !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+nav.toolbar .nav-links a {
+  color: #00f3ff !important;
+  font-weight: 700 !important;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #00f3ff;
+  transition: width 0.3s ease;
+}
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+/* === SIGN IN button (decoupled from .button.orange) === */
+nav.toolbar #authSlot .button.signin {
+  background: transparent !important;
+  border: 2px solid #00f3ff !important;
+  color: #00f3ff !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+nav.toolbar #authSlot .button.signin .title {
+  color: inherit !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: #00f3ff !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === FINAL TOOLBAR STANDARDIZATION === */
+nav.toolbar .logo-text {
+  color: #00f3ff !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+nav.toolbar .nav-links a {
+  color: #00f3ff !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 1rem !important;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #00f3ff;
+  transition: width 0.3s ease;
+}
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+/* Sign In button (decoupled from .button.orange CTA) */
+nav.toolbar #authSlot .button.signin {
+  background: transparent !important;
+  border: 2px solid #00f3ff !important;
+  color: #00f3ff !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+nav.toolbar #authSlot .button.signin .title {
+  color: inherit !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: #00f3ff !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === GLOBAL TOOLBAR ACCENT + CONSISTENCY === */
+nav.toolbar .logo-text {
+  color: #90D0F8 !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+nav.toolbar .nav-links a {
+  color: #90D0F8 !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 1rem !important;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(144, 208, 248, 0.15) 100%);
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #90D0F8;
+  transition: width 0.3s ease;
+}
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+/* Sign In button: use accent color; keep decoupled from .button.orange */
+nav.toolbar #authSlot .button.signin {
+  background: transparent !important;
+  border: 2px solid #90D0F8 !important;
+  color: #90D0F8 !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+nav.toolbar #authSlot .button.signin .title {
+  color: inherit !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: #90D0F8 !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === FINAL PASS: Bright accent + bold everywhere + Sign In styling === */
+:root { --toolbar-accent: #A3DCFF; }
+
+nav.toolbar .logo-text {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+nav.toolbar .nav-links a {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 1rem !important;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(163, 220, 255, 0.18) 100%);
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--toolbar-accent);
+  transition: width 0.3s ease;
+}
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+/* Sign In button (decoupled from New2Debate) */
+nav.toolbar #authSlot .button.signin {
+  background: transparent !important;
+  border: 2px solid var(--toolbar-accent) !important;
+  color: var(--toolbar-accent) !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+nav.toolbar #authSlot .button.signin .title {
+  color: inherit !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: var(--toolbar-accent) !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === TOOLBAR: Bluer accent + bold + consistent sizing === */
+:root { --toolbar-accent: #86C4FF; }
+
+nav.toolbar .logo-text {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+
+nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+nav.toolbar .nav-links a {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 1rem !important;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(134,196,255,0.18) 100%);
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--toolbar-accent);
+  transition: width 0.3s ease;
+}
+nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+/* === SIGN IN (decoupled, visible, same everywhere) === */
+nav.toolbar #authSlot .button.signin {
+  background: transparent !important;
+  border: 2px solid var(--toolbar-accent) !important;
+  color: var(--toolbar-accent) !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 10px 16px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px !important;
+  box-shadow: 0 0 0 2px rgba(134,196,255,0.08) inset !important;
+  transform: none !important;
+}
+/* Lock in typography so it can't be affected by other .title rules */
+nav.toolbar #authSlot .button.signin .title {
+  color: inherit !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: var(--toolbar-accent) !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style><style>
+/* === LIGHTER-BLUER ACCENT + SIGN IN UNDERLINE FIX === */
+:root { --toolbar-accent: #9FD6FF; }
+
+/* Ensure the Sign In anchor never picks up nav/CTA underline/hover effects */
+nav.toolbar #authSlot a,
+nav.toolbar #authSlot a:hover,
+nav.toolbar #authSlot a:focus {
+  text-decoration: none !important;
+  background: none !important;
+  position: static !important;
+}
+nav.toolbar #authSlot a::after { content: none !important; }
+
+/* Keep the button styling consistent and visible */
+nav.toolbar #authSlot .button.signin {
+  border: 2px solid var(--toolbar-accent) !important;
+  color: var(--toolbar-accent) !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: var(--toolbar-accent) !important;
+  color: #0a0e27 !important;
+}
+
+/* Bold everywhere for logo + links, with the new accent */
+nav.toolbar .logo-text {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+}
+nav.toolbar .nav-links a {
+  color: var(--toolbar-accent) !important;
+  font-weight: 700 !important;
+}
+nav.toolbar .nav-links a::after {
+  background: var(--toolbar-accent) !important;
+}
+</style><style>
+/* === LIGHTER, BLUER ACCENT + ABSOLUTE UNDERLINE REMOVAL FOR SIGN IN === */
+:root { --toolbar-accent: #7FCDFF; }
+
+/* Accent + bold for logo/links */
+nav.toolbar .logo-text { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
+nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
+nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
+
+/* Kill any underline/pseudo-element bleed on Sign In (anchor, button, and title) */
+nav.toolbar #authSlot a,
+nav.toolbar #authSlot a:hover,
+nav.toolbar #authSlot .button.signin,
+nav.toolbar #authSlot .button.signin:hover,
+nav.toolbar #authSlot .button.signin .title,
+nav.toolbar #authSlot .button.signin .title:hover {
+  text-decoration: none !important;
+  background: none !important;
+  position: static !important;
+}
+nav.toolbar #authSlot a::after,
+nav.toolbar #authSlot .button.signin::after,
+nav.toolbar #authSlot .button.signin .title::after { content: none !important; }
+
+/* Keep the button visible/consistent */
+nav.toolbar #authSlot .button.signin {
+  border: 2px solid var(--toolbar-accent) !important;
+  color: var(--toolbar-accent) !important;
+  padding: 10px 16px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+nav.toolbar #authSlot .button.signin .title {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
+nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
+</style>
+<style>
+/* === FINAL OVERRIDE (Toolbar color) === */
+:root { --toolbar-accent: #6FCBFF; }
+
+nav.toolbar .logo-text,
+nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; }
+nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
+
+nav.toolbar #authSlot .button.signin {
+  border-color: var(--toolbar-accent) !important;
+  color: var(--toolbar-accent) !important;
+}
+nav.toolbar #authSlot .button.signin:hover {
+  background: var(--toolbar-accent) !important;
+  color: #0a0e27 !important;
+}
+nav.toolbar #authSlot .button.signin:hover .title {
+  color: #0a0e27 !important;
+}
+</style>
+
+<style>
+/* === FINAL OVERRIDE: Bold toolbar nav links === */
+nav.toolbar .nav-links a { font-weight: 700 !important; }
+nav.toolbar .nav-links a {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  font-weight: 600 !important;
+}
+</style>
 </head>
-
 <body>
-    <nav class="toolbar">
-        <a href="https://publicforumai.com" class="logo">
-            <img src="android-chrome-192x192.png" alt="Public Forum AI Logo">
-            <span class="logo-text">PublicForumAI&copy;</span>
-        </a>
-
-        <div class="nav-links">
-            <a href="https://publicforumai.com/flower.html">AI Flow</a>
-            <a href="https://publicforumai.com/setup.html">AI Practice Round</a>
-            <a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
-        </div>
-
-        <a href="https://publicforumai.com/n2d-flowing.html" target="_blank">
-            <div class="button orange">
-                <span class="title">New2Debate</span>
-            </div>
-        </a>
-    </nav>
-    <div class="container">
-        <div class="controls">
-            <h1>Speech Flow Manager</h1>
-            <div class="input-group">
-                <label for="topic">Topic:</label>
-                <input type="text" id="topic" placeholder="Enter the topic">
-            </div>
-            <div class="input-group">
-                <label for="side">Select Side:</label>
-                <select id="side">
-                    <option value="" disabled selected hidden>Select Side</option>
-                    <option value="Affirmative">Affirmative</option>
-                    <option value="Negative">Negative</option>
-                </select>
-            </div>
-            <div class="input-group" id="speechType">
-                <p><strong>Select Speech:</strong></p>
-                <input type="radio" id="constructive" name="speech" value="constructive">
-                <label for="constructive">Constructive</label>
-                <input type="radio" id="rebuttal" name="speech" value="rebuttal">
-                <label for="rebuttal">Rebuttal</label>
-                <input type="radio" id="summary" name="speech" value="summary">
-                <label for="summary">Summary</label>
-                <input type="radio" id="finalFocus" name="speech" value="finalFocus">
-                <label for="finalFocus">Final Focus</label>
-            </div>
-
-
-            <button id="recordButton" onclick="toggleRecording()">Record</button>
-            <p id="cautionNote" style="font-size: 12px; color: gray; margin-top: 4px;">
+<nav class="toolbar">
+<a class="logo" href="https://publicforumai.com">
+<img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
+<span class="logo-text">PublicForumAI©</span>
+</a>
+<div class="nav-links"><a href="https://publicforumai.com/flower.html">AI Flow</a>
+<a href="https://publicforumai.com/setup.html">AI Practice Round</a>
+<a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
+<a href="modules.html">Training Modules</a>
+</div>
+<div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+</nav>
+<div class="container">
+<div class="controls">
+<h1>Speech Flow Manager</h1>
+<div class="input-group">
+<label for="topic">Topic:</label>
+<input id="topic" placeholder="Enter the topic" type="text"/>
+</div>
+<div class="input-group">
+<label for="side">Select Side:</label>
+<select id="side">
+<option disabled="" hidden="" selected="" value="">Select Side</option>
+<option value="Affirmative">Affirmative</option>
+<option value="Negative">Negative</option>
+</select>
+</div>
+<div class="input-group" id="speechType">
+<p><strong>Select Speech:</strong></p>
+<input id="constructive" name="speech" type="radio" value="constructive"/>
+<label for="constructive">Constructive</label>
+<input id="rebuttal" name="speech" type="radio" value="rebuttal"/>
+<label for="rebuttal">Rebuttal</label>
+<input id="summary" name="speech" type="radio" value="summary"/>
+<label for="summary">Summary</label>
+<input id="finalFocus" name="speech" type="radio" value="finalFocus"/>
+<label for="finalFocus">Final Focus</label>
+</div>
+<button id="recordButton" onclick="toggleRecording()">Record</button>
+<p id="cautionNote" style="font-size: 12px; color: gray; margin-top: 4px;">
                 It may ask for your microphone to be enabled twice. If so, please press "allow" twice for speech
                 recognition to work properly.
             </p>
-        </div>
-        <div class="output">
-            <h1>Flow Output</h1>
-            <div id="flowOutput">
-                <div id="OutputText"></div>
-                <div class="loading">
-                    <div class="text10">Generating (~10-15 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-                <div class="loading0U">
-                    <div class="text4">Listening (~5 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-                <div class="listeningC">
-                    <canvas id="visualizer"></canvas>
-                </div>
-            </div>
-        </div>
-        </div>
-        <footer class="site-footer">
-            <div class="footer-content">
-              <!-- Brand Section -->
-              <div class="footer-column">
-                <a href="https://publicforumai.com" class="logo">
-                  <img src="android-chrome-192x192.png" alt="Public Forum AI Logo">
-                  <span class="logo-text">PublicForumAI&copy;</span>
-                </a>
-                <p>Empowering debaters through AI</p>
-              </div>
-          
-              <!-- Contact Section -->
-              <div class="footer-column">
-                <h4>Contact Us</h4>
-                <p><a href="mailto:arda_altintepe@horacemann.org" class="plain-email">arda_altintepe@horacemann.org</a></p>
-                <div class="or-separator">OR</div>
-                <div class="feedback-form">
-                  <form id="feedbackForm">
-                    <input type="email" name="from_email" placeholder="Your email" required>
-                    <textarea name="message" placeholder="Your feedback" required></textarea>
-                    <button type="submit">Submit Feedback</button>
-                  </form>
-                </div>
-              </div>
-          
-              <!-- Social Links -->
-              <div class="footer-column">
-                <h4>Follow Us</h4>
-                <div class="social-links">
-                  <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" class="social-link linkedin">
-                    <i class="fab fa-linkedin"></i> LinkedIn
+</div>
+<div class="output">
+<h1>Flow Output</h1>
+<div id="flowOutput">
+<div id="OutputText"></div>
+<div class="loading">
+<div class="text10">Generating (~10-15 seconds)</div>
+<div class="ai-loader">
+<div class="dot dot1"></div>
+<div class="dot dot2"></div>
+<div class="dot dot3"></div>
+<div class="dot dot4"></div>
+<div class="dot dot5"></div>
+<div class="dot dot6"></div>
+</div>
+</div>
+<div class="loading0U">
+<div class="text4">Listening (~5 seconds)</div>
+<div class="ai-loader">
+<div class="dot dot1"></div>
+<div class="dot dot2"></div>
+<div class="dot dot3"></div>
+<div class="dot dot4"></div>
+<div class="dot dot5"></div>
+<div class="dot dot6"></div>
+</div>
+</div>
+<div class="listeningC">
+<canvas id="visualizer"></canvas>
+</div>
+</div>
+</div>
+</div>
+<footer class="site-footer">
+<div class="footer-content">
+<!-- Brand Section -->
+<div class="footer-column">
+<a class="logo" href="https://publicforumai.com">
+<img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
+<span class="logo-text">PublicForumAI©</span>
+</a>
+<p>Empowering debaters through AI</p>
+</div>
+<!-- Contact Section -->
+<div class="footer-column">
+<h4>Contact Us</h4>
+<p><a class="plain-email" href="mailto:arda_altintepe@horacemann.org">arda_altintepe@horacemann.org</a></p>
+<div class="or-separator">OR</div>
+<div class="feedback-form">
+<form id="feedbackForm">
+<input name="from_email" placeholder="Your email" required="" type="email"/>
+<textarea name="message" placeholder="Your feedback" required=""></textarea>
+<button type="submit">Submit Feedback</button>
+</form>
+</div>
+</div>
+<!-- Social Links -->
+<div class="footer-column">
+<h4>Follow Us</h4>
+<div class="social-links">
+<a class="social-link linkedin" href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank">
+<i class="fab fa-linkedin"></i> LinkedIn
                   </a>
-                  <a href="https://www.youtube.com/@PublicForumAI" target="_blank" class="social-link youtube">
-                    <i class="fab fa-youtube"></i> YouTube
+<a class="social-link youtube" href="https://www.youtube.com/@PublicForumAI" target="_blank">
+<i class="fab fa-youtube"></i> YouTube
                   </a>
-                  <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" class="social-link reddit">
-                    <i class="fab fa-reddit-alien"></i> Reddit
+<a class="social-link reddit" href="https://www.reddit.com/r/PublicForumAI/" target="_blank">
+<i class="fab fa-reddit-alien"></i> Reddit
                   </a>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Copyright -->
-            <div class="footer-bottom">
-              <p>&copy; 2025 PublicForumAI. All rights reserved.</p>
-            </div>
-          </footer>
-        <script>
+</div>
+</div>
+</div>
+<!-- Copyright -->
+<div class="footer-bottom">
+<p>© 2025 PublicForumAI. All rights reserved.</p>
+</div>
+</footer>
+<script>
             var recognition;
             var isRecording = false;
             var fullTranscription = ''
@@ -1231,6 +1683,6 @@ emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', this)
   });
 });
         </script>
+<script src="auth.js"></script>
 </body>
-
 </html>
