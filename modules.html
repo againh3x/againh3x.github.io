@@ -3098,7 +3098,7 @@ For these reasons, we are proud to affirm.`;
       const isFirst = idx === 0;
       const prevComplete = isFirst ? true : AppState.isModuleComplete(modules[idx - 1].id);
       const unlocked = isFirst || prevComplete || isComplete;
-      // Apply the appropriate state classes
+      try{ if (typeof AppState!=="undefined") AppState.setModuleUnlocked(mod.id, unlocked); }catch(_){} // Apply the appropriate state classes
       if (isComplete) {
         btn.classList.add('completed');
       } else if (!unlocked) {
@@ -3126,7 +3126,7 @@ For these reasons, we are proud to affirm.`;
   function loadModule(mod) {
     currentModule = mod;
     pageIndex = 0;
-    updateNavButtons();
+    try{ if (typeof AppState!=="undefined") AppState.markModuleStarted(mod.id); }catch(_){} updateNavButtons();
     renderPage();
     buildModuleList();
   }
@@ -3864,18 +3864,47 @@ function m10_p1(container){
   const p = document.createElement('p'); p.textContent = 'Learn advanced techniques for responding to arguments.'; container.appendChild(p);
 }
 function m10_img(container, idx){
-  container.innerHTML='';
-  const card = pfCard(`Rebuttal${idx} Image`);
+  container.innerHTML = '';
+
+  // Use the same kind of card Module 8 uses
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const h3 = document.createElement('h3');
+  h3.textContent = `Rebuttal ${idx}`;
+  card.appendChild(h3);
+
+  const src = `images/Rebuttal${idx}.png`;
+
   const img = document.createElement('img');
-  img.alt = `Rebuttal${idx}`;
-  img.src = `images/Rebuttal${idx}.png`;
+  img.alt = `Rebuttal ${idx}`;
   img.style.maxWidth = '100%';
-  img.style.border = '1px solid rgba(0,0,0,0.1)';
-  img.style.borderRadius = '12px';
+  img.style.border = '1px solid rgba(0,0,0,0.08)'; // match Module 8
+  img.style.borderRadius = '10px';                 // match Module 8
+
+  // === Do it the Module 8 way: set src first ===
+  img.src = src;
+
+  // Same fallback style Module 8 uses
+  img.onerror = function(){
+    card.innerHTML = `
+      <h3>Rebuttal ${idx}</h3>
+      <p style="color:#b91c1c;font-weight:700;">Could not load ${src}</p>
+      <p>Make sure the file exists at:<br><code>${src}</code></p>`;
+  };
+
   card.appendChild(img);
-  const cap = document.createElement('p'); cap.textContent = `images/Rebuttal${idx}.png`; cap.style.fontStyle='italic'; card.appendChild(cap);
+
+  const cap = document.createElement('div');
+  cap.textContent = `Figure: Rebuttal ${idx}`;
+  cap.style.color = '#6b7280';
+  cap.style.fontStyle = 'italic';
+  cap.style.marginTop = '6px';
+  card.appendChild(cap);
+
   container.appendChild(card);
 }
+
 function m10_p11(container){
   container.innerHTML='';
   const card = pfCard('Module Complete!');
@@ -4469,6 +4498,147 @@ if (typeof modules !== 'undefined' && Array.isArray(modules)) {
 
 
 <!-- Removed legacy override scripts to prevent conflicting sidebar behavior -->
+
+<script src="auth.js"></script>
+<script>
+/* PFAI_STRONG_AUTH_REPAINT */
+(function(){
+  function repaint(){ try{ if (typeof buildModuleList==='function') buildModuleList(); if (typeof updateGemBar==='function') updateGemBar(); }catch(_){} }
+  // 1) Repaint immediately (snapshot-based)
+  repaint();
+  // 2) Repaint soon (in case auth hydrates right after)
+  setTimeout(repaint, 0);
+  setTimeout(repaint, 50);
+  setTimeout(repaint, 200);
+  // 3) Repaint on auth resolution (once Firebase user is known)
+  try{
+    if (typeof ensureFirebase==='function') ensureFirebase();
+    if (typeof onAuth==='function') onAuth(function(){ repaint(); });
+    else {
+      // Wait for onAuth to appear if auth.js loads slowly
+      var tries = 0;
+      var iv = setInterval(function(){
+        tries++;
+        if (typeof onAuth==='function') { onAuth(function(){ repaint(); }); clearInterval(iv); }
+        if (tries>40) clearInterval(iv); // give up after ~2s
+      }, 50);
+    }
+  }catch(_){}
+})();
+</script>
+
+
+<script>
+/* PFAI_ACCOUNT_APPSTATE_BRIDGE */
+(function(){
+  function hasProfileFns(){
+    return typeof currentUser === 'function'
+        && typeof getProfileForUser === 'function'
+        && typeof setProfileForUser === 'function';
+  }
+  function readAccountState(){
+    try{
+      if(!hasProfileFns()) return null;
+      const uNow = (typeof currentUser==='function') ? currentUser() : null;
+      let uid = uNow && uNow.uid;
+      if (!uid && typeof readSnap==='function') { try{ uid = (readSnap()||{}).uid; }catch(_){} }
+      if(!uid) return null;
+      const u = { uid: uid };
+      const p = getProfileForUser(u.uid) || {};
+      const s = p.modulesState || { gems: (p.gems||0), modules: {} };
+      s.gems = Number.isFinite(+s.gems) ? +s.gems : 0;
+      s.modules = s.modules || {};
+      return s;
+    }catch(e){ return null; }
+  }
+  function writeAccountState(state){
+    try{
+      if(!hasProfileFns()) return;
+      const uNow = (typeof currentUser==='function') ? currentUser() : null;
+      let uid = uNow && uNow.uid;
+      if (!uid && typeof readSnap==='function') { try{ uid = (readSnap()||{}).uid; }catch(_){} }
+      if(!uid) return;
+      const u = { uid: uid };
+      const p = getProfileForUser(u.uid) || {};
+      p.modulesState = state;
+      if (typeof state.gems === 'number') p.gems = state.gems;
+      setProfileForUser(u.uid, p);
+    }catch(e){}
+  }
+  if (typeof AppState !== 'undefined'){
+    const _origGet = AppState.get.bind(AppState);
+    const _origSave = AppState.save.bind(AppState);
+    AppState.get = function(){
+      const s = readAccountState();
+      return s || _origGet();
+    };
+    AppState.save = function(state){
+      if (readAccountState() !== null) { writeAccountState(state); }
+      else { _origSave(state); }
+    };
+    if (!AppState.markModuleStarted){
+      AppState.markModuleStarted = function(moduleId){
+        const st = this.get();
+        st.modules[moduleId] = st.modules[moduleId] || {};
+        st.modules[moduleId].started = true;
+        this.save(st);
+      };
+    }
+    if (!AppState.setModuleUnlocked){
+      AppState.setModuleUnlocked = function(moduleId, unlocked){
+        const st = this.get();
+        st.modules[moduleId] = st.modules[moduleId] || {};
+        st.modules[moduleId].unlocked = !!unlocked;
+        this.save(st);
+      };
+    }
+    const _origAddGems = AppState.addGems ? AppState.addGems.bind(AppState) : null;
+    AppState.addGems = function(amount){
+      const st = this.get();
+      st.gems = (st.gems||0) + (+amount||0);
+      this.save(st);
+      try{
+        const u = (typeof currentUser==='function') ? currentUser() : null;
+        if (u && typeof addGemsToUser === 'function') addGemsToUser(u.uid, +amount||0);
+      }catch(_){}
+      if (_origAddGems) try{ _origAddGems(amount); }catch(_){}
+    };
+  }
+})();
+</script>
+<script>
+/* PFAI_EAGER_SIDEBAR_RENDER */
+(function(){
+  // Render once immediately using auth snapshot (so completed modules appear right away),
+  // then render again after Firebase confirms auth.
+  try {
+    if (typeof buildModuleList === 'function') {
+      // If a snapshot exists, this will read per-user state via the bridge
+      buildModuleList();
+    }
+  } catch(_) {}
+
+  if (typeof onAuth === 'function') {
+    onAuth(function(){ try{ if (typeof buildModuleList==='function') buildModuleList(); }catch(_){} });
+  }
+})();
+</script>
+
+
+
+<script>
+/* PFAI_MODULES_AUTH_GATE */
+(function(){
+  try{ if (typeof ensureFirebase==='function') ensureFirebase(); }catch(_){}
+  function goLogin(){ try{ window.location.href = 'login.html?next=modules.html'; }catch(e){} }
+  if (typeof onAuth === 'function'){
+    onAuth(function(u){ if(!u) goLogin(); });
+  } else {
+    // If auth helpers missing, send to login
+    goLogin();
+  }
+})();
+</script>
 
 </body>
 </html>

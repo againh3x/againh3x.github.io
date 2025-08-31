@@ -49,13 +49,22 @@
       <button class="bigbtn ghost" id="signin">Sign in</button>
     </div>
     <div class="actions">
-      <button class="bigbtn google" id="google"><img alt="" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;vertical-align:middle;margin-right:6px;"> Continue with Google</button>
     </div>
     <p class="note">Creating an account lets you track past debates and save progress on training modules.</p>
     <p class="center"><a href="index.html" style="color:#7df9ff;">Back to Home</a></p>
   </div>
   <script src="auth.js"></script>
   <script>
+// AUTO-REDIRECT-IF-AUTH
+(function(){
+  const _params = new URLSearchParams(location.search);
+  const _next = _params.get('next') || 'modules.html';
+  if (typeof onAuth === 'function') {
+    onAuth(function(u){ if(u){ try{ window.location.href = _next; }catch(e){} } });
+  }
+})();
+    const _params = new URLSearchParams(location.search);
+    const _next = _params.get('next') || 'modules.html';
     async function ensureFirebase(){
       if (!window.FIREBASE_CONFIG) { alert("Add Firebase config in auth.js to enable sign-in across devices."); throw new Error("No Firebase config"); }
       const app = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js');
@@ -87,7 +96,7 @@
           const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
           await signInWithEmailAndPassword(window._auth, toEmail(username,email), pwd);
         }
-        window.location.href = 'index.html';
+        window.location.href = _next;
       } catch (e) {
         console.error(e);
         alert(e.message || 'Error');
@@ -95,17 +104,8 @@
     }
     document.getElementById('create').onclick = () => signIn('create');
     document.getElementById('signin').onclick = () => signIn('signin');
-    document.getElementById('google').onclick = async () => {
-      const { auth } = await ensureFirebase();
-      try {
-        const { GoogleAuthProvider, signInWithPopup } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(window._auth, provider);
-        window.location.href = 'index.html';
-      } catch (e) {
-        console.error(e); alert(e.message || 'Google sign-in failed');
-      }
-    };
+    // Google login removed by request.
+
   </script>
 </body>
 </html>
