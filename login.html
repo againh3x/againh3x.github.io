@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.login-wrap {
+  max-width: 560px; margin: 80px auto; padding: 24px;
+  background: rgba(255,255,255,0.06); border:1px solid rgba(0,243,255,0.3); border-radius:16px; color:#eaffff;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.login-wrap h1 { margin: 0 0 12px; color: #00f3ff; }
+.field { margin-bottom: 10px; }
+.field label { display:block; margin:0 0 6px; font-weight:700; color:#b6f7ff;}
+.field input {
+  width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(0,255,255,0.3);
+  background: rgba(0,0,0,0.35); color:#eaffff; outline:none;
+}
+.actions { display:flex; gap:10px; margin-top: 12px; flex-wrap:wrap; }
+.bigbtn { flex:1; padding:12px; border-radius:999px; border:none; font-weight:800; cursor:pointer; font-size: 1.2rem;}
+.primary { background:#00f3ff; color:#052b36; }
+.ghost { background:rgba(0,0,0,0.4); color:#eaffff; border:1px solid rgba(0,255,255,0.4); }
+.hint { font-size: .9rem; opacity:.9; color:#cfefff; margin-top:8px;}
+.google { background:#fff; color:#222; }
+.note { font-size: .9rem; color:#ffefc7; margin-top: 6px;}
+.center { text-align:center; margin-top: 10px;}
+</style>
+</head>
+<body>
+  <div class="login-wrap">
+    <h1>Sign in / Create account</h1>
+    <div class="field">
+      <label>Username <span style="color:#ffdd57">*</span></label>
+      <input id="uname" type="text" placeholder="e.g., PFPro123">
+    </div>
+    <div class="field">
+      <label>Password <span style="color:#ffdd57">*</span></label>
+      <input id="pwd" type="password" placeholder="••••••••">
+    </div>
+    <div class="field">
+      <label>Email (optional)</label>
+      <input id="email" type="email" placeholder="you@example.com">
+    </div>
+    <div class="actions">
+      <button class="bigbtn primary" id="create">Create account</button>
+      <button class="bigbtn ghost" id="signin">Sign in</button>
+    </div>
+    <div class="actions">
+      <button class="bigbtn google" id="google"><img alt="" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;vertical-align:middle;margin-right:6px;"> Continue with Google</button>
+    </div>
+    <p class="note">Creating an account lets you track past debates and save progress on training modules.</p>
+    <p class="center"><a href="index.html" style="color:#7df9ff;">Back to Home</a></p>
+  </div>
+  <script src="auth.js"></script>
+  <script>
+    async function ensureFirebase(){
+      if (!window.FIREBASE_CONFIG) { alert("Add Firebase config in auth.js to enable sign-in across devices."); throw new Error("No Firebase config"); }
+      const app = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js');
+      const auth = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
+      if (!window._fb) window._fb = app.initializeApp(window.FIREBASE_CONFIG);
+      if (!window._auth) window._auth = auth.getAuth(window._fb);
+      await auth.setPersistence(window._auth, auth.browserLocalPersistence);
+      return { auth };
+    }
+    function toEmail(username, emailInput){
+      const u = (username||'').trim();
+      const e = (emailInput||'').trim();
+      if (e) return e;
+      // synthesize an email from username for Firebase
+      return u + "@pf.local";
+    }
+    async function signIn(mode){
+      const username = document.getElementById('uname').value.trim();
+      const pwd = document.getElementById('pwd').value.trim();
+      const email = document.getElementById('email').value.trim();
+      if (!username || !pwd){ alert("Username and password are required."); return; }
+      const { auth } = await ensureFirebase();
+      try {
+        if (mode === 'create') {
+          const { createUserWithEmailAndPassword, updateProfile } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
+          const cred = await createUserWithEmailAndPassword(window._auth, toEmail(username,email), pwd);
+          await updateProfile(cred.user, { displayName: username });
+        } else {
+          const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
+          await signInWithEmailAndPassword(window._auth, toEmail(username,email), pwd);
+        }
+        window.location.href = 'index.html';
+      } catch (e) {
+        console.error(e);
+        alert(e.message || 'Error');
+      }
+    }
+    document.getElementById('create').onclick = () => signIn('create');
+    document.getElementById('signin').onclick = () => signIn('signin');
+    document.getElementById('google').onclick = async () => {
+      const { auth } = await ensureFirebase();
+      try {
+        const { GoogleAuthProvider, signInWithPopup } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(window._auth, provider);
+        window.location.href = 'index.html';
+      } catch (e) {
+        console.error(e); alert(e.message || 'Google sign-in failed');
+      }
+    };
+  </script>
+</body>
+</html>

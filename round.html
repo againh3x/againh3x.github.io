@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-ERE3HL6LKB');
+  </script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Saved Debate | PF Debate AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ===== Page background + container ===== */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #8ac8ff, #185da1, #08316a, #011529);
+      color: #EAFBFF;
+      min-height: 100vh;
+      padding: 80px 20px 30px; /* space for fixed toolbar */
+    }
+    .page {
+      width: 95%;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(10,14,39,0.88), rgba(26,31,75,0.88));
+      border: 1px solid rgba(0, 243, 255, 0.20);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      backdrop-filter: blur(6px);
+      padding: 24px;
+    }
+
+    /* ===== Toolbar (kept simple) ===== */
+    nav.toolbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
+      border-bottom: 1px solid rgba(0,255,255,.2);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 30px; z-index: 1000; backdrop-filter: blur(10px);
+      box-shadow: 0 4px 30px rgba(0,0,0,.3);
+    }
+    nav.toolbar .logo { display:flex; align-items:center; gap:15px; text-decoration:none; }
+    nav.toolbar .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0,255,255,.4)); }
+    nav.toolbar .logo-text { color:#86C4FF; font-size:1.4rem; font-weight:700; font-family:'Roboto',sans-serif; }
+    nav.toolbar .nav-links { display:flex; gap:60px; }
+    nav.toolbar .nav-links a { color:#86C4FF; text-decoration:none; font-weight:700; padding:5px 0; }
+    nav.toolbar #authSlot .button.signin {
+      background: transparent; border:2px solid #86C4FF; color:#86C4FF;
+      padding:10px 16px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center;
+      font-weight:700; font-family:'Roboto',sans-serif; text-transform:uppercase; letter-spacing:.3px;
+    }
+    nav.toolbar #authSlot a { text-decoration: none; }
+
+    /* ===== Header / meta ===== */
+    .round-header {
+      display:flex; justify-content:space-between; align-items:flex-start; gap:16px;
+      border-bottom:1px solid rgba(0,255,255,.18); padding-bottom:14px; margin-bottom:18px;
+    }
+    .topic { font-size:1.4rem; font-weight:800; color:#CFEAFF; margin:0; }
+    .meta  { color:#9CCAF1; font-size:.95rem; }
+    .backlink {
+      text-decoration:none; color:#A3DCFF; border:1px solid rgba(163,220,255,.35);
+      padding:6px 10px; border-radius:10px; font-weight:700;
+      transition: box-shadow .2s ease;
+    }
+    .backlink:hover {
+      box-shadow: 0 0 10px rgba(163,220,255,.25), inset 0 0 8px rgba(163,220,255,.18);
+    }
+
+    /* ===== Two-column grid with paired rows (keeps speeches aligned) ===== */
+    .grid {
+      display:grid;
+      grid-template-columns: 1fr 1fr;  /* Aff | Neg */
+      gap: 18px;
+      align-items: stretch;
+    }
+    @media (max-width: 1000px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    /* ===== Large side headers (Aff left / Neg right) ===== */
+    .side-header {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(0,255,255,0.20);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display:flex; align-items:center; justify-content:center;
+      grid-column: span 1;
+    }
+    .side-title {
+      margin:0;
+      font-weight:900;
+      font-size:1.25rem;
+      letter-spacing:.3px;
+      background: linear-gradient(135deg, #a8e6ff, #7fcdff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-transform: uppercase;
+    }
+
+    /* ===== Cards ===== */
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(0,255,255,0.20);
+      border-radius: 12px;
+      padding: 14px;
+      display:flex; flex-direction:column; /* helps fill equal heights cleanly */
+    }
+    .card h3 { margin: 0 0 8px; font-size: 1.05rem; color:#7df9ff; }
+    .content {
+      background: rgba(0,0,0,.25);
+      border:1px solid rgba(0,255,255,.18);
+      border-radius:10px;
+      padding:10px;
+      color:#EAFBFF;
+      min-height: 90px;
+      overflow:auto;
+      flex: 1 1 auto; /* stretch inside card */
+    }
+  </style>
+</head>
+<body>
+  <!-- Toolbar -->
+  <nav class="toolbar">
+    <a class="logo" href="https://publicforumai.com">
+      <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
+      <span class="logo-text">PublicForumAI©</span>
+    </a>
+    <div class="nav-links">
+      <a href="https://publicforumai.com/flower.html">AI Flow</a>
+      <a href="https://publicforumai.com/setup.html">AI Practice Round</a>
+      <a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
+      <a href="https://publicforumai.com/new2debate.html">Training Modules</a>
+    </div>
+    <div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+  </nav>
+
+  <!-- Page -->
+  <div class="page">
+    <div class="round-header">
+      <div>
+        <h2 id="roundTopic" class="topic">Loading topic…</h2>
+        <div id="roundMeta" class="meta">—</div>
+      </div>
+      <div>
+        <a href="profile.html" class="backlink">← Back to Profile</a>
+      </div>
+    </div>
+
+    <!-- Side headers (Aff left, Neg right) -->
+    <div class="grid">
+      <div class="side-header"><h3 id="affHeader" class="side-title">Aff</h3></div>
+      <div class="side-header"><h3 id="negHeader" class="side-title">Neg</h3></div>
+
+      <!-- Row 1: Contention (paired, equal-height row) -->
+      <div class="card">
+        <h3>Contention Flow</h3>
+        <div id="ContentionFlow" class="content"><em>Empty</em></div>
+      </div>
+      <div class="card">
+        <h3>AI Contention</h3>
+        <div id="AICase" class="content"><em>Empty</em></div>
+      </div>
+
+      <!-- Row 2: Rebuttal -->
+      <div class="card">
+        <h3>Rebuttal Flow</h3>
+        <div id="RebuttalFlow" class="content"><em>Empty</em></div>
+      </div>
+      <div class="card">
+        <h3>AI Rebuttal</h3>
+        <div id="AIRebuttal" class="content"><em>Empty</em></div>
+      </div>
+
+      <!-- Row 3: Summary -->
+      <div class="card">
+        <h3>Summary Flow</h3>
+        <div id="SummaryFlow" class="content"><em>Empty</em></div>
+      </div>
+      <div class="card">
+        <h3>AI Summary</h3>
+        <div id="AISummary" class="content"><em>Empty</em></div>
+      </div>
+
+      <!-- Row 4: Final Focus -->
+      <div class="card">
+        <h3>Final Focus Flow</h3>
+        <div id="FFFlow" class="content"><em>Empty</em></div>
+      </div>
+      <div class="card">
+        <h3>AI Final Focus</h3>
+        <div id="AIFF" class="content"><em>Empty</em></div>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="card">
+      <h3>Feedback (most recent)</h3>
+      <div id="Feedback" class="content"><em>Empty</em></div>
+    </div>
+  </div>
+
+  <!-- Auth + loader -->
+  <script src="auth.js"></script>
+  <script>
+    function getParam(name){ return new URL(location.href).searchParams.get(name); }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (typeof ensureFirebase === 'function') { await ensureFirebase(); }
+
+      let decided = false;
+      const failSafe = setTimeout(() => {
+        if (!decided && typeof currentUser === 'function' && !currentUser()) {
+          decided = true;
+          window.location.href = 'login.html';
+        }
+      }, 1500);
+
+      if (typeof onAuth !== 'function') return;
+
+      onAuth((user) => {
+        if (!user || decided) return;
+        decided = true;
+        clearTimeout(failSafe);
+
+        const id = getParam('id');
+        const rounds = (typeof getRoundsForUser === 'function') ? getRoundsForUser(user.uid) : [];
+        const round = rounds.find(r => r.id === id);
+
+        if (!round) {
+          document.querySelector('.page')
+            .insertAdjacentHTML('beforeend', '<p style="margin-top:12px">Round not found.</p>');
+          return;
+        }
+
+        // Title & meta
+        const meta  = round.meta || {};
+        const topic = meta.debateTopic || 'Practice Round';
+        const when  = round.timestamp ? new Date(round.timestamp).toLocaleString() : '';
+        const side  = meta.selectedSide || '';
+        const turn  = meta.selectedTurn ? ' (' + meta.selectedTurn + ')' : '';
+        const judge = (meta.judgeType || 'tech').toUpperCase();
+
+        document.getElementById('roundTopic').textContent = topic;
+        document.title = topic + ' | Saved Debate';
+        document.getElementById('roundMeta').textContent = when + ' • ' + side + turn + ' • ' + judge + ' judge';
+
+        // Side headers: Aff always left, Neg always right. Add (you) to the user's side.
+        var affHeader = document.getElementById('affHeader');
+        var negHeader = document.getElementById('negHeader');
+        if (affHeader) affHeader.textContent = 'Aff' + (side === 'Aff' ? ' (you)' : '');
+        if (negHeader) negHeader.textContent = 'Neg' + (side === 'Neg' ? ' (you)' : '');
+
+        // Fill the saved HTML snapshots (prefer capitalized Feedback key if present)
+        var map = {
+          AICase: round.AICase,
+          AIRebuttal: round.AIRebuttal,
+          AISummary: round.AISummary,
+          AIFF: round.AIFF,
+          ContentionFlow: round.ContentionFlow,
+          RebuttalFlow: round.RebuttalFlow,
+          SummaryFlow: round.SummaryFlow,
+          FFFlow: round.FFFlow,
+          Feedback: round.Feedback || round.feedback
+        };
+
+        Object.keys(map).forEach(function(key){
+          var el = document.getElementById(key);
+          var html = map[key];
+          if (el) el.innerHTML = (html && String(html).trim()) ? html : '<em>Empty</em>';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

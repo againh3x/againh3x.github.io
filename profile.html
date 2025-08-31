@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-ERE3HL6LKB');
+  </script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile | PF Debate AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <!-- ===== Base page styles (match casewriter body + container) ===== -->
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #8ac8ff, #185da1, #08316a, #011529);
+      margin: 0px;
+      padding: 40px;
+      padding-bottom: 0px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      color: #333;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    /* Adjust body margin like casewriter */
+    body { margin-top: 80px; padding: 20px; }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 95%;
+      max-width: 1400px;
+      background: linear-gradient(180deg, rgba(10,14,39,0.88), rgba(26,31,75,0.88));
+      backdrop-filter: blur(6px);
+      padding: 30px;
+      border-radius: 15px;
+      border: 1px solid rgba(0, 243, 255, 0.20);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      min-height: 600px;
+      color: #EAFBFF;
+    }
+
+    /* Profile-specific layout inside the container */
+    .profile-left { flex: 1; padding-right: 30px; }
+    .profile-right { flex: 1.5; }
+
+    .profile-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(0,255,255,0.20);
+      border-radius: 12px;
+      padding: 20px;
+      color:#EAFBFF;
+    }
+    .profile-header { display:flex; align-items:center; gap:18px; }
+    .avatar {
+      width: 84px; height: 84px; border-radius: 50%;
+      border: 3px solid #00f3ff; box-shadow: 0 0 10px rgba(0,243,255,0.35);
+      object-fit: cover; background:#e8f6ff;
+    }
+    .username { margin: 0; font-size: 1.6rem; color:#EAFBFF; }
+    .handle { color:#185da1; font-weight:700; }
+
+    .badges { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+    .pill {
+      background: linear-gradient(135deg, #00f3ff, #00a6ff);
+      color: #052b36; font-weight:800; padding:8px 14px; border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .section-title { color:#EAFBFF; margin: 0 0 10px; }
+    .rounds-list { background: rgba(255,255,255,0.04); border:1px solid rgba(0,255,255,0.20); border-radius:12px; padding:16px; color:#EAFBFF; }
+    .round-card { background: rgba(0,0,0,0.30); border:1px solid rgba(0,255,255,0.20); border-radius:10px; padding:12px 14px; margin-bottom:12px; color:#EAFBFF; }
+    .round-card h4 { margin:0 0 6px; color:#7df9ff; }
+    .round-card .meta { font-size:0.9rem; color:#cfeaff; margin-bottom:6px; }
+    .open-btn { background: linear-gradient(135deg, #00f3ff, #00a6ff); color:#052b36; border:none; border-radius:999px; padding:8px 12px; font-weight:800; cursor:pointer; }
+
+    /* New: actions row + red trashcan */
+    .round-card .actions{
+      display:flex;
+      align-items:center;
+      justify-content:space-between; /* Open left, Delete right */
+      margin-top:14px;               /* extra space below the meta text */
+    }
+    .open-btn{ display:inline-flex; align-items:center; gap:8px; }
+
+    .delete-btn{
+      background:transparent;
+      border:none;
+      color:#ff5b5b;
+      width:36px;
+      height:36px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:1.05rem;
+      transition: transform .15s ease, color .15s ease, background .15s ease;
+    }
+    .delete-btn:hover{
+      transform: scale(1.15);
+      color:#ff7a7a;
+      background:rgba(255,90,90,0.12);
+    }
+    .delete-btn i{ pointer-events:none; }
+  </style>
+
+  <!-- ===== The toolbar styles copied from casewriter (kept verbatim to ensure exact match) ===== -->
+  <style>
+    .toolbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 30px; z-index: 1000; backdrop-filter: blur(10px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    }
+    .toolbar::before { content: ''; position: absolute; top: 0; left: -100%; width: 200%; height: 100%;
+      background: linear-gradient(90deg, transparent 25%, rgba(0, 255, 255, 0.1) 50%, transparent 75%);
+      animation: scanner-beam 8s infinite linear; }
+    @keyframes scanner-beam { 0%{transform:translateX(0);} 100%{transform:translateX(100%);} }
+    .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4)); transition: all 0.3s ease; }
+    .logo:hover img { filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6)); }
+    .nav-links { display: flex; gap: 60px; position: relative; }
+    .nav-links a { color: #00f3ff !important; text-decoration: none; font-weight: 600; position: relative; padding: 5px 0;
+      background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
+      background-size: 200% 100%; transition: all 0.3s ease; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #00f3ff; transition: width 0.3s ease; }
+    .nav-links a:hover { background-position: -100% 0; }
+    .nav-links a:hover::after { width: 100%; }
+    @keyframes border-glow { 0%{opacity:0.6;} 50%{opacity:0.3;} 100%{opacity:0.6;} }
+    .logo { display:flex; align-items:center; gap:15px; text-decoration:none !important; }
+    .logo-text { color:#00f3ff; font-size:1.4rem; font-weight:600; text-shadow:0 0 10px rgba(0,243,255,0.4); letter-spacing:0.5px; margin-left:10px; text-decoration:none !important; border-bottom:none !important; }
+
+    /* Casewriter-specific toolbar tweaks copied so appearance is identical */
+    nav.toolbar .nav-links { gap: 60px !important; }
+    nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+    nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+    nav.toolbar #authSlot .button.orange {
+      background: transparent !important; border: 2px solid #00f3ff !important; color: #00f3ff !important;
+      width: auto !important; height: auto !important; padding: 8px 14px !important; display: inline-flex !important;
+      align-items: center; justify-content: center; border-radius: 10px !important; box-shadow: none !important; transform: none !important;
+    }
+    nav.toolbar #authSlot .button.orange .title { color: inherit !important; font-weight: 700; font-size: 0.95rem; line-height: 1; margin: 0; }
+    nav.toolbar #authSlot .button.orange:hover { background: #00f3ff !important; color: #0a0e27 !important; }
+    nav.toolbar #authSlot .button.orange:hover .title { color: #0a0e27 !important; }
+
+    /* Standardization passes (kept verbatim from casewriter) */
+    nav.toolbar .logo-text { color: #00f3ff !important; font-weight: 700 !important; font-family: 'Roboto', sans-serif !important; }
+    nav.toolbar .nav-links { gap: 60px !important; position: relative; }
+    nav.toolbar .nav-links a { color: #00f3ff !important; font-weight: 700 !important; text-decoration: none; position: relative; padding: 5px 0; background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%); background-size: 200% 100%; transition: all 0.3s ease; }
+    nav.toolbar .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #00f3ff; transition: width 0.3s ease; }
+    nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+    nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+
+    nav.toolbar #authSlot .button.signin { background: transparent !important; border: 2px solid #00f3ff !important; color: #00f3ff !important; width: auto !important; height: auto !important; padding: 8px 14px !important; display: inline-flex !important; align-items: center; justify-content: center; border-radius: 10px !important; box-shadow: none !important; transform: none !important; }
+    nav.toolbar #authSlot .button.signin .title { color: inherit !important; font-weight: 700 !important; font-size: 0.95rem !important; line-height: 1 !important; margin: 0 !important; font-family: 'Roboto', sans-serif !important; }
+    nav.toolbar #authSlot .button.signin:hover { background: #00f3ff !important; color: #0a0e27 !important; }
+    nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
+
+    /* Progressive overrides (exactly as in casewriter) */
+    :root { --toolbar-accent: #A3DCFF; }
+    nav.toolbar .logo-text { color: var(--toolbar-accent) !important; }
+    nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(163, 220, 255, 0.18) 100%); }
+    nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
+    nav.toolbar #authSlot .button.signin { border: 2px solid var(--toolbar-accent) !important; color: var(--toolbar-accent) !important; }
+    nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
+    nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
+
+    :root { --toolbar-accent: #86C4FF; }
+    nav.toolbar .logo-text { color: var(--toolbar-accent) !important; }
+    nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(134,196,255,0.18) 100%); }
+    nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
+    nav.toolbar #authSlot .button.signin { border: 2px solid var(--toolbar-accent) !important; color: var(--toolbar-accent) !important; padding: 10px 16px !important; border-radius: 12px !important; box-shadow: 0 0 0 2px rgba(134,196,255,0.08) inset !important; }
+    nav.toolbar #authSlot .button.signin .title { font-family: 'Roboto', sans-serif !important; font-weight:700 !important; font-size:1rem !important; text-transform: uppercase !important; letter-spacing: .3px !important; }
+
+    :root { --toolbar-accent: #9FD6FF; }
+    nav.toolbar #authSlot a, nav.toolbar #authSlot a:hover, nav.toolbar #authSlot a:focus { text-decoration: none !important; background: none !important; position: static !important; }
+    nav.toolbar #authSlot a::after { content: none !important; }
+    nav.toolbar #authSlot .button.signin { border: 2px solid var(--toolbar-accent) !important; color: var(--toolbar-accent) !important; }
+    nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
+    nav.toolbar .logo-text { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
+    nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
+    nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
+
+    :root { --toolbar-accent: #7FCDFF; }
+    nav.toolbar .logo-text { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
+    nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
+    nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
+    nav.toolbar #authSlot a, nav.toolbar #authSlot a:hover, nav.toolbar #authSlot .button.signin, nav.toolbar #authSlot .button.signin:hover, nav.toolbar #authSlot .button.signin .title, nav.toolbar #authSlot .button.signin .title:hover { text-decoration: none !important; background: none !important; position: static !important; }
+    nav.toolbar #authSlot a::after, nav.toolbar #authSlot .button.signin::after, nav.toolbar #authSlot .button.signin .title::after { content: none !important; }
+    nav.toolbar #authSlot .button.signin { border: 2px solid var(--toolbar-accent) !important; color: var(--toolbar-accent) !important; padding: 10px 16px !important; border-radius: 12px !important; display: inline-flex !important; align-items: center; justify-content: center; }
+    nav.toolbar #authSlot .button.signin .title { font-family: 'Roboto', sans-serif !important; font-weight: 700 !important; font-size: 1rem !important; line-height: 1 !important; margin: 0 !important; text-transform: uppercase !important; letter-spacing: 0.3px !important; }
+    nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
+    nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
+
+    :root { --toolbar-accent: #6FCBFF; }
+    nav.toolbar .logo-text, nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; }
+    nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
+    nav.toolbar #authSlot .button.signin { border-color: var(--toolbar-accent) !important; color: var(--toolbar-accent) !important; }
+    nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
+    nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
+
+    /* Final override: bold nav links (exact copy) */
+    nav.toolbar .nav-links a { font-weight: 700 !important; }
+  </style>
+
+  <!-- Minimal dropdown menu styling (only used when user is logged in; harmless otherwise) -->
+  <style>
+    .user-menu-wrap { position: relative; display:inline-block; }
+    .user-btn { display:inline-flex; align-items:center; gap:10px; padding:10px 16px; border:2px solid var(--toolbar-accent); color:var(--toolbar-accent); border-radius:12px; cursor:pointer; font-family:'Roboto',sans-serif; font-weight:700; }
+    .user-avatar { width:24px; height:24px; border-radius:50%; object-fit:cover; background:#e8f6ff; }
+    .user-name { font-weight:700; }
+    .user-menu { position:absolute; right:0; top:110%; background:#0f1538; border:1px solid rgba(144,208,248,.35); border-radius:10px; min-width:180px; box-shadow:0 10px 25px rgba(0,0,0,.35); display:none; }
+    .user-menu.open { display:block; }
+    .user-menu a { display:block; color:#A3DCFF; text-decoration:none; padding:10px 12px; font-family:'Roboto',sans-serif; font-weight:700; }
+    .user-menu a:hover { background:rgba(163,220,255,.12); }
+  </style>
+  <style>
+    /* === HOVER FIX: ensure effect only triggers on hover === */
+    nav.toolbar .nav-links a { background-position: 0 0 !important; }
+    nav.toolbar .nav-links a::after { width: 0 !important; }
+    nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
+    nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+  </style>
+  <style>
+    /* === DEFINITIVE HOVER OVERRIDE (matches casewriter behavior) === */
+    /* Start with no tint under links; slide tint in on hover */
+    nav.toolbar .nav-links a { background-position: 100% 0 !important; }
+    nav.toolbar .nav-links a::after { width: 0 !important; }
+    nav.toolbar .nav-links a:hover { background-position: 0 0 !important; }
+    nav.toolbar .nav-links a:hover::after { width: 100% !important; }
+  </style>
+  <style>
+    /* === KILL ALWAYS-ON HIGHLIGHT; ONLY SHOW ON HOVER === */
+    nav.toolbar .nav-links a { background: none !important; }
+    nav.toolbar .nav-links a::after { width: 0 !important; }
+    nav.toolbar .nav-links a:hover {
+      background-image: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(127,205,255,0.18) 100%) !important;
+      background-size: 200% 100% !important;
+      background-position: -100% 0 !important;
+    }
+.open-btn {
+  background: linear-gradient(135deg, #00f3ff, #00a6ff);
+  color: #052b36;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.open-btn:hover {
+  background: linear-gradient(135deg, #00d6ff, #008cff); /* slight shift */
+  transform: translateY(-1px); /* gentle lift */
+}
+
+  </style>
+</head>
+
+<body>
+  <!-- ===== Toolbar (markup identical to casewriter) ===== -->
+  <nav class="toolbar">
+    <a class="logo" href="https://publicforumai.com">
+      <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
+      <span class="logo-text">PublicForumAI©</span>
+    </a>
+    <div class="nav-links">
+      <a href="https://publicforumai.com/flower.html">AI Flow</a>
+      <a href="https://publicforumai.com/setup.html">AI Practice Round</a>
+      <a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
+      <a href="https://publicforumai.com/new2debate.html">Training Modules</a>
+    </div>
+    <!-- Pre-render SIGN IN like casewriter; auth.js will replace when logged in -->
+    <div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+  </nav>
+
+  <!-- ===== Main content ===== -->
+  <div class="container">
+    <div class="profile-left">
+      <div class="profile-card">
+        <div class="profile-header">
+          <img id="avatar" class="avatar" src="" alt="avatar"/>
+          <div>
+            <h2 class="username"><span id="displayName">Your Name</span> <span class="handle" id="handle">@username</span></h2>
+            <div class="badges">
+              <div class="pill"><span id="statRounds">0</span> rounds</div>
+              <div class="pill"><span id="statGems">0</span> gems</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="height:14px"></div>
+      <div class="profile-card">
+        <h3 class="section-title">Account</h3>
+        <p style="margin:.4rem 0;color:#EAFBFF">Email: <strong id="email">—</strong></p>
+        <p style="margin:.4rem 0;color:#EAFBFF">Member since: <strong id="created">—</strong></p>
+      </div>
+    </div>
+
+    <div class="profile-right">
+      <div class="rounds-list">
+        <h3 class="section-title">Past Debates</h3>
+        <div id="rounds"><p>No completed debates yet.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    // Optional: basic click-to-toggle support if auth.js attaches a .user-menu
+    document.addEventListener('click', function(e){
+      const wrap = e.target.closest('.user-menu-wrap');
+      // Close all menus if clicking outside
+      if(!wrap){ document.querySelectorAll('.user-menu').forEach(m=>m.classList.remove('open')); return; }
+      const menu = wrap.querySelector('.user-menu');
+      const btn = e.target.closest('.user-btn');
+      if(btn && menu){ menu.classList.toggle('open'); }
+    });
+
+    // Populate profile from Firebase auth (relies on auth.js helpers)
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (typeof ensureFirebase !== 'function' || typeof onAuth !== 'function') return; // fallback if auth.js not loaded
+      await ensureFirebase();
+      onAuth((user) => {
+        if (!user) { window.location.href = 'login.html'; return; }
+        const name = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+        const handle = '@' + (name || 'user');
+        const icon = user.photoURL || ("https://api.dicebear.com/7.x/thumbs/svg?seed=" + encodeURIComponent(user.uid||name));
+
+        document.getElementById('avatar').src = icon;
+        document.getElementById('displayName').textContent = name;
+        document.getElementById('handle').textContent = handle;
+        document.getElementById('email').textContent = user.email || '—';
+        try {
+          const dt = user.metadata?.creationTime ? new Date(user.metadata.creationTime) : null;
+          document.getElementById('created').textContent = dt ? dt.toLocaleDateString() : '—';
+        } catch(_){}
+        // Read/write the per-user profile (same key your autosave uses)
+        const profileKey = `pfai_profile::${user.uid}`;
+        function readProfile() {
+          try { return JSON.parse(localStorage.getItem(profileKey)) || { gems: 0, rounds: [] }; }
+          catch { return { gems: 0, rounds: [] }; }
+        }
+        function writeProfile(p) {
+          try { localStorage.setItem(profileKey, JSON.stringify(p)); } catch {}
+        }
+
+        function renderRoundsAndStats() {
+          const p = readProfile();
+          const rounds = p.rounds || [];
+          const gems = p.gems || 0;
+
+          // Update counters next to the username (keeps your existing UI)
+          document.getElementById('statGems').textContent = gems;
+          document.getElementById('statRounds').textContent = rounds.length;
+
+          // Render the Past Debates list
+          const roundsDiv = document.getElementById('rounds');
+          if (!rounds.length) {
+            roundsDiv.innerHTML = '<p>No saved debates yet.</p>';
+            return;
+          }
+
+        const html = rounds.map(r => {
+          const m = r.meta || {};
+          const topic = m.debateTopic || 'Practice Round';
+          const date  = r.timestamp ? new Date(r.timestamp).toLocaleString() : '';
+          const side  = m.selectedSide || '';
+          const turn  = m.selectedTurn ? ` (${m.selectedTurn})` : '';
+          const judge = (m.judgeType || 'tech').toUpperCase();
+
+          return `
+            <div class="round-card" data-id="${r.id}">
+              <h4>${topic}</h4>
+              <div class="meta">${date} • ${side}${turn} • ${judge} judge</div>
+              <div class="actions">
+                <a class="open-btn" href="round.html?id=${encodeURIComponent(r.id)}">Open</a>
+                <button class="delete-btn" type="button" aria-label="Delete this round">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        roundsDiv.innerHTML = `<div class="rounds-list">${html}</div>`;
+
+      }
+        // One delegated delete handler on the container
+        const roundsContainer = document.getElementById('rounds');
+        roundsContainer.addEventListener('click', (e) => {
+          const btn = e.target.closest('.delete-btn');
+          if (!btn) return;
+          const card = e.target.closest('.round-card');
+          const id = card?.dataset?.id;
+          if (!id) return;
+          if (!confirm('Delete this saved debate?')) return;
+
+          const p = readProfile();
+          p.rounds = (p.rounds || []).filter(r => r.id !== id);
+          writeProfile(p);
+          renderRoundsAndStats();
+        });
+
+        // Initial render
+        renderRoundsAndStats();
+
+      });
+    });
+  </script>
+</body>
+</html>
