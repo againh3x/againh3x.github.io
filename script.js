@@ -51,6 +51,13 @@ let recordingStartTime;
 var judgeType = 'tech';
 var roundOver;
 
+let __roundSavedToProfile = false;
+
+function getDebateTopicSafe(){
+  try { return (typeof debateTopic !== "undefined" && debateTopic) ? debateTopic
+             : (new URLSearchParams(location.search).get('debateTopic') || 'Untitled Topic'); }
+  catch { return 'Untitled Topic'; }
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     // Parse URL parameters
@@ -2100,6 +2107,87 @@ function selectJudgeType(type) {
     }
 
 }
+function onResultsButtonShown(){
+  if (__roundSavedToProfile) return;
+
+  const user = (window.currentUser && window.currentUser()) || null;
+  if (!user) return; // only save/award if logged in
+
+  // Take a snapshot of the round at the moment Results become available
+  const state = captureState(); // uses your existing function
+
+  const round = {
+    ...state,
+    // Make sure we persist the topic + judge + quick meta for the profile card
+    meta: {
+      debateTopic: getDebateTopicSafe(),
+      selectedSide: document.getElementById('selectedSide')?.textContent?.trim() || '',
+      selectedTurn: document.getElementById('selectedTurn')?.textContent?.trim() || '',
+      judgeType: (typeof judgeType !== 'undefined' ? judgeType : 'tech')
+    },
+    // Keep the feedback HTML if it already exists in the DOM
+    Feedback: document.getElementById('feedback-content')?.innerHTML || '',
+    timestamp: Date.now()
+  };
+
+  // Save & award
+  const id = (window.addRoundForUser && addRoundForUser(user.uid, round)) || null;
+  if (id) window.__currentRoundId = id;   // <-- add this line
+  if (window.addGemsToUser) addGemsToUser(user.uid, 100);
+
+  __roundSavedToProfile = true;
+
+  // (Optional) tiny visual cue on the button
+  try { document.getElementById('results-btn')?.setAttribute('data-saved', '1'); } catch {}
+}
+// NEW: update the saved profile round with feedback (no extra gems, no duplicates)
+function saveFeedbackToProfile() {
+  try {
+    const user = (window.currentUser && window.currentUser()) || null;
+    if (!user) return;
+
+    const id = window.__currentRoundId || null;
+    const feedbackHtml = document.getElementById('feedback-content')?.innerHTML || '';
+    const judge = (typeof judgeType !== 'undefined' ? judgeType : 'tech');
+
+    // What we want to update on the saved round
+    const patch = {
+      Feedback: feedbackHtml,
+      // keep judge + topic + quick meta in sync
+      meta: {
+        debateTopic: getDebateTopicSafe(),
+        selectedSide: document.getElementById('selectedSide')?.textContent?.trim() || '',
+        selectedTurn: document.getElementById('selectedTurn')?.textContent?.trim() || '',
+        judgeType: judge
+      }
+    };
+
+    // If auth.js exposes an updater, use it.
+    if (typeof window.updateRoundForUser === 'function' && id) {
+      window.updateRoundForUser(user.uid, id, patch);
+      return;
+    }
+
+    // Fallback: mutate localStorage directly (same schema as profile.html)
+    const key = `pfai_profile::${user.uid}`;
+    const profile = JSON.parse(localStorage.getItem(key) || '{"gems":0,"rounds":[]}');
+    const rounds = profile.rounds || [];
+
+    // Prefer updating by id; otherwise update the most recent round
+    const idx = id ? rounds.findIndex(r => r.id === id) : -1;
+    if (idx >= 0) {
+      rounds[idx] = { ...rounds[idx], ...patch };
+    } else if (rounds.length) {
+      rounds[rounds.length - 1] = { ...rounds[rounds.length - 1], ...patch };
+    }
+
+    profile.rounds = rounds;
+    localStorage.setItem(key, JSON.stringify(profile));
+  } catch (e) {
+    console.error('saveFeedbackToProfile failed:', e);
+  }
+}
+
 function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, transcriptionF, AICase, AIRebuttal, AISummary, AIFinalFocus) {
     document.getElementById('feedback-content').innerHTML = ''
     document.querySelector('.loadingfeed').style.display = 'block';
@@ -2154,6 +2242,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
             .finally(() => {
 
                 saveRound()
+                saveFeedbackToProfile();
                 document.querySelector('.loadingfeed').style.display = 'none';
             }
             );
@@ -2202,6 +2291,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
             .finally(() => {
 
                 saveRound()
+                saveFeedbackToProfile();
                 document.querySelector('.loadingfeed').style.display = 'none';
             }
             );
@@ -2231,22 +2321,22 @@ generateFeedbackButton.addEventListener('click', () => {
 });
 
 function toggleResultsButton(show) {
-    const resultsBtn = document.getElementById('results-btn');
-    const placeholder = document.getElementById('results-placeholder');
+  const resultsBtn = document.getElementById('results-btn');
+  const placeholder = document.getElementById('results-placeholder');
 
-    if (show) {
-        // Show button and hide placeholder
-        placeholder.classList.add('hidden');
-        setTimeout(() => {
-            resultsBtn.classList.add('visible');
-        }, 50); // Short delay for smooth transition
-    } else {
-        // Hide button and show placeholder
-        resultsBtn.classList.remove('visible');
-        setTimeout(() => {
-            placeholder.classList.remove('hidden');
-        }, 50);
-    }
+  if (show) {
+    placeholder.classList.add('hidden');
+    setTimeout(() => {
+      resultsBtn.classList.add('visible');
+    }, 50);
+    // NEW: one-time profile save + 100 gems when Results first appear
+    if (!__roundSavedToProfile) onResultsButtonShown();
+  } else {
+    resultsBtn.classList.remove('visible');
+    setTimeout(() => {
+      placeholder.classList.remove('hidden');
+    }, 50);
+  }
 }
 
 
