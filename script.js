@@ -1919,7 +1919,9 @@ function onResultsButtonShown(){
     timestamp: Date.now()
   };
 
-  // Save & award
+  // Save & award (reuse the round id the feedback call may have minted,
+  // so the server-side gem award and this saved round share one key)
+  round.id = pfCurrentRoundId();
   const id = (window.addRoundForUser && addRoundForUser(user.uid, round)) || null;
   if (id) window.__currentRoundId = id;   // <-- add this line
   if (window.addGemsToUser) addGemsToUser(user.uid, 100);
@@ -1977,6 +1979,15 @@ function saveFeedbackToProfile() {
   }
 }
 
+// Stable per-round id shared by the server gem award (/tech, /lay roundId)
+// and the saved round in the profile. Lazily minted once per round.
+function pfCurrentRoundId() {
+  if (!window.__currentRoundId) {
+    window.__currentRoundId = `r_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  }
+  return window.__currentRoundId;
+}
+
 function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, transcriptionF, AICase, AIRebuttal, AISummary, AIFinalFocus) {
     document.getElementById('feedback-content').innerHTML = ''
     document.querySelector('.loadingfeed').style.display = 'block';
@@ -1984,6 +1995,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
 
         pfFetch('/tech', {
             json: {
+                roundId: pfCurrentRoundId(),
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -2026,6 +2038,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
     } else if (judgeType == 'lay') {
         pfFetch('/lay', {
             json: {
+                roundId: pfCurrentRoundId(),
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
