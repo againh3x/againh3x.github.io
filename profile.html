@@ -10,8 +10,6 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Profile | PF Debate AI</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
 
 <link rel="stylesheet" href="toolbar.css"/>
@@ -48,27 +46,23 @@
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(180deg, #8ac8ff, #185da1, #08316a, #011529);
-      margin: 0px;
-      padding: 40px;
-      padding-bottom: 0px;
+      margin: 80px 0 0;
+      padding: 20px;
       display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      color: #333;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
+      min-height: 100vh;
+      color: #EAFBFF;
     }
-    /* Adjust body margin like casewriter */
-    body { margin-top: 80px; padding: 20px; }
+
+    .page-col { width: 95%; max-width: 1400px; }
 
     .container {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      width: 95%;
-      max-width: 1400px;
+      width: 100%;
       background: linear-gradient(180deg, rgba(10,14,39,0.88), rgba(26,31,75,0.88));
       backdrop-filter: blur(6px);
       padding: 30px;
@@ -77,11 +71,16 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
       min-height: 600px;
       color: #EAFBFF;
+      box-sizing: border-box;
+    }
+    @media (max-width: 900px) {
+      .container { flex-direction: column; }
+      .profile-left { padding-right: 0 !important; width: 100%; }
+      .profile-right { width: 100%; margin-top: 14px; }
     }
 
-    /* Profile-specific layout inside the container */
-    .profile-left { flex: 1; padding-right: 30px; }
-    .profile-right { flex: 1.5; }
+    .profile-left { flex: 1; padding-right: 30px; min-width: 0; }
+    .profile-right { flex: 1.5; min-width: 0; }
 
     .profile-card {
       background: rgba(255,255,255,0.06);
@@ -97,7 +96,7 @@
       object-fit: cover; background:#e8f6ff;
     }
     .username { margin: 0; font-size: 1.6rem; color:#EAFBFF; }
-    .handle { color:#185da1; font-weight:700; }
+    .handle { color:#7fcdff; font-weight:700; }
 
     .badges { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
     .pill {
@@ -105,67 +104,100 @@
       color: #052b36; font-weight:800; padding:8px 14px; border-radius: 999px;
       border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 3px 10px rgba(0,0,0,0.08);
     }
+    .badge-ok, .badge-warn {
+      display:inline-block; padding:3px 10px; border-radius:999px;
+      font-size:.8rem; font-weight:800; vertical-align:middle;
+    }
+    .badge-ok  { background:rgba(60,220,140,0.18); color:#7dffbe; border:1px solid rgba(60,220,140,0.45); }
+    .badge-warn{ background:rgba(255,190,60,0.15); color:#ffd98a; border:1px solid rgba(255,190,60,0.45); }
 
     .section-title { color:#EAFBFF; margin: 0 0 10px; }
     .rounds-list { background: rgba(255,255,255,0.04); border:1px solid rgba(0,255,255,0.20); border-radius:12px; padding:16px; color:#EAFBFF; }
     .round-card { background: rgba(0,0,0,0.30); border:1px solid rgba(0,255,255,0.20); border-radius:10px; padding:12px 14px; margin-bottom:12px; color:#EAFBFF; }
     .round-card h4 { margin:0 0 6px; color:#7df9ff; }
     .round-card .meta { font-size:0.9rem; color:#cfeaff; margin-bottom:6px; }
-    .open-btn { background: linear-gradient(135deg, #00f3ff, #00a6ff); color:#052b36; border:none; border-radius:999px; padding:8px 12px; font-weight:800; cursor:pointer; }
+    .round-card .actions{ display:flex; align-items:center; margin-top:14px; }
 
-    /* New: actions row + red trashcan */
-    .round-card .actions{
-      display:flex;
-      align-items:center;
-      justify-content:space-between; /* Open left, Delete right */
-      margin-top:14px;               /* extra space below the meta text */
+    .open-btn {
+      display:inline-flex; align-items:center; gap:8px;
+      background: linear-gradient(135deg, #00f3ff, #00a6ff);
+      color: #052b36; border: none; border-radius: 999px;
+      padding: 8px 16px; font-weight: 800; cursor: pointer;
+      text-decoration: none; font-size: .95rem;
+      transition: background 0.2s ease, transform 0.15s ease;
     }
-    .open-btn{ display:inline-flex; align-items:center; gap:8px; }
+    .open-btn:hover { background: linear-gradient(135deg, #00d6ff, #008cff); transform: translateY(-1px); }
+    .open-btn:disabled { opacity:.55; cursor:default; transform:none; }
 
-    .delete-btn{
-      background:transparent;
-      border:none;
-      color:#ff5b5b;
-      width:36px;
-      height:36px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:8px;
-      cursor:pointer;
-      font-size:1.05rem;
-      transition: transform .15s ease, color .15s ease, background .15s ease;
+    .ghost-btn {
+      display:inline-flex; align-items:center; gap:8px;
+      background: transparent; color:#A3DCFF;
+      border:1px solid rgba(163,220,255,.4); border-radius:999px;
+      padding:7px 14px; font-weight:700; cursor:pointer; font-size:.9rem;
+      transition: box-shadow .15s ease, color .15s ease;
     }
-    .delete-btn:hover{
-      transform: scale(1.15);
-      color:#ff7a7a;
-      background:rgba(255,90,90,0.12);
+    .ghost-btn:hover { box-shadow: 0 0 10px rgba(163,220,255,.25); }
+    .ghost-btn.danger { color:#ff8f8f; border-color:rgba(255,120,120,.45); }
+    .ghost-btn.danger:hover { box-shadow: 0 0 10px rgba(255,120,120,.25); }
+    .ghost-btn:disabled { opacity:.55; cursor:default; }
+
+    .banner {
+      width:100%; box-sizing:border-box; margin-bottom:14px;
+      background: rgba(255,190,60,0.12); border:1px solid rgba(255,190,60,0.45);
+      border-radius:12px; padding:14px 18px; color:#ffe9bd;
     }
-    .delete-btn i{ pointer-events:none; }
-  </style>
+    .banner a { color:#ffd98a; font-weight:800; }
 
-  <style>
-.open-btn {
-  background: linear-gradient(135deg, #00f3ff, #00a6ff);
-  color: #052b36;
-  border: none;
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
-}
+    .notice {
+      width:100%; box-sizing:border-box; margin-bottom:14px;
+      background: rgba(0,243,255,0.08); border:1px solid rgba(0,243,255,0.30);
+      border-radius:12px; padding:12px 18px; color:#CFEAFF;
+    }
 
-.open-btn:hover {
-  background: linear-gradient(135deg, #00d6ff, #008cff); /* slight shift */
-  transform: translateY(-1px); /* gentle lift */
-}
+    .acct-row { margin:.4rem 0; color:#EAFBFF; }
+    .mfa-note { color:#CFEAFF; font-size:.95rem; margin:.5rem 0; }
+    .warn { color:#ffd98a; font-size:.95rem; margin:.5rem 0; }
+    .err { color:#ff8f8f; font-size:.95rem; margin:.5rem 0; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:.6rem 0; }
 
+    .text-input {
+      background: rgba(0,0,0,.35); border:1px solid rgba(0,255,255,.3);
+      border-radius:8px; color:#EAFBFF; padding:9px 12px; font-size:1rem;
+      letter-spacing:.05em; outline:none; max-width: 160px;
+    }
+    .text-input:focus { border-color:#00f3ff; box-shadow:0 0 8px rgba(0,243,255,.25); }
+    .text-input.wide { max-width: 260px; letter-spacing:normal; }
+
+    .qr-wrap {
+      background:#fff; border-radius:12px; padding:12px;
+      display:inline-block; margin:.4rem 0;
+    }
+    .mono {
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      background: rgba(0,0,0,.35); border:1px solid rgba(0,255,255,.2);
+      border-radius:6px; padding:2px 8px; word-break: break-all;
+    }
+    .codes {
+      display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+      gap:8px; margin:.6rem 0;
+    }
+    .codes code {
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      background: rgba(0,0,0,.4); border:1px solid rgba(0,255,255,.25);
+      border-radius:8px; padding:8px 10px; font-size:.9rem; word-break: break-all;
+    }
+    .mfa-block { border-top:1px solid rgba(0,255,255,.15); margin-top:14px; padding-top:12px; }
+
+    .module-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+    .module-chip {
+      background: rgba(0,0,0,.3); border:1px solid rgba(0,255,255,.25);
+      border-radius:999px; padding:5px 12px; font-size:.85rem; color:#7df9ff; font-weight:700;
+    }
   </style>
 </head>
 
 <body>
-  <!-- ===== Toolbar (markup identical to casewriter) ===== -->
+  <!-- ===== Toolbar ===== -->
   <nav class="toolbar">
     <a class="logo" href="index.html">
       <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
@@ -177,143 +209,773 @@
       <a href="casewriter.html">AI Casewriter</a>
       <a href="modules.html">Training Modules</a>
     </div>
-    <!-- Pre-render SIGN IN like casewriter; auth.js will replace when logged in -->
     <div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
   </nav>
 
-  <!-- ===== Main content ===== -->
-  <div class="container">
-    <div class="profile-left">
-      <div class="profile-card">
-        <div class="profile-header">
-          <img id="avatar" class="avatar" src="" alt="avatar"/>
-          <div>
-            <h2 class="username"><span id="displayName">Your Name</span> <span class="handle" id="handle">@username</span></h2>
-            <div class="badges">
-              <div class="pill"><span id="statRounds">0</span> rounds</div>
-              <div class="pill"><span id="statGems">0</span> gems</div>
+  <div class="page-col">
+    <div id="legacyBanner" class="banner" hidden>
+      Your account signs in with a placeholder address, so password reset emails cannot reach you.
+      <a href="login.html?next=profile.html">Add a real email address</a> to keep your account recoverable.
+    </div>
+    <div id="pageNotice" class="notice" hidden></div>
+
+    <!-- ===== Main content ===== -->
+    <div class="container">
+      <div class="profile-left">
+        <div class="profile-card">
+          <div class="profile-header">
+            <img id="avatar" class="avatar" src="" alt="avatar"/>
+            <div>
+              <h2 class="username"><span id="displayName">Your Name</span> <span class="handle" id="handle">@username</span></h2>
+              <div class="badges">
+                <div class="pill"><span id="statRounds">0</span> rounds</div>
+                <div class="pill"><span id="statGems">0</span> gems</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div style="height:14px"></div>
-      <div class="profile-card">
-        <h3 class="section-title">Account</h3>
-        <p style="margin:.4rem 0;color:#EAFBFF">Email: <strong id="email">—</strong></p>
-        <p style="margin:.4rem 0;color:#EAFBFF">Member since: <strong id="created">—</strong></p>
-      </div>
-    </div>
+        <div style="height:14px"></div>
+        <div class="profile-card">
+          <h3 class="section-title">Account</h3>
+          <p class="acct-row">Email: <strong id="email">Loading</strong> <span id="emailBadge"></span></p>
+          <p class="acct-row">Member since: <strong id="created">Loading</strong></p>
+          <p id="verifyHint" class="warn" hidden>
+            Verify your email to sync your debates across devices and unlock two-factor authentication.
+            <a href="login.html?next=profile.html" style="color:#ffd98a">Resend or check verification</a>
+          </p>
+          <div class="row"><button id="signOutBtn" class="ghost-btn" type="button">Sign out</button></div>
+        </div>
+        <div style="height:14px"></div>
 
-    <div class="profile-right">
-      <div class="rounds-list">
-        <h3 class="section-title">Past Debates</h3>
-        <div id="rounds"><p>No completed debates yet.</p></div>
+        <!-- ===== Two-factor authentication ===== -->
+        <div class="profile-card" id="mfaCard" hidden>
+          <h3 class="section-title">Two-factor authentication</h3>
+
+          <div id="mfaOff" hidden>
+            <p class="mfa-note">Add a second step at sign-in using an authenticator app such as Google Authenticator or Authy. If someone learns your password, they still cannot get in.</p>
+            <button id="mfaStartBtn" class="open-btn" type="button">Set up 2FA</button>
+            <p id="mfaOffErr" class="err" hidden></p>
+          </div>
+
+          <div id="mfaEnrollBox" hidden>
+            <p class="mfa-note">Scan this code with your authenticator app, or type the key in by hand.</p>
+            <div class="qr-wrap"><canvas id="mfaQr"></canvas></div>
+            <p class="mfa-note">Manual key: <code id="mfaKey" class="mono"></code></p>
+            <label class="mfa-note" for="mfaCode">Enter the 6-digit code your app shows:</label>
+            <div class="row">
+              <input id="mfaCode" class="text-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"/>
+              <button id="mfaVerifyBtn" class="open-btn" type="button">Verify</button>
+              <button id="mfaCancelBtn" class="ghost-btn" type="button">Cancel</button>
+            </div>
+            <p id="mfaEnrollErr" class="err" hidden></p>
+          </div>
+
+          <div id="mfaOn" hidden>
+            <p class="mfa-note">2FA is on for this account. <span id="mfaFactorLabel"></span></p>
+            <p class="mfa-note" id="mfaCodesLeft" hidden></p>
+            <p class="warn" id="mfaCodesWarn" hidden>You are running low on recovery codes. Generate a new set soon.</p>
+            <div class="row">
+              <button id="mfaRegenBtn" class="ghost-btn" type="button">Generate new recovery codes</button>
+              <button id="mfaOffBtn" class="ghost-btn danger" type="button">Turn off 2FA</button>
+            </div>
+            <div id="mfaRegenConfirm" class="mfa-block" hidden>
+              <p class="warn">This replaces your current recovery codes. The old ones stop working right away.</p>
+              <div class="row">
+                <button id="mfaRegenYes" class="open-btn" type="button">Generate new codes</button>
+                <button id="mfaRegenNo" class="ghost-btn" type="button">Cancel</button>
+              </div>
+            </div>
+            <div id="mfaOffConfirm" class="mfa-block" hidden>
+              <p class="warn">This removes the authenticator app step from sign-in and deletes your recovery codes.</p>
+              <div class="row">
+                <button id="mfaOffYes" class="ghost-btn danger" type="button">Turn off</button>
+                <button id="mfaOffNo" class="ghost-btn" type="button">Cancel</button>
+              </div>
+            </div>
+            <p id="mfaOnErr" class="err" hidden></p>
+          </div>
+
+          <div id="codesBox" class="mfa-block" hidden>
+            <p class="warn">Save these recovery codes somewhere safe. Each code works once, and this is the only time they can be shown. If you lose your phone, a recovery code is how you get back into your account.</p>
+            <div id="codesList" class="codes"></div>
+            <div class="row">
+              <button id="codesCopyBtn" class="ghost-btn" type="button">Copy</button>
+              <button id="codesDownloadBtn" class="ghost-btn" type="button">Download</button>
+              <button id="codesDoneBtn" class="open-btn" type="button">I saved them</button>
+            </div>
+            <p id="codesErr" class="err" hidden></p>
+          </div>
+
+          <div id="reauthBox" class="mfa-block" hidden>
+            <p class="mfa-note" id="reauthMsg">For security, confirm your password to continue.</p>
+            <div class="row" id="reauthPwRow">
+              <input id="reauthPw" class="text-input wide" type="password" autocomplete="current-password" placeholder="Password"/>
+            </div>
+            <div class="row" id="reauthCodeRow" hidden>
+              <label class="mfa-note" for="reauthCode" style="margin:0">Code from your authenticator app:</label>
+              <input id="reauthCode" class="text-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"/>
+            </div>
+            <div class="row">
+              <button id="reauthGoBtn" class="open-btn" type="button">Confirm</button>
+              <button id="reauthCancelBtn" class="ghost-btn" type="button">Cancel</button>
+            </div>
+            <p id="reauthErr" class="err" hidden></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-right">
+        <div class="rounds-list">
+          <h3 class="section-title">Past Debates</h3>
+          <p id="roundsStatus" class="mfa-note" hidden></p>
+          <div id="rounds"><p>No saved debates yet.</p></div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="profile-card">
+          <h3 class="section-title">Training Modules</h3>
+          <p class="acct-row"><strong id="modulesCount">0</strong> completed</p>
+          <div id="modulesChips" class="module-chips"></div>
+        </div>
       </div>
     </div>
   </div>
 
   <script src="auth.js"></script>
+  <script src="sanitize.js"></script>
+  <script src="gate.js"></script>
+  <script src="api.js"></script>
   <script>
-    // Optional: basic click-to-toggle support if auth.js attaches a .user-menu
-    document.addEventListener('click', function(e){
-      const wrap = e.target.closest('.user-menu-wrap');
-      // Close all menus if clicking outside
-      if(!wrap){ document.querySelectorAll('.user-menu').forEach(m=>m.classList.remove('open')); return; }
-      const menu = wrap.querySelector('.user-menu');
-      const btn = e.target.closest('.user-btn');
-      if(btn && menu){ menu.classList.toggle('open'); }
+  /* Minimal QR encoder (byte mode, ECC level M, versions 1-11, mask 0).
+     Derived from the public-domain qrcodegen algorithm; kept local because the
+     CSP forbids CDN scripts. Returns a 2D boolean module array or null. */
+  var PFQR = (function () {
+    var MAX_VER = 11;
+    var ECC_CW = [0, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30]; // ECC codewords per block, v1..11, level M
+    var ECC_NB = [0, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5, 5];            // block count, v1..11, level M
+    var ALIGN = { 2:[6,18], 3:[6,22], 4:[6,26], 5:[6,30], 6:[6,34], 7:[6,22,38], 8:[6,24,42], 9:[6,26,46], 10:[6,28,50], 11:[6,30,54] };
+
+    function rawCodewords(ver) {
+      var r = (16 * ver + 128) * ver + 64;
+      if (ver >= 2) {
+        var na = Math.floor(ver / 7) + 2;
+        r -= (25 * na - 10) * na - 55;
+        if (ver >= 7) r -= 36;
+      }
+      return Math.floor(r / 8);
+    }
+    function gfMul(x, y) {
+      var z = 0;
+      for (var i = 7; i >= 0; i--) {
+        z = (z << 1) ^ (((z >>> 7) & 1) * 0x11D);
+        z ^= ((y >>> i) & 1) * x;
+      }
+      return z & 0xFF;
+    }
+    function rsDivisor(degree) {
+      var result = [];
+      for (var i = 0; i < degree - 1; i++) result.push(0);
+      result.push(1);
+      var root = 1;
+      for (var i = 0; i < degree; i++) {
+        for (var j = 0; j < result.length; j++) {
+          result[j] = gfMul(result[j], root);
+          if (j + 1 < result.length) result[j] ^= result[j + 1];
+        }
+        root = gfMul(root, 0x02);
+      }
+      return result;
+    }
+    function rsRemainder(data, divisor) {
+      var result = divisor.map(function () { return 0; });
+      data.forEach(function (b) {
+        var factor = b ^ result.shift();
+        result.push(0);
+        divisor.forEach(function (coef, i) { result[i] ^= gfMul(coef, factor); });
+      });
+      return result;
+    }
+    function getBit(x, i) { return ((x >>> i) & 1) !== 0; }
+
+    function encode(text) {
+      var bytes = [];
+      var s = unescape(encodeURIComponent(text));
+      for (var i = 0; i < s.length; i++) bytes.push(s.charCodeAt(i));
+
+      var ver = 0;
+      for (var v = 1; v <= MAX_VER; v++) {
+        var dataCW = rawCodewords(v) - ECC_CW[v] * ECC_NB[v];
+        if (4 + (v >= 10 ? 16 : 8) + bytes.length * 8 <= dataCW * 8) { ver = v; break; }
+      }
+      if (!ver) return null;
+      var dataCap = rawCodewords(ver) - ECC_CW[ver] * ECC_NB[ver];
+
+      // Bit stream: mode 0100, char count, data, terminator, pad bytes.
+      var bits = [];
+      function appendBits(val, len) { for (var b = len - 1; b >= 0; b--) bits.push((val >>> b) & 1); }
+      appendBits(4, 4);
+      appendBits(bytes.length, ver >= 10 ? 16 : 8);
+      bytes.forEach(function (b) { appendBits(b, 8); });
+      appendBits(0, Math.min(4, dataCap * 8 - bits.length));
+      appendBits(0, (8 - bits.length % 8) % 8);
+      for (var pad = 0xEC; bits.length < dataCap * 8; pad ^= 0xEC ^ 0x11) appendBits(pad, 8);
+
+      var dataBytes = [];
+      for (var i = 0; i < bits.length; i += 8) {
+        var byte = 0;
+        for (var j = 0; j < 8; j++) byte = (byte << 1) | bits[i + j];
+        dataBytes.push(byte);
+      }
+
+      // Split into blocks, compute ECC, interleave.
+      var numBlocks = ECC_NB[ver], blockEcc = ECC_CW[ver];
+      var totalCW = rawCodewords(ver);
+      var numShort = numBlocks - totalCW % numBlocks;
+      var shortLen = Math.floor(totalCW / numBlocks);
+      var blocks = [];
+      var divisor = rsDivisor(blockEcc);
+      var k = 0;
+      for (var b = 0; b < numBlocks; b++) {
+        var dat = dataBytes.slice(k, k + shortLen - blockEcc + (b < numShort ? 0 : 1));
+        k += dat.length;
+        var ecc = rsRemainder(dat, divisor);
+        if (b < numShort) dat.push(0);
+        blocks.push(dat.concat(ecc));
+      }
+      var allCW = [];
+      for (var i = 0; i < blocks[0].length; i++) {
+        blocks.forEach(function (block, j) {
+          if (i !== shortLen - blockEcc || j >= numShort) allCW.push(block[i]);
+        });
+      }
+
+      // Module grid.
+      var size = ver * 4 + 17;
+      var modules = [], isFunc = [];
+      for (var y = 0; y < size; y++) {
+        modules.push(new Array(size).fill(false));
+        isFunc.push(new Array(size).fill(false));
+      }
+      function setF(x, y, dark) { modules[y][x] = dark; isFunc[y][x] = true; }
+
+      for (var i = 0; i < size; i++) { setF(6, i, i % 2 === 0); setF(i, 6, i % 2 === 0); }
+      function drawFinder(x, y) {
+        for (var dy = -4; dy <= 4; dy++) for (var dx = -4; dx <= 4; dx++) {
+          var xx = x + dx, yy = y + dy;
+          if (xx >= 0 && xx < size && yy >= 0 && yy < size) {
+            var dist = Math.max(Math.abs(dx), Math.abs(dy));
+            setF(xx, yy, dist !== 2 && dist !== 4);
+          }
+        }
+      }
+      drawFinder(3, 3); drawFinder(size - 4, 3); drawFinder(3, size - 4);
+      var align = ALIGN[ver] || [];
+      for (var ai = 0; ai < align.length; ai++) for (var aj = 0; aj < align.length; aj++) {
+        if ((ai === 0 && aj === 0) || (ai === 0 && aj === align.length - 1) || (ai === align.length - 1 && aj === 0)) continue;
+        for (var dy = -2; dy <= 2; dy++) for (var dx = -2; dx <= 2; dx++)
+          setF(align[ai] + dx, align[aj] + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+      }
+
+      // Format bits for level M, mask 0.
+      var fdata = 0; // (M=0b00 << 3) | mask 0
+      var frem = fdata;
+      for (var i = 0; i < 10; i++) frem = (frem << 1) ^ ((frem >>> 9) * 0x537);
+      var fbits = ((fdata << 10) | frem) ^ 0x5412;
+      for (var i = 0; i <= 5; i++) setF(8, i, getBit(fbits, i));
+      setF(8, 7, getBit(fbits, 6)); setF(8, 8, getBit(fbits, 7)); setF(7, 8, getBit(fbits, 8));
+      for (var i = 9; i < 15; i++) setF(14 - i, 8, getBit(fbits, i));
+      for (var i = 0; i < 8; i++) setF(size - 1 - i, 8, getBit(fbits, i));
+      for (var i = 8; i < 15; i++) setF(8, size - 15 + i, getBit(fbits, i));
+      setF(8, size - 8, true);
+
+      // Version info, needed for v7 and up.
+      if (ver >= 7) {
+        var vrem = ver;
+        for (var i = 0; i < 12; i++) vrem = (vrem << 1) ^ ((vrem >>> 11) * 0x1F25);
+        var vbits = (ver << 12) | vrem;
+        for (var i = 0; i < 18; i++) {
+          var bit = getBit(vbits, i);
+          var a = size - 11 + i % 3, c = Math.floor(i / 3);
+          setF(a, c, bit); setF(c, a, bit);
+        }
+      }
+
+      // Zigzag data placement.
+      var bi = 0;
+      for (var right = size - 1; right >= 1; right -= 2) {
+        if (right === 6) right = 5;
+        for (var vert = 0; vert < size; vert++) {
+          for (var j = 0; j < 2; j++) {
+            var x = right - j;
+            var upward = ((right + 1) & 2) === 0;
+            var y = upward ? size - 1 - vert : vert;
+            if (!isFunc[y][x] && bi < allCW.length * 8) {
+              modules[y][x] = ((allCW[bi >>> 3] >>> (7 - (bi & 7))) & 1) !== 0;
+              bi++;
+            }
+          }
+        }
+      }
+
+      // Mask 0.
+      for (var y = 0; y < size; y++) for (var x = 0; x < size; x++)
+        if (!isFunc[y][x] && (x + y) % 2 === 0) modules[y][x] = !modules[y][x];
+
+      return modules;
+    }
+
+    function drawTo(canvas, text) {
+      var modules = encode(text);
+      if (!modules) return false;
+      var n = modules.length, border = 4, scale = 4;
+      var px = (n + border * 2) * scale;
+      canvas.width = px; canvas.height = px;
+      canvas.style.width = Math.min(px, 220) + 'px';
+      canvas.style.height = canvas.style.width;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, px, px);
+      ctx.fillStyle = '#000';
+      for (var y = 0; y < n; y++) for (var x = 0; x < n; x++)
+        if (modules[y][x]) ctx.fillRect((x + border) * scale, (y + border) * scale, scale, scale);
+      return true;
+    }
+
+    return { drawTo: drawTo };
+  })();
+  </script>
+  <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (typeof ensureFirebase !== 'function' || typeof onAuth !== 'function') return;
+    await ensureFirebase();
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const pick = (obj, keys, dflt) => {
+      for (const k of keys) if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
+      return dflt;
+    };
+    const show = (el, on) => { if (el) el.hidden = !on; };
+    const setErr = (el, msg) => { if (el) { el.textContent = msg || ''; el.hidden = !msg; } };
+    const canFetch = () => typeof window.pfFetch === 'function';
+
+    let handled = false;
+    onAuth((user) => {
+      if (handled) return;
+      handled = true;
+      if (!user) {
+        const next = encodeURIComponent(location.pathname + location.search);
+        window.location.href = 'login.html?next=' + next;
+        return;
+      }
+      initProfile(user).catch((e) => console.error('profile init failed', e));
     });
 
-    // Populate profile from Firebase auth (relies on auth.js helpers)
-    document.addEventListener('DOMContentLoaded', async () => {
-      if (typeof ensureFirebase !== 'function' || typeof onAuth !== 'function') return; // fallback if auth.js not loaded
-      await ensureFirebase();
-      onAuth((user) => {
-        if (!user) { window.location.href = 'login.html'; return; }
-        const name = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
-        const handle = '@' + (name || 'user');
-        const icon = user.photoURL || ("https://api.dicebear.com/7.x/thumbs/svg?seed=" + encodeURIComponent(user.uid||name));
+    async function initProfile(user) {
+      const name = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+      const isGoogle = (user.providerData || []).some((p) => p.providerId === 'google.com');
+      const verified = !!user.emailVerified || isGoogle;
+      const isLegacy = /@pf\.local$/i.test(user.email || '');
 
-        document.getElementById('avatar').src = icon;
-        document.getElementById('displayName').textContent = name;
-        document.getElementById('handle').textContent = handle;
-        document.getElementById('email').textContent = user.email || '—';
+      $('avatar').src = user.photoURL ||
+        (window.pfaiInitialsAvatar ? window.pfaiInitialsAvatar(name) : '');
+      $('displayName').textContent = name;
+      $('handle').textContent = '@' + name;
+      $('email').textContent = user.email || 'None';
+      $('emailBadge').innerHTML = verified
+        ? '<span class="badge-ok">Verified</span>'
+        : '<span class="badge-warn">Not verified</span>';
+      show($('verifyHint'), !verified && !isLegacy);
+      show($('legacyBanner'), isLegacy);
+
+      const localCreated = user.metadata && user.metadata.creationTime;
+
+      $('signOutBtn').addEventListener('click', async () => {
+        const { signOut } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
+        await signOut(window._auth);
+        window.location.href = 'index.html';
+      });
+
+      // Server profile. Unverified users cannot pass the backend's verified-email
+      // check, so they get the local view plus the verify prompt.
+      let me = null;
+      if (verified && canFetch()) {
+        me = await fetchMe();
+        if (me) {
+          const importResult = await maybeImport(user, me);
+          if (importResult) {
+            notice(importResult);
+            me = (await fetchMe()) || me;
+          }
+        }
+      }
+
+      if (me) {
+        renderFromServer(user, me);
+      } else {
+        renderFromLocal(user);
+        if (verified && canFetch()) {
+          notice('Could not reach the server. Showing debates saved on this device.');
+        }
+      }
+
+      const createdAt = pick(me || {}, ['createdAt', 'created_at'], localCreated);
+      const createdDt = createdAt ? new Date(createdAt) : null;
+      $('created').textContent = (createdDt && !isNaN(createdDt)) ? createdDt.toLocaleDateString() : 'Unknown';
+
+      if (verified) initMfa(user, me);
+    }
+
+    // pfFetch resolves with the raw Response on 2xx; parse it here.
+    async function fetchJson(path, body, opts) {
+      const res = await window.pfFetch(path, body || null, opts || {});
+      try { return await res.json(); } catch (e) { return {}; }
+    }
+
+    async function fetchMe() {
+      try { return await fetchJson('/me', null, { method: 'GET' }); } catch (e) { return null; }
+    }
+
+    function notice(msg) {
+      const el = $('pageNotice');
+      el.textContent = msg;
+      el.hidden = false;
+    }
+
+    // ── One-time migration of the old localStorage profile ────────────────
+    async function maybeImport(user, me) {
+      const doneKey = 'pfai_profile_imported::' + user.uid;
+      try { if (localStorage.getItem(doneKey)) return null; } catch (e) { return null; }
+      const alreadyImported = !!pick(me, ['profileImported', 'imported', 'importDone'], false);
+      if (alreadyImported) {
+        try { localStorage.setItem(doneKey, '1'); } catch (e) {}
+        return null;
+      }
+      let blob = null;
+      try { blob = JSON.parse(localStorage.getItem('pfai_profile::' + user.uid)); } catch (e) {}
+      if (!blob || (!(blob.rounds || []).length && !blob.gems)) return null;
+      try {
+        const res = await fetchJson('/profile/import', { json: blob });
+        try { localStorage.setItem(doneKey, '1'); } catch (e) {}
+        const nRounds = pick(res || {}, ['roundsImported', 'rounds'], (blob.rounds || []).length);
+        const nGems = pick(res || {}, ['gemsImported', 'gems'], blob.gems || 0);
+        const rCount = Array.isArray(nRounds) ? nRounds.length : nRounds;
+        return 'Moved ' + rCount + ' saved debate' + (rCount === 1 ? '' : 's') +
+               ' and ' + nGems + ' gems from this device to your account.';
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // ── Rendering ─────────────────────────────────────────────────────────
+    function renderFromServer(user, me) {
+      $('statGems').textContent = pick(me, ['gems'], 0);
+      renderModules(pick(me, ['modulesState', 'modules'], {}));
+      const rounds = pick(me, ['rounds'], null);
+      if (Array.isArray(rounds)) {
+        renderRounds(rounds);
+      } else {
+        loadRoundsList(user);
+      }
+    }
+
+    async function loadRoundsList(user) {
+      let rounds = null;
+      if (canFetch()) {
         try {
-          const dt = user.metadata?.creationTime ? new Date(user.metadata.creationTime) : null;
-          document.getElementById('created').textContent = dt ? dt.toLocaleDateString() : '—';
-        } catch(_){}
-        // Read/write the per-user profile (same key your autosave uses)
-        const profileKey = `pfai_profile::${user.uid}`;
-        function readProfile() {
-          try { return JSON.parse(localStorage.getItem(profileKey)) || { gems: 0, rounds: [] }; }
-          catch { return { gems: 0, rounds: [] }; }
+          const res = await fetchJson('/rounds', null, { method: 'GET' });
+          rounds = Array.isArray(res) ? res : pick(res || {}, ['rounds'], null);
+        } catch (e) {}
+      }
+      if (!Array.isArray(rounds)) {
+        rounds = (typeof getRoundsForUser === 'function') ? getRoundsForUser(user.uid) : [];
+        if (rounds.length) {
+          $('roundsStatus').textContent = 'Showing debates saved on this device.';
+          $('roundsStatus').hidden = false;
         }
-        function writeProfile(p) {
-          try { localStorage.setItem(profileKey, JSON.stringify(p)); } catch {}
+      }
+      renderRounds(rounds);
+    }
+
+    function renderFromLocal(user) {
+      const p = (typeof getProfileForUser === 'function')
+        ? getProfileForUser(user.uid) : { gems: 0, rounds: [], modulesEarned: {} };
+      $('statGems').textContent = p.gems || 0;
+      renderModules(p.modulesEarned || {});
+      renderRounds(p.rounds || []);
+    }
+
+    function renderRounds(rounds) {
+      rounds = rounds || [];
+      $('statRounds').textContent = rounds.length;
+      const roundsDiv = $('rounds');
+      if (!rounds.length) {
+        roundsDiv.innerHTML = '<p>No saved debates yet.</p>';
+        return;
+      }
+      roundsDiv.innerHTML = rounds.map((r) => {
+        const m = r.meta || r;
+        const topic = m.debateTopic || r.topic || 'Practice Round';
+        const ts = r.timestamp || r.createdAt;
+        const date = ts ? new Date(ts).toLocaleString() : '';
+        const side = m.selectedSide || '';
+        const turn = m.selectedTurn ? ' (' + m.selectedTurn + ')' : '';
+        const judge = (m.judgeType || 'tech').toUpperCase() + ' judge';
+        const metaLine = [date, (side + turn).trim(), judge].filter(Boolean).join(' • ');
+        return '<div class="round-card">' +
+          '<h4>' + esc(topic) + '</h4>' +
+          '<div class="meta">' + esc(metaLine) + '</div>' +
+          '<div class="actions"><a class="open-btn" href="round.html?id=' +
+          encodeURIComponent(r.id) + '">Open</a></div></div>';
+      }).join('');
+    }
+
+    function renderModules(state) {
+      state = state || {};
+      const done = Object.keys(state).filter((k) => state[k]);
+      $('modulesCount').textContent = done.length;
+      $('modulesChips').innerHTML = done.map((id) => '<span class="module-chip">' + esc(id) + '</span>').join('');
+    }
+
+    // ── Two-factor authentication ─────────────────────────────────────────
+    async function initMfa(user, me) {
+      const authMod = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
+      const { multiFactor, TotpMultiFactorGenerator, EmailAuthProvider,
+              reauthenticateWithCredential, reauthenticateWithPopup,
+              GoogleAuthProvider, getMultiFactorResolver } = authMod;
+      if (!TotpMultiFactorGenerator) return; // SDK too old for TOTP, keep the card hidden
+
+      show($('mfaCard'), true);
+      let totpSecret = null;
+      let codesRemaining = pick(me || {}, ['recoveryCodesRemaining', 'recovery_codes_remaining', 'recoveryRemaining'], null);
+      if (codesRemaining === null && me && me.recovery) {
+        codesRemaining = pick(me.recovery, ['remaining', 'count'], null);
+      }
+
+      function totpFactor() {
+        return (multiFactor(user).enrolledFactors || []).find((f) => f.factorId === 'totp') || null;
+      }
+
+      function renderState() {
+        const f = totpFactor();
+        show($('mfaOff'), !f);
+        show($('mfaOn'), !!f);
+        show($('mfaEnrollBox'), false);
+        show($('mfaRegenConfirm'), false);
+        show($('mfaOffConfirm'), false);
+        if (f) {
+          const since = f.enrollmentTime ? ' since ' + new Date(f.enrollmentTime).toLocaleDateString() : '';
+          $('mfaFactorLabel').textContent = (f.displayName || 'Authenticator app') + since + '.';
+          if (typeof codesRemaining === 'number') {
+            $('mfaCodesLeft').textContent = 'Recovery codes left: ' + codesRemaining;
+            show($('mfaCodesLeft'), true);
+            show($('mfaCodesWarn'), codesRemaining <= 3);
+          } else {
+            show($('mfaCodesLeft'), false);
+            show($('mfaCodesWarn'), false);
+          }
         }
+      }
+      renderState();
 
-        function renderRoundsAndStats() {
-          const p = readProfile();
-          const rounds = p.rounds || [];
-          const gems = p.gems || 0;
+      const friendly = (e) => {
+        const code = (e && e.code) || '';
+        if (code === 'auth/invalid-verification-code') return 'That code did not match. Codes expire quickly, so try the current one.';
+        if (code === 'auth/too-many-requests') return 'Too many attempts. Wait a bit and try again.';
+        if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') return 'Wrong password. Try again.';
+        if (code === 'auth/network-request-failed') return 'Network problem. Check your connection and try again.';
+        if (code === 'auth/operation-not-allowed' || code === 'auth/unsupported-tenant-operation')
+          return 'Two-factor auth is not enabled for this site yet. Check back later.';
+        console.error('mfa error', e);
+        return 'Something went wrong. Try again.';
+      };
 
-          // Update counters next to the username (keeps your existing UI)
-          document.getElementById('statGems').textContent = gems;
-          document.getElementById('statRounds').textContent = rounds.length;
-
-          // Render the Past Debates list
-          const roundsDiv = document.getElementById('rounds');
-          if (!rounds.length) {
-            roundsDiv.innerHTML = '<p>No saved debates yet.</p>';
+      // Reauth prompt for auth/requires-recent-login, handling the TOTP
+      // challenge that reauth itself can raise on an enrolled account.
+      let reauthRetry = null;
+      let reauthResolver = null;
+      function askReauth(retry) {
+        reauthRetry = retry;
+        reauthResolver = null;
+        const hasPassword = (user.providerData || []).some((p) => p.providerId === 'password');
+        $('reauthMsg').textContent = hasPassword
+          ? 'For security, confirm your password to continue.'
+          : 'For security, confirm your Google sign-in to continue.';
+        show($('reauthPwRow'), hasPassword);
+        show($('reauthCodeRow'), false);
+        $('reauthGoBtn').textContent = hasPassword ? 'Confirm' : 'Continue with Google';
+        setErr($('reauthErr'), '');
+        $('reauthPw').value = '';
+        $('reauthCode').value = '';
+        show($('reauthBox'), true);
+        if (hasPassword) $('reauthPw').focus();
+      }
+      $('reauthCancelBtn').addEventListener('click', () => { show($('reauthBox'), false); reauthRetry = null; });
+      ['reauthPw', 'reauthCode'].forEach((id) => {
+        $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('reauthGoBtn').click(); });
+      });
+      $('reauthGoBtn').addEventListener('click', async () => {
+        setErr($('reauthErr'), '');
+        try {
+          if (reauthResolver) {
+            const code = $('reauthCode').value.trim();
+            if (!/^\d{6}$/.test(code)) { setErr($('reauthErr'), 'Enter the 6-digit code from your app.'); return; }
+            const hint = reauthResolver.hints.find((h) => h.factorId === 'totp') || reauthResolver.hints[0];
+            const assertion = TotpMultiFactorGenerator.assertionForSignIn(hint.uid, code);
+            await reauthResolver.resolveSignIn(assertion);
+          } else {
+            const hasPassword = (user.providerData || []).some((p) => p.providerId === 'password');
+            if (hasPassword) {
+              const cred = EmailAuthProvider.credential(user.email, $('reauthPw').value);
+              await reauthenticateWithCredential(user, cred);
+            } else {
+              await reauthenticateWithPopup(user, new GoogleAuthProvider());
+            }
+          }
+        } catch (e) {
+          if (e && e.code === 'auth/multi-factor-auth-required' && getMultiFactorResolver) {
+            reauthResolver = getMultiFactorResolver(window._auth, e);
+            show($('reauthPwRow'), false);
+            show($('reauthCodeRow'), true);
+            $('reauthGoBtn').textContent = 'Confirm';
+            $('reauthCode').focus();
             return;
           }
-
-        const html = rounds.map(r => {
-          const m = r.meta || {};
-          const topic = m.debateTopic || 'Practice Round';
-          const date  = r.timestamp ? new Date(r.timestamp).toLocaleString() : '';
-          const side  = m.selectedSide || '';
-          const turn  = m.selectedTurn ? ` (${m.selectedTurn})` : '';
-          const judge = (m.judgeType || 'tech').toUpperCase();
-
-          return `
-            <div class="round-card" data-id="${r.id}">
-              <h4>${topic}</h4>
-              <div class="meta">${date} • ${side}${turn} • ${judge} judge</div>
-              <div class="actions">
-                <a class="open-btn" href="round.html?id=${encodeURIComponent(r.id)}">Open</a>
-                <button class="delete-btn" type="button" aria-label="Delete this round">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        roundsDiv.innerHTML = `<div class="rounds-list">${html}</div>`;
-
-      }
-        // One delegated delete handler on the container
-        const roundsContainer = document.getElementById('rounds');
-        roundsContainer.addEventListener('click', (e) => {
-          const btn = e.target.closest('.delete-btn');
-          if (!btn) return;
-          const card = e.target.closest('.round-card');
-          const id = card?.dataset?.id;
-          if (!id) return;
-          if (!confirm('Delete this saved debate?')) return;
-
-          const p = readProfile();
-          p.rounds = (p.rounds || []).filter(r => r.id !== id);
-          writeProfile(p);
-          renderRoundsAndStats();
-        });
-
-        // Initial render
-        renderRoundsAndStats();
-
+          setErr($('reauthErr'), friendly(e));
+          return;
+        }
+        show($('reauthBox'), false);
+        const retry = reauthRetry;
+        reauthRetry = null;
+        if (retry) retry();
       });
-    });
+
+      // Enrollment
+      async function startEnroll() {
+        setErr($('mfaOffErr'), '');
+        try {
+          const session = await multiFactor(user).getSession();
+          totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
+        } catch (e) {
+          if (e && e.code === 'auth/requires-recent-login') { askReauth(startEnroll); return; }
+          setErr($('mfaOffErr'), friendly(e));
+          return;
+        }
+        const uri = totpSecret.generateQrCodeUrl(user.email || 'account', 'PublicForumAI');
+        const drawn = PFQR.drawTo($('mfaQr'), uri);
+        $('mfaQr').parentElement.style.display = drawn ? 'inline-block' : 'none';
+        $('mfaKey').textContent = totpSecret.secretKey;
+        $('mfaCode').value = '';
+        setErr($('mfaEnrollErr'), '');
+        show($('mfaOff'), false);
+        show($('mfaEnrollBox'), true);
+        $('mfaCode').focus();
+      }
+      $('mfaStartBtn').addEventListener('click', startEnroll);
+      $('mfaCancelBtn').addEventListener('click', () => { totpSecret = null; renderState(); });
+
+      async function verifyEnroll() {
+        const code = $('mfaCode').value.trim();
+        if (!/^\d{6}$/.test(code)) { setErr($('mfaEnrollErr'), 'Enter the 6-digit code from your app.'); return; }
+        $('mfaVerifyBtn').disabled = true;
+        try {
+          const assertion = TotpMultiFactorGenerator.assertionForEnrollment(totpSecret, code);
+          await multiFactor(user).enroll(assertion, 'Authenticator app');
+        } catch (e) {
+          $('mfaVerifyBtn').disabled = false;
+          if (e && e.code === 'auth/requires-recent-login') { askReauth(verifyEnroll); return; }
+          setErr($('mfaEnrollErr'), friendly(e));
+          return;
+        }
+        $('mfaVerifyBtn').disabled = false;
+        totpSecret = null;
+        renderState();
+        await issueRecoveryCodes();
+      }
+      $('mfaVerifyBtn').addEventListener('click', verifyEnroll);
+      $('mfaCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyEnroll(); });
+
+      // Recovery codes
+      let shownCodes = [];
+      async function issueRecoveryCodes() {
+        setErr($('codesErr'), '');
+        if (!canFetch()) {
+          show($('codesBox'), true);
+          $('codesList').innerHTML = '';
+          setErr($('codesErr'), 'Could not create recovery codes right now. Use "Generate new recovery codes" to try again later.');
+          return;
+        }
+        try {
+          const res = await fetchJson('/2fa/recovery-codes', { json: {} });
+          const codes = Array.isArray(res) ? res : pick(res || {}, ['codes', 'recoveryCodes'], []);
+          if (!codes.length) throw new Error('empty recovery code response');
+          shownCodes = codes;
+          codesRemaining = codes.length;
+          $('codesList').innerHTML = codes.map((c) => '<code>' + esc(c) + '</code>').join('');
+          renderState();
+          show($('codesBox'), true);
+        } catch (e) {
+          show($('codesBox'), true);
+          $('codesList').innerHTML = '';
+          setErr($('codesErr'), 'Could not create recovery codes. Use "Generate new recovery codes" to try again.');
+        }
+      }
+      $('codesCopyBtn').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(shownCodes.join('\n'));
+          $('codesCopyBtn').textContent = 'Copied';
+          setTimeout(() => { $('codesCopyBtn').textContent = 'Copy'; }, 1500);
+        } catch (e) { setErr($('codesErr'), 'Copy failed. Select the codes and copy them by hand.'); }
+      });
+      $('codesDownloadBtn').addEventListener('click', () => {
+        const text = 'PublicForumAI recovery codes (each works once)\n\n' + shownCodes.join('\n') + '\n';
+        const a = document.createElement('a');
+        const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+        a.href = url;
+        a.download = 'publicforumai-recovery-codes.txt';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      });
+      $('codesDoneBtn').addEventListener('click', () => { shownCodes = []; $('codesList').innerHTML = ''; show($('codesBox'), false); });
+
+      // Regenerate
+      $('mfaRegenBtn').addEventListener('click', () => { show($('mfaRegenConfirm'), true); show($('mfaOffConfirm'), false); });
+      $('mfaRegenNo').addEventListener('click', () => show($('mfaRegenConfirm'), false));
+      $('mfaRegenYes').addEventListener('click', async () => {
+        show($('mfaRegenConfirm'), false);
+        await issueRecoveryCodes();
+      });
+
+      // Unenroll
+      $('mfaOffBtn').addEventListener('click', () => { show($('mfaOffConfirm'), true); show($('mfaRegenConfirm'), false); });
+      $('mfaOffNo').addEventListener('click', () => show($('mfaOffConfirm'), false));
+      async function unenroll() {
+        const f = totpFactor();
+        if (!f) { renderState(); return; }
+        setErr($('mfaOnErr'), '');
+        try {
+          await multiFactor(user).unenroll(f.uid);
+        } catch (e) {
+          if (e && e.code === 'auth/requires-recent-login') { askReauth(unenroll); return; }
+          setErr($('mfaOnErr'), friendly(e));
+          return;
+        }
+        // Firebase revokes tokens after unenrollment on some accounts; if the
+        // session died, send the user back through login.
+        try {
+          await user.getIdToken(true);
+        } catch (e) {
+          window.location.href = 'login.html?next=' + encodeURIComponent('profile.html');
+          return;
+        }
+        codesRemaining = null;
+        renderState();
+      }
+      $('mfaOffYes').addEventListener('click', () => { show($('mfaOffConfirm'), false); unenroll(); });
+    }
+  });
   </script>
 </body>
 </html>
