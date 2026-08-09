@@ -645,6 +645,30 @@ function showOutputError(message) {
     output.appendChild(p);
 }
 
+const SOURCES_MISSING_NOTE = 'Your case is below. We could not attach sources this time, so add your own evidence before you use it.';
+
+// Adds a line above the case without clearing what is already rendered.
+function showOutputNote(message) {
+    const output = document.getElementById('Output');
+    const p = document.createElement('p');
+    p.className = 'output-error';
+    p.textContent = message;
+    output.insertBefore(p, output.firstChild);
+}
+
+// Plain text of the case on screen, so Copy never picks up a status note.
+let lastCaseText = '';
+
+// The µ markers and ** are stripped by /get_sources server-side. On the
+// sources-failed path that cleanup never runs, so do it here for both paths:
+// this text is what the student copies out.
+function renderCase(text) {
+    const cleaned = String(text == null ? '' : text).replace(/µ/g, '').replace(/\*\*/g, '');
+    document.getElementById('Output').innerHTML = "<p>" + pfSanitize(cleaned) + "</p>";
+    lastCaseText = cleaned;
+    document.getElementById('copyButton').hidden = false;
+}
+
 async function generateCase() {
             if (isGenerating) return;
             clearFormError();
@@ -681,9 +705,14 @@ async function generateCase() {
             button.textContent = 'Generating...';
             document.getElementById('copyButton').hidden = true;
             document.getElementById('Output').textContent = '';
+            lastCaseText = '';
             document.getElementById('Box-output').classList.add('busy');
             document.querySelector('.loading').style.display = 'block';
             document.querySelector('.text10').textContent = 'Writing your case (about 15 seconds)';
+
+            // Tracks whether the case itself arrived, so a failure in the
+            // sources call is reported as a partial success rather than a loss.
+            let caseRendered = false;
 
             try {
                 // First API call to generate AI case
@@ -699,6 +728,11 @@ async function generateCase() {
                 const data1 = await response1.json();
                 const AICase = data1.AICase;
 
+                // Show the case the moment it exists. Sources are an upgrade on
+                // top of it, not a condition for showing it.
+                renderCase(AICase);
+                caseRendered = true;
+
                 // Update loading text
                 document.querySelector('.text10').textContent = 'Finding sources (about 10 seconds)';
 
@@ -710,14 +744,19 @@ async function generateCase() {
                 }, { page: 'casewriter', button: button, label: 'Generate' });
 
                 const data2 = await response2.json();
-                const modifiedAICase = data2.AICase;
 
-                // Display the AI case with sources
-                document.getElementById('Output').innerHTML = "<p>" + pfSanitize(modifiedAICase) + "</p>";
-                document.getElementById('copyButton').hidden = false;
+                // Replace the case with the sourced version, but never with an
+                // empty one: the case already on screen is worth more.
+                if (data2 && typeof data2.AICase === 'string' && data2.AICase.trim()) {
+                    renderCase(data2.AICase);
+                } else {
+                    showOutputNote(SOURCES_MISSING_NOTE);
+                }
             } catch (error) {
                 console.error('Error processing user input:', error);
-                if (error && error.code === 'network') {
+                if (caseRendered) {
+                    showOutputNote(SOURCES_MISSING_NOTE);
+                } else if (error && error.code === 'network') {
                     showOutputError('We could not reach the server. Check your connection, then hit Generate again.');
                 } else if (error && error.code === 'auth_required') {
                     showOutputError('Please sign in, then hit Generate again.');
@@ -759,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // Copy the generated case as plain text, confirm inline on the button.
 document.getElementById('copyButton').addEventListener('click', function () {
     const btn = this;
-    const text = document.getElementById('Output').innerText;
+    const text = lastCaseText || document.getElementById('Output').innerText;
     if (!text.trim()) return;
     function confirmCopy(label) {
         btn.textContent = label;

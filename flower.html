@@ -1045,8 +1045,12 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
                 } catch (error) {
                     console.error('Failed to process transcription:', error);
                     if (!error || error.code !== 'auth_required') {
+                        // The recording already cost a transcription, so keep the
+                        // transcript on screen instead of sending the student back
+                        // to Record with nothing.
                         document.getElementById('OutputText').innerHTML =
-                            '<p class="flow-error">Generating the flow did not work this time. Please try again in a moment.</p>';
+                            '<p class="flow-error">We could not turn your speech into a flow this time. Your transcript is below so nothing is lost. Press Record to try again when you are ready.</p>' +
+                            '<p>' + pfSanitize(transcription) + '</p>';
                     }
                 } finally {
                     document.querySelector('.loading').style.display = 'none';

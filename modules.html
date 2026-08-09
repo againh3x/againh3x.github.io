@@ -490,6 +490,9 @@ For these reasons, we are proud to affirm.`;
     clearTimeout(pfToast._t);
     pfToast._t = setTimeout(() => { el.classList.remove('show'); }, 3500);
   }
+  // api.js publishes a window.pfToast of its own. Keep a handle to this one so
+  // the page's own status line still works after that script loads.
+  window.pfPageToast = pfToast;
 
   // Clipboard helper with real success/failure feedback.
   function pfCopy(text, okMsg) {
@@ -542,6 +545,28 @@ For these reasons, we are proud to affirm.`;
     const el = document.getElementById('gem-count');
     if (!el) return;
     el.textContent = AppState.get().gems;
+  }
+
+  // Record a completion on the server, which owns the gem total and is what the
+  // profile page reads. The local write has already happened by the time this
+  // runs, so a failure here costs the student nothing today: the endpoint is
+  // idempotent, and finishing the module again re-sends it.
+  function syncModuleCompletion(moduleId) {
+    if (typeof pfFetch !== 'function') return;
+    pfFetch('/modules/complete', { json: { moduleId: moduleId } }, { page: 'modules', quiet: true })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || typeof data.gems !== 'number') return;
+        // Re-read here rather than reusing an earlier copy: a module may have
+        // been opened while the request was in flight.
+        const state = AppState.get();
+        state.gems = data.gems;
+        AppState.save(state);
+        updateGemBar();
+      })
+      .catch(function (err) {
+        console.error('Module completion did not reach the server:', err);
+      });
   }
 
   // Module definitions
@@ -2893,11 +2918,13 @@ For these reasons, we are proud to affirm.`;
       renderPage();
     } else {
       // Completed module
+      const finished = currentModule;
       // Award gems only if not already completed
-      if (!AppState.isModuleComplete(currentModule.id)) {
-        AppState.addGems(currentModule.reward);
-        AppState.markModuleComplete(currentModule.id);
+      if (!AppState.isModuleComplete(finished.id)) {
+        AppState.addGems(finished.reward);
+        AppState.markModuleComplete(finished.id);
       }
+      syncModuleCompletion(finished.id);
       // Return to module list view
       pageContainerEl.innerHTML = '';
       moduleTitleEl.textContent = 'Select a module';
@@ -4342,6 +4369,11 @@ if (typeof modules !== 'undefined' && Array.isArray(modules)) {
 
 
 <script src="gate.js"></script>
+<script src="api.js"></script>
+<script>
+/* Give the page back its own toast: api.js just claimed the same global. */
+if (window.pfPageToast) window.pfToast = window.pfPageToast;
+</script>
 <script>
 /* PFAI_MODULES_AUTH_GATE */
 (function(){
