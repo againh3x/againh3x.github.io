@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com; media-src 'self' blob:; connect-src 'self' https://pf-ai-debater-24c5902c1a88.herokuapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.emailjs.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://apis.google.com https://publicforumai.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.emailjs.com"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com; media-src 'self' blob:; connect-src 'self' https://pf-ai-debater-24c5902c1a88.herokuapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.emailjs.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://apis.google.com https://publicforumai.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.emailjs.com"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
+<script>
+/* Clickjacking guard. frame-ancestors is ignored in <meta> and GitHub Pages
+   cannot send X-Frame-Options, so hide the page first, then try to break out. */
+if (self !== top) { document.documentElement.style.display = 'none'; try { top.location = self.location; } catch (e) {} }
+</script>
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
@@ -568,8 +573,11 @@
     await ensureFirebase();
 
     const $ = (id) => document.getElementById(id);
+    // Element-content and quoted-attribute safe. No call site splices into an
+    // unquoted attribute, and none should.
     const esc = (s) => String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const pick = (obj, keys, dflt) => {
       for (const k of keys) if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
       return dflt;
@@ -597,8 +605,11 @@
       const isLegacy = /@pf\.local$/i.test(user.email || '');
 
       // Keep the neutral placeholder if there is no photo and no initials helper.
-      $('avatar').src = user.photoURL ||
-        (window.pfaiInitialsAvatar ? window.pfaiInitialsAvatar(name) : $('avatar').src);
+      const fallbackAvatar = window.pfaiInitialsAvatar ? window.pfaiInitialsAvatar(name) : null;
+      if (fallbackAvatar) {
+        $('avatar').onerror = function () { this.onerror = null; this.src = fallbackAvatar; };
+      }
+      $('avatar').src = user.photoURL || fallbackAvatar || $('avatar').src;
       $('displayName').textContent = name;
       $('handle').textContent = '@' + name;
       $('email').textContent = user.email || 'None';

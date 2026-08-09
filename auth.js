@@ -85,7 +85,11 @@ function renderSignedIn(userLike){
       </div>
     </div>
   `;
-  el.querySelector(".user-avatar").src = pic;
+  // A blocked or dead photo URL (CSP, deleted Google avatar) falls back to the
+  // locally drawn initials rather than a broken-image icon.
+  const avatarEl = el.querySelector(".user-avatar");
+  avatarEl.onerror = function () { avatarEl.onerror = null; avatarEl.src = initialsAvatar(name); };
+  avatarEl.src = pic;
   el.querySelector(".user-name").textContent = "@" + name;
 
   const btn    = document.getElementById("userMenuBtn");

@@ -6,9 +6,24 @@
 (function () {
   var DEFAULT_BASE = "https://pf-ai-debater-24c5902c1a88.herokuapp.com";
 
+  // Every pfFetch carries the caller's Firebase ID token, so the base URL is
+  // not something a stray localStorage write gets to choose: the dev override
+  // is honoured only when the page itself is running on a loopback host, and
+  // only when it points at a loopback host.
+  function isLoopback(hostname) {
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]" ||
+      hostname === "::1" || /\.localhost$/.test(hostname);
+  }
+
   function apiBase() {
-    try { return localStorage.getItem("pfai_api_base") || DEFAULT_BASE; }
-    catch (e) { return DEFAULT_BASE; }
+    try {
+      if (!isLoopback(location.hostname)) return DEFAULT_BASE;
+      var override = localStorage.getItem("pfai_api_base");
+      if (!override) return DEFAULT_BASE;
+      var url = new URL(override);
+      if (!isLoopback(url.hostname)) return DEFAULT_BASE;
+      return url.origin;
+    } catch (e) { return DEFAULT_BASE; }
   }
 
   function PfApiError(code, status, extra) {
