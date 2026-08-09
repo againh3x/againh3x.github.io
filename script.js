@@ -52,11 +52,20 @@ var judgeType = 'tech';
 var roundOver;
 
 let __roundSavedToProfile = false;
+var __savedRoundKey = null;
 
 function getDebateTopicSafe(){
   try { return (typeof debateTopic !== "undefined" && debateTopic) ? debateTopic
              : (new URLSearchParams(location.search).get('debateTopic') || 'Untitled Topic'); }
   catch { return 'Untitled Topic'; }
+}
+
+function pfHash(str) {
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) {
+        h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+    }
+    return h.toString(36);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -66,19 +75,24 @@ document.addEventListener('DOMContentLoaded', function () {
     // Get all parameters
     const selectedSide = params.get('selectedSide');
     const selectedTurn = params.get('selectedTurn');
-    const selectedSkill = params.get('selectedSkill'); // Add this line
+    const selectedSkill = params.get('selectedSkill');
     debateTopic = params.get('debateTopic');
+
+    // A round needs all four settings; anything else goes back to setup.
+    const validRound =
+        (selectedSide === 'Aff' || selectedSide === 'Neg') &&
+        (selectedTurn === 'First' || selectedTurn === 'Second') &&
+        (selectedSkill === 'middle' || selectedSkill === 'high') &&
+        typeof debateTopic === 'string' && debateTopic.trim() !== '' && debateTopic.length <= 500;
+    if (!validRound) {
+        location.replace('setup.html?error=missing-params');
+        return;
+    }
 
     // Set text content for ALL parameters
     document.getElementById('selectedSide').textContent = selectedSide;
     document.getElementById('selectedTurn').textContent = selectedTurn;
-    document.getElementById('selectedSkill').textContent = selectedSkill; // This was missing
-    // Update the other occurrence of selectedSide
-
-
-
-    // Set the first occurrence of selectedSide to the same value
-    document.querySelector('#selectedSide').textContent = selectedSide;
+    document.getElementById('selectedSkill').textContent = selectedSkill;
     const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
 
 
@@ -103,38 +117,63 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     updateFlowValues(selectedSide, nonselectedSide);
-    // Auto-load saved round (add this at the end)
-    const savedState = localStorage.getItem('savedRound');
-    if (!savedState) return; // No saved data
 
-    const state = JSON.parse(savedState);
-
-    // Restore text content
-    document.getElementById('AIContentionText').innerHTML = state.AICase;
-    document.getElementById('AIRebuttalText').innerHTML = state.AIRebuttal;
-    document.getElementById('AISummaryText').innerHTML = state.AISummary;
-    document.getElementById('AIFFText').innerHTML = state.AIFF;
-
-    // Restore flow content
-    transcriptionResultC.innerHTML = state.ContentionFlow;
-    transcriptionResultR.innerHTML = state.RebuttalFlow;
-    transcriptionResultS.innerHTML = state.SummaryFlow;
-    transcriptionResultF.innerHTML = state.FFFlow;
-
-    // Restore full transcriptions
-    fullTranscriptionContention = state.transcriptionC;
-    fullTranscriptionRebuttal = state.transcriptionR;
-    fullTranscriptionSummary = state.transcriptionS;
-    fullTranscriptionFF = state.transcriptionF;
-
-    document.getElementById('feedback-content').innerHTML = state.feedback;
-    //ToggleisSelectedSide = state.toggle;
-    updateResultsVisibility()
-    console.log('Round auto-loaded!');
+    // Entering a round requires an account; the saved round is per user and
+    // per round settings, so both wait on auth.
+    if (!window.pfGate) return;
+    pfGate.requireAuth({ page: 'Flow' }).then(function (ok) {
+        if (!ok) return;
+        return pfGate.authUser().then(function (user) {
+            if (!user) return;
+            __savedRoundKey = 'savedRound::' + user.uid + '::' +
+                pfHash(debateTopic + '|' + selectedSide + '|' + selectedTurn);
+            restoreSavedRound(selectedSide, nonselectedSide);
+        });
+    });
 
 });
-AISummaryGenerateB.addEventListener('click', () => {
+
+function restoreSavedRound(selectedSide, nonselectedSide) {
+    const savedState = localStorage.getItem(__savedRoundKey);
+    if (!savedState) return; // No saved data
+
+    let state;
+    try { state = JSON.parse(savedState); } catch (e) { return; }
+
+    // Restore text content
+    document.getElementById('AIContentionText').innerHTML = state.AICase || '';
+    document.getElementById('AIRebuttalText').innerHTML = state.AIRebuttal || '';
+    document.getElementById('AISummaryText').innerHTML = state.AISummary || '';
+    document.getElementById('AIFFText').innerHTML = state.AIFF || '';
+
+    // Restore flow content
+    transcriptionResultC.innerHTML = state.ContentionFlow || '';
+    transcriptionResultR.innerHTML = state.RebuttalFlow || '';
+    transcriptionResultS.innerHTML = state.SummaryFlow || '';
+    transcriptionResultF.innerHTML = state.FFFlow || '';
+
+    // Restore full transcriptions
+    fullTranscriptionContention = state.transcriptionC || '';
+    fullTranscriptionRebuttal = state.transcriptionR || '';
+    fullTranscriptionSummary = state.transcriptionS || '';
+    fullTranscriptionFF = state.transcriptionF || '';
+
+    document.getElementById('feedback-content').innerHTML = state.feedback || '';
+
+    // Restore turn progress
+    if (typeof state.toggle === 'boolean') {
+        ToggleisSelectedSide = state.toggle;
+        toggleFlowButton.textContent = 'Toggle ' + (ToggleisSelectedSide ? nonselectedSide : selectedSide);
+        updateFlowValues(selectedSide, nonselectedSide);
+    }
+    __roundSavedToProfile = !!state.savedToProfile;
+
+    updateResultsVisibility()
+    console.log('Round auto-loaded!');
+}
+AISummaryGenerateB.addEventListener('click', async () => {
     if (!isSummarying) {
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
         const transcription = fullTranscriptionContention;
@@ -151,10 +190,9 @@ AISummaryGenerateB.addEventListener('click', () => {
         isSummarying = false;
     }
 });
-AISummarySpeakB.addEventListener('click', () => {
+AISummarySpeakB.addEventListener('click', async () => {
     if (!isSpeakingS) {
-
-
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         AISummarySpeakB.textContent = 'Stop';
         startSpeakingS();
     } else {
@@ -164,8 +202,9 @@ AISummarySpeakB.addEventListener('click', () => {
 
 
 });
-AIFFGenerateB.addEventListener('click', () => {
+AIFFGenerateB.addEventListener('click', async () => {
     if (!isFFing) {
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
         const transcription = fullTranscriptionContention;
@@ -183,8 +222,9 @@ AIFFGenerateB.addEventListener('click', () => {
         isFFing = false;
     }
 });
-AIFFSpeakB.addEventListener('click', () => {
+AIFFSpeakB.addEventListener('click', async () => {
     if (!isSpeakingF) {
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         AIFFSpeakB.textContent = 'Stop';
         startSpeakingF();
     } else {
@@ -194,8 +234,9 @@ AIFFSpeakB.addEventListener('click', () => {
 
 
 });
-generateButtonAI.addEventListener('click', () => {
+generateButtonAI.addEventListener('click', async () => {
     if (!isGenerating) {
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
         const selectedSkill = document.getElementById('selectedSkill').textContent;
@@ -208,8 +249,9 @@ generateButtonAI.addEventListener('click', () => {
         isGenerating = false;
     }
 });
-GenerateAIRebuttalB.addEventListener('click', () => {
+GenerateAIRebuttalB.addEventListener('click', async () => {
     if (!isRebutting) {
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
         const transcription = fullTranscriptionContention;
@@ -224,8 +266,9 @@ GenerateAIRebuttalB.addEventListener('click', () => {
         isRebutting = false;
     }
 });
-speakButtonAI.addEventListener('click', () => {
+speakButtonAI.addEventListener('click', async () => {
     if (!isSpeaking) {
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         speakButtonAI.textContent = 'Stop';
         startSpeaking();
     } else {
@@ -235,8 +278,9 @@ speakButtonAI.addEventListener('click', () => {
 
 
 });
-AIRebuttalButton.addEventListener('click', () => {
+AIRebuttalButton.addEventListener('click', async () => {
     if (!isSpeakingR) {
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         AIRebuttalButton.textContent = 'Stop';
         startSpeakingR();
     } else {
@@ -248,139 +292,87 @@ AIRebuttalButton.addEventListener('click', () => {
 });
 async function startSpeaking() {
     if (!isSpeaking) {
-        let text = document.getElementById('AIContentionText').textContent;
-        text = text.replace(/\[\d+\]/g, '');
+        await speakFromElement('AIContentionText', () => isSpeaking, playAudioQueue);
+    }
+}
 
 
-        // Remove "Sources:" and everything that follows (works across multiple lines)
-        text = text.replace(/Sources:[\s\S]*$/, '');
-        const chunks = generateDynamicChunks(text, 10);
-        const audioQueue = [];
+// One /tts call covers a whole speech; only text past the 6,000-char cap
+// gets a second chunk.
+function splitForTTS(text) {
+    const MAX = 6000;
+    const chunks = [];
+    let rest = text;
+    while (rest.length > MAX) {
+        let cut = rest.lastIndexOf('. ', MAX);
+        if (cut < MAX / 2) cut = rest.lastIndexOf(' ', MAX);
+        if (cut <= 0) cut = MAX;
+        else cut += 1;
+        chunks.push(rest.slice(0, cut));
+        rest = rest.slice(cut);
+    }
+    if (rest.trim() !== '') chunks.push(rest);
+    return chunks;
+}
 
 
-        // Fetch audio for each chunk
-        for (let i = 0; i < chunks.length; i += 2) {
-            const responses = await Promise.allSettled([
-                fetchAudioFromServer(chunks[i]),
-                chunks[i + 1] ? fetchAudioFromServer(chunks[i + 1]) : null
-            ]);
+async function speakFromElement(elementId, isActive, playQueue) {
+    let text = document.getElementById(elementId).textContent;
+    text = text.replace(/\[\d+\]/g, '');
 
 
-            responses.forEach(result => {
-                if (result.status === 'fulfilled' && result.value) {
-                    audioQueue.push(result.value);
-                }
-            });
+    // Remove "Sources:" and everything that follows (works across multiple lines)
+    text = text.replace(/Sources:[\s\S]*$/, '');
+    const chunks = splitForTTS(text);
+    const audioQueue = [];
 
 
-            // Start playing if queue has audio
-            if (audioQueue.length > 0 && !isSpeaking) {
-                playAudioQueue(audioQueue);
-            }
+    for (const chunk of chunks) {
+        const url = await fetchAudioFromServer(chunk);
+        if (url) audioQueue.push(url);
+
+
+        // Start playing if queue has audio
+        if (audioQueue.length > 0 && !isActive()) {
+            playQueue(audioQueue);
         }
     }
 }
 
 
 async function fetchAudioFromServer(text) {
-    try {
-        const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/tts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                input: { text: text },
-                voice: {
-                    languageCode: "en-US",
-                    name: "en-US-Chirp3-HD-Orus"
-                },
-                audioConfig: {
-                    audioEncoding: "LINEAR16",
-                    pitch: 0,
-                    speakingRate: 1.19,
-                    effectsProfileId: ["small-bluetooth-speaker-class-device"]
+    // On a per-user 429, wait out Retry-After and try again rather than
+    // dropping the audio.
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            const response = await pfFetch('/tts', {
+                json: {
+                    input: { text: text },
+                    voice: {
+                        languageCode: "en-US",
+                        name: "en-US-Chirp3-HD-Orus"
+                    },
+                    audioConfig: {
+                        audioEncoding: "LINEAR16",
+                        pitch: 0,
+                        speakingRate: 1.19,
+                        effectsProfileId: ["small-bluetooth-speaker-class-device"]
+                    }
                 }
-            }),
-        });
+            }, { page: 'Flow', retry429: true });
 
-
-        if (!response.ok) {
-            console.error("TTS API error:", response.statusText);
+            const blob = await response.blob();
+            return URL.createObjectURL(blob);
+        } catch (error) {
+            if (error && error.code === 'rate_limited' && error.scope !== 'global' && attempt < 2) {
+                await new Promise(r => setTimeout(r, Math.min(error.retryAfter || 30, 120) * 1000));
+                continue;
+            }
+            console.error("TTS error:", error);
             return null;
         }
-
-
-        const blob = await response.blob();
-        return URL.createObjectURL(blob);
-    } catch (error) {
-        console.error("Fetch error:", error);
-        return null;
     }
-}
-
-
-function generateDynamicChunks(text, numChunks) {
-    const words = text.split(' ');
-    const totalWords = words.length;
-    // Using a fixed distribution for 10 chunks; adjust if needed.
-    const chunkPercents = [5, 7, 10, 12, 13, 15, 15, 10, 7, 6];
-    let chunks = [];
-    let start = 0;
-    for (let i = 0; i < chunkPercents.length; i++) {
-        if (start >= totalWords) break;
-        // Calculate a target index based on the percentage
-        let targetCount = Math.floor((chunkPercents[i] / 100) * totalWords);
-        let targetIndex = start + targetCount;
-        if (targetIndex >= totalWords) targetIndex = totalWords - 1;
-        let boundary = targetIndex;
-        let foundPeriod = false;
-
-        // Search forward from targetIndex for the closest word containing a period.
-        for (let j = targetIndex; j < totalWords; j++) {
-            if (words[j].includes('.')) {
-                boundary = j + 1; // Include the word with the period.
-                foundPeriod = true;
-                break;
-            }
-        }
-
-        // If not found forward, search backward from targetIndex.
-        if (!foundPeriod) {
-            for (let j = targetIndex; j >= start; j--) {
-                if (words[j].includes('.')) {
-                    boundary = j + 1;
-                    foundPeriod = true;
-                    break;
-                }
-            }
-        }
-
-        // If no period is found at all, use the target index.
-        if (!foundPeriod) {
-            boundary = targetIndex;
-        }
-
-        // Ensure we do not go past the end.
-        if (boundary > totalWords) boundary = totalWords;
-
-        // Create the chunk.
-        const chunk = words.slice(start, boundary).join(' ');
-        chunks.push(chunk);
-
-        // Update start for the next chunk.
-        start = boundary;
-    }
-
-    // If any words remain, append them to the final chunk.
-    if (start < totalWords) {
-        const remaining = words.slice(start).join(' ');
-        if (chunks.length > 0) {
-            chunks[chunks.length - 1] += ' ' + remaining;
-        } else {
-            chunks.push(remaining);
-        }
-    }
-
-    return chunks;
+    return null;
 }
 
 
@@ -415,7 +407,7 @@ function playAudioQueueR(queue) {
 
     audio.onended = () => {
         if (queue.length > 0) {
-            playAudioQueue(queue);
+            playAudioQueueR(queue);
         } else {
             isSpeakingR = false;
             window.currentAudio = null;
@@ -434,7 +426,7 @@ function playAudioQueueS(queue) {
 
     audio.onended = () => {
         if (queue.length > 0) {
-            playAudioQueue(queue);
+            playAudioQueueS(queue);
         } else {
             isSpeakingS = false;
             window.currentAudio = null;
@@ -453,7 +445,7 @@ function playAudioQueueF(queue) {
 
     audio.onended = () => {
         if (queue.length > 0) {
-            playAudioQueue(queue);
+            playAudioQueueF(queue);
         } else {
             isSpeakingF = false;
             window.currentAudio = null;
@@ -512,36 +504,7 @@ function stopSpeakingF() {
 
 async function startSpeakingR() {
     if (!isSpeakingR) {
-        let text = document.getElementById('AIRebuttalText').textContent;
-        text = text.replace(/\[\d+\]/g, '');
-
-
-        // Remove "Sources:" and everything that follows (works across multiple lines)
-        text = text.replace(/Sources:[\s\S]*$/, '');
-        const chunks = generateDynamicChunks(text, 10);
-        const audioQueue = [];
-
-
-        // Fetch audio for each chunk
-        for (let i = 0; i < chunks.length; i += 2) {
-            const responses = await Promise.allSettled([
-                fetchAudioFromServer(chunks[i]),
-                chunks[i + 1] ? fetchAudioFromServer(chunks[i + 1]) : null
-            ]);
-
-
-            responses.forEach(result => {
-                if (result.status === 'fulfilled' && result.value) {
-                    audioQueue.push(result.value);
-                }
-            });
-
-
-            // Start playing if queue has audio
-            if (audioQueue.length > 0 && !isSpeakingR) {
-                playAudioQueueR(audioQueue);
-            }
-        }
+        await speakFromElement('AIRebuttalText', () => isSpeakingR, playAudioQueueR);
     }
 }
 async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
@@ -555,22 +518,13 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
 
     try {
         // First API call to generate AI case
-        const response1 = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/generate_ai_case', {
-            method: 'POST',
-            body: JSON.stringify({
+        const response1 = await pfFetch('/generate_ai_case', {
+            json: {
                 debateTopic: debateTopic,
                 nonselectedSide: nonselectedSide,
                 selectedSkill: selectedSkill
-            }),
-            headers: {
-                'Content-Type': 'application/json'
             }
-        });
-
-
-        if (!response1.ok) {
-            throw new Error('Failed to generate AI case');
-        }
+        }, { page: 'Flow', button: generateButtonAI, label: 'Generate' });
 
 
         const data1 = await response1.json();
@@ -582,20 +536,11 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
 
 
         // Second API call to get sources
-        const response2 = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/get_sources', {
-            method: 'POST',
-            body: JSON.stringify({
+        const response2 = await pfFetch('/get_sources', {
+            json: {
                 AICase: AICase
-            }),
-            headers: {
-                'Content-Type': 'application/json'
             }
-        });
-
-
-        if (!response2.ok) {
-            throw new Error('Failed to find sources');
-        }
+        }, { page: 'Flow', button: generateButtonAI, label: 'Generate' });
 
 
         const data2 = await response2.json();
@@ -603,7 +548,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
 
 
         // Display the AI case with sources
-        document.getElementById('AIContentionText').innerHTML = "<p>" + modifiedAICase.replace(/\n/g, '<br>') + "</p>";
+        document.getElementById('AIContentionText').innerHTML = "<p>" + pfSanitize(modifiedAICase) + "</p>";
     } catch (error) {
         console.error('Error processing user input:', error);
     } finally {
@@ -697,8 +642,9 @@ function updateFlowValues(selectedSide, nonselectedSide) {
         AIFlowDiv.style.display = 'block';
     }
 }
-recordButtonC.addEventListener('click', () => {
+recordButtonC.addEventListener('click', async () => {
     if (!isRecordingC) { // If not currently recording, start recording
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         startRecording();
         recordButtonC.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingC = true;
@@ -709,8 +655,9 @@ recordButtonC.addEventListener('click', () => {
         transcriptionResultC.textContent = '';
     }
 });
-recordButtonR.addEventListener('click', () => {
+recordButtonR.addEventListener('click', async () => {
     if (!isRecordingR) { // If not currently recording, start recording
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         startRecordingR();
         recordButtonR.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingR = true;
@@ -721,8 +668,9 @@ recordButtonR.addEventListener('click', () => {
         transcriptionResultR.textContent = '';
     }
 });
-recordButtonS.addEventListener('click', () => {
+recordButtonS.addEventListener('click', async () => {
     if (!isRecordingS) { // If not currently recording, start recording
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         startRecordingS();
         recordButtonS.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingS = true;
@@ -733,8 +681,9 @@ recordButtonS.addEventListener('click', () => {
         transcriptionResultS.textContent = '';
     }
 });
-recordButtonF.addEventListener('click', () => {
+recordButtonF.addEventListener('click', async () => {
     if (!isRecordingF) { // If not currently recording, start recording
+        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         startRecordingF();
         recordButtonF.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingF = true;
@@ -1301,13 +1250,9 @@ async function stopRecording() {
                 formData.append('file', audioBlob, 'recording.webm');
 
 
-                // Call your backend proxy instead of Deepgram directly
-                const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/transcribe', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await pfFetch('/transcribe', { formData: formData },
+                    { page: 'Flow', button: recordButtonC, label: 'Record' });
 
-                if (!response.ok) throw new Error('Transcription failed');
                 const { transcript } = await response.json();
                 fullTranscriptionContention = transcript;
                 // Rest of your existing processing code
@@ -1325,6 +1270,7 @@ async function stopRecording() {
 
             } catch (error) {
                 console.error('Transcription error:', error);
+                document.querySelector('.loading0U').style.display = 'none';
                 // Handle error state
             }
 
@@ -1370,13 +1316,9 @@ async function stopRecordingR() {
                 formData.append('file', audioBlob, 'recording.webm');
 
 
-                // Call your backend proxy instead of Deepgram directly
-                const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/transcribe', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await pfFetch('/transcribe', { formData: formData },
+                    { page: 'Flow', button: recordButtonR, label: 'Record' });
 
-                if (!response.ok) throw new Error('Transcription failed');
                 const { transcript } = await response.json();
 
                 fullTranscriptionRebuttal = transcript;
@@ -1397,6 +1339,7 @@ async function stopRecordingR() {
 
             } catch (error) {
                 console.error('Transcription error:', error);
+                document.querySelector('.loading1U').style.display = 'none';
                 // Handle error state here
             }
 
@@ -1437,12 +1380,9 @@ async function stopRecordingS() {
                 const formData = new FormData();
                 formData.append('file', audioBlob, 'recording.webm');
 
-                const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/transcribe', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await pfFetch('/transcribe', { formData: formData },
+                    { page: 'Flow', button: recordButtonS, label: 'Record' });
 
-                if (!response.ok) throw new Error('Transcription failed');
                 const { transcript } = await response.json();
 
                 fullTranscriptionSummary = transcript;
@@ -1463,6 +1403,7 @@ async function stopRecordingS() {
 
             } catch (error) {
                 console.error('Transcription error:', error);
+                document.querySelector('.loading2U').style.display = 'none';
                 // Handle error state here
             }
 
@@ -1503,12 +1444,9 @@ async function stopRecordingF() {
                 formData.append('file', audioBlob, 'recording.webm');
 
 
-                const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/transcribe', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await pfFetch('/transcribe', { formData: formData },
+                    { page: 'Flow', button: recordButtonF, label: 'Record' });
 
-                if (!response.ok) throw new Error('Transcription failed');
                 const { transcript } = await response.json();
 
 
@@ -1530,6 +1468,7 @@ async function stopRecordingF() {
 
             } catch (error) {
                 console.error('Transcription error:', error);
+                document.querySelector('.loading3U').style.display = 'none';
                 // Handle error state here
             }
 
@@ -1547,35 +1486,28 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
     document.querySelector('.loading0U').style.display = 'none';
     document.querySelector('.loadingU').style.display = 'block';
     // Send the transcription to your Python backend for processing
-    const response = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processC', {
-        method: 'POST', // Specify POST method
-        body: JSON.stringify({
-            transcription: transcription,
-            debateTopic: debateTopic,
-            selectedSide: selectedSide,
-        }), // Send user input in the request body
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-
-    if (response.ok) {
-
+    try {
+        const response = await pfFetch('/processC', {
+            json: {
+                transcription: transcription,
+                debateTopic: debateTopic,
+                selectedSide: selectedSide,
+            }
+        }, { page: 'Flow' });
 
         // Get the debate flow from the response
         const { CaseFlow } = await response.json(); // Parse JSON response
         // Update the display with the generated debate flow
-        document.querySelector('.loadingU').style.display = 'none';
         if (CaseFlow == '') {
             transcriptionResultC.innerHTML = 'Your speech does not resemble a public forum debate case.'
             saveRound()
         } else {
-            transcriptionResultC.innerHTML = "<p>" + CaseFlow.replace(/\n/g, '<br>') + "</p>";
+            transcriptionResultC.innerHTML = "<p>" + pfSanitize(CaseFlow) + "</p>";
             saveRound()
         }
-
-    } else {
-        console.error('Failed to process transcription:', response.statusText);
+    } catch (error) {
+        console.error('Failed to process transcription:', error);
+    } finally {
         document.querySelector('.loadingU').style.display = 'none';
     }
 }
@@ -1584,32 +1516,21 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
     document.querySelector('.loading1U').style.display = 'none';
     document.querySelector('.loadingRU').style.display = 'block';
     // Send the transcription to your Python backend for processing
-    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processR', {
-        method: 'POST', // Specify POST method
-        body: JSON.stringify({
+    pfFetch('/processR', {
+        json: {
             transcriptionR: transcriptionR,
             debateTopic: debateTopic,
             selectedSide: selectedSide,
-        }), // Send user input in the request body
-        headers: {
-            'Content-Type': 'application/json'
         }
-    })
-        .then(response => {
-
-
-            if (!response.ok) {
-                throw new Error('Failed to process user input');
-            }
-            return response.json(); // Parse JSON response
-        })
+    }, { page: 'Flow' })
+        .then(response => response.json()) // Parse JSON response
         .then(data => {
 
 
             // Get the debate flow from the response
             const { RebuttalFlow } = data; // Parse JSON response
             // Update the display with the generated debate flow
-            transcriptionResultR.innerHTML = "<p>" + RebuttalFlow.replace(/\n/g, '<br>') + "</p>";
+            transcriptionResultR.innerHTML = "<p>" + pfSanitize(RebuttalFlow) + "</p>";
             saveRound()
         })
         .catch(error => {
@@ -1625,25 +1546,14 @@ function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
     document.querySelector('.loading2U').style.display = 'none';
     document.querySelector('.loadingSU').style.display = 'block';
     // Send the transcription to your Python backend for processing
-    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processS', {
-        method: 'POST', // Specify POST method
-        body: JSON.stringify({
+    pfFetch('/processS', {
+        json: {
             transcriptionS: transcriptionS,
             debateTopic: debateTopic,
             selectedSide: selectedSide,
-        }), // Send user input in the request body
-        headers: {
-            'Content-Type': 'application/json'
         }
-    })
-        .then(response => {
-
-
-            if (!response.ok) {
-                throw new Error('Failed to process user input');
-            }
-            return response.json(); // Parse JSON response
-        })
+    }, { page: 'Flow' })
+        .then(response => response.json()) // Parse JSON response
         .then(data => {
 
 
@@ -1652,7 +1562,7 @@ function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
             // Update the display with the generated debate flow
 
 
-            transcriptionResultS.innerHTML = "<p>" + SummaryFlow.replace(/\n/g, '<br>') + "</p>";
+            transcriptionResultS.innerHTML = "<p>" + pfSanitize(SummaryFlow) + "</p>";
             saveRound()
 
         })
@@ -1670,25 +1580,14 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
     const selectedTurn = document.getElementById('selectedTurn').textContent;
     // Send the transcription to your Python backend for processing
     transcriptionResultF.textContent = '';
-    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/processF', {
-        method: 'POST', // Specify POST method
-        body: JSON.stringify({
+    pfFetch('/processF', {
+        json: {
             transcriptionF: transcriptionF,
             debateTopic: debateTopic,
             selectedSide: selectedSide,
-        }), // Send user input in the request body
-        headers: {
-            'Content-Type': 'application/json'
         }
-    })
-        .then(response => {
-
-
-            if (!response.ok) {
-                throw new Error('Failed to process user input');
-            }
-            return response.json(); // Parse JSON response
-        })
+    }, { page: 'Flow' })
+        .then(response => response.json()) // Parse JSON response
         .then(data => {
 
 
@@ -1697,7 +1596,7 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
             // Update the display with the generated debate flow
 
 
-            transcriptionResultF.innerHTML = "<p>" + FinalFocusFlow.replace(/\n/g, '<br>') + "</p>";
+            transcriptionResultF.innerHTML = "<p>" + pfSanitize(FinalFocusFlow) + "</p>";
             saveRound()
         })
         .catch(error => {
@@ -1721,35 +1620,24 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
-        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/secondrebuttal', {
-            method: 'POST', // Specify POST method
-            body: JSON.stringify({
+        pfFetch('/secondrebuttal', {
+            json: {
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
                 transcription: transcription,
                 transcriptionR: transcriptionR,
                 selectedSkill: selectedSkill
-            }), // Send user input in the request body
-            headers: {
-                'Content-Type': 'application/json'
             }
-        })
-            .then(response => {
-
-
-                if (!response.ok) {
-                    throw new Error('Failed to process user input');
-                }
-                return response.json(); // Parse JSON response
-            })
+        }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate' })
+            .then(response => response.json()) // Parse JSON response
             .then(data => {
 
 
                 // Get the AI response from the data
                 const { AISecondRebuttal } = data;
                 // Display the AI response
-                document.getElementById('AIRebuttalText').innerHTML = "<p>" + AISecondRebuttal.replace(/\n/g, '<br>') + "</p>";
+                document.getElementById('AIRebuttalText').innerHTML = "<p>" + pfSanitize(AISecondRebuttal) + "</p>";
 
 
             })
@@ -1766,33 +1654,22 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
             });
     }
     if (selectedTurn == "Second") {
-        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/firstrebuttal', {
-            method: 'POST', // Specify POST method
-            body: JSON.stringify({
+        pfFetch('/firstrebuttal', {
+            json: {
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
                 transcription: transcription,
-            }), // Send user input in the request body
-            headers: {
-                'Content-Type': 'application/json'
             }
-        })
-            .then(response => {
-
-
-                if (!response.ok) {
-                    throw new Error('Failed to process user input');
-                }
-                return response.json(); // Parse JSON response
-            })
+        }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate' })
+            .then(response => response.json()) // Parse JSON response
             .then(data => {
 
 
                 // Get the AI response from the data
                 const { AIFirstRebuttal } = data;
                 // Display the AI response
-                document.getElementById('AIRebuttalText').innerHTML = "<p>" + AIFirstRebuttal.replace(/\n/g, '<br>') + "</p>";
+                document.getElementById('AIRebuttalText').innerHTML = "<p>" + pfSanitize(AIFirstRebuttal) + "</p>";
 
 
             })
@@ -1819,9 +1696,8 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
-        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/secondsummary', {
-            method: 'POST', // Specify POST method
-            body: JSON.stringify({
+        pfFetch('/secondsummary', {
+            json: {
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -1832,26 +1708,16 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
                 AIRebuttal: AIRebuttal
 
 
-            }), // Send user input in the request body
-            headers: {
-                'Content-Type': 'application/json'
             }
-        })
-            .then(response => {
-
-
-                if (!response.ok) {
-                    throw new Error('Failed to process user input');
-                }
-                return response.json(); // Parse JSON response
-            })
+        }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate' })
+            .then(response => response.json()) // Parse JSON response
             .then(data => {
 
 
                 // Get the AI response from the data
                 const { AISecondSummary } = data;
                 // Display the AI response
-                document.getElementById('AISummaryText').innerHTML = "<p>" + AISecondSummary.replace(/\n/g, '<br>') + "</p>";
+                document.getElementById('AISummaryText').innerHTML = "<p>" + pfSanitize(AISecondSummary) + "</p>";
 
 
             })
@@ -1868,9 +1734,8 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
             });
     }
     if (selectedTurn == "Second") {
-        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/firstsummary', {
-            method: 'POST', // Specify POST method
-            body: JSON.stringify({
+        pfFetch('/firstsummary', {
+            json: {
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -1880,26 +1745,16 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
                 AIRebuttal: AIRebuttal
 
 
-            }), // Send user input in the request body
-            headers: {
-                'Content-Type': 'application/json'
             }
-        })
-            .then(response => {
-
-
-                if (!response.ok) {
-                    throw new Error('Failed to process user input');
-                }
-                return response.json(); // Parse JSON response
-            })
+        }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate' })
+            .then(response => response.json()) // Parse JSON response
             .then(data => {
 
 
                 // Get the AI response from the data
                 const { AIFirstSummary } = data;
                 // Display the AI response
-                document.getElementById('AISummaryText').innerHTML = "<p>" + AIFirstSummary.replace(/\n/g, '<br>') + "</p>";
+                document.getElementById('AISummaryText').innerHTML = "<p>" + pfSanitize(AIFirstSummary) + "</p>";
 
 
             })
@@ -1922,9 +1777,8 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, AICase, AIRebuttal, AISummary) {
     AIFFGenerateB.classList.remove('glowing');
     document.querySelector('.loadingFFA').style.display = 'block';
-    fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/finalfocus', {
-        method: 'POST', // Specify POST method
-        body: JSON.stringify({
+    pfFetch('/finalfocus', {
+        json: {
             debateTopic: debateTopic,
             selectedSide: selectedSide,
             nonselectedSide: nonselectedSide,
@@ -1934,19 +1788,9 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
             AICase: AICase,
             AIRebuttal: AIRebuttal,
             AISummary: AISummary
-        }), // Send user input in the request body
-        headers: {
-            'Content-Type': 'application/json'
         }
-    })
-        .then(response => {
-
-
-            if (!response.ok) {
-                throw new Error('Failed to process user input');
-            }
-            return response.json(); // Parse JSON response
-        })
+    }, { page: 'Flow', button: AIFFGenerateB, label: 'Generate' })
+        .then(response => response.json()) // Parse JSON response
         .then(data => {
             // Get the AI response from the data
             const { AIFinalFocus } = data;
@@ -1955,7 +1799,7 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
 
 
             // Display the AI response
-            document.getElementById('AIFFText').innerHTML = "<p>" + AIFinalFocus.replace(/\n/g, '<br>') + "</p>";
+            document.getElementById('AIFFText').innerHTML = "<p>" + pfSanitize(AIFinalFocus) + "</p>";
         })
         .catch(error => {
             console.error('Error processing user input:', error);
@@ -1990,70 +1834,12 @@ function stopGeneratingAIFF() {
 
 async function startSpeakingS() {
     if (!isSpeakingS) {
-        let text = document.getElementById('AISummaryText').textContent;
-        text = text.replace(/\[\d+\]/g, '');
-
-
-        // Remove "Sources:" and everything that follows (works across multiple lines)
-        text = text.replace(/Sources:[\s\S]*$/, '');
-        const chunks = generateDynamicChunks(text, 10);
-        const audioQueue = [];
-
-
-        // Fetch audio for each chunk
-        for (let i = 0; i < chunks.length; i += 2) {
-            const responses = await Promise.allSettled([
-                fetchAudioFromServer(chunks[i]),
-                chunks[i + 1] ? fetchAudioFromServer(chunks[i + 1]) : null
-            ]);
-
-
-            responses.forEach(result => {
-                if (result.status === 'fulfilled' && result.value) {
-                    audioQueue.push(result.value);
-                }
-            });
-
-
-            // Start playing if queue has audio
-            if (audioQueue.length > 0 && !isSpeakingS) {
-                playAudioQueueS(audioQueue);
-            }
-        }
+        await speakFromElement('AISummaryText', () => isSpeakingS, playAudioQueueS);
     }
 }
 async function startSpeakingF() {
     if (!isSpeakingF) {
-        let text = document.getElementById('AIFFText').textContent;
-        text = text.replace(/\[\d+\]/g, '');
-
-
-        // Remove "Sources:" and everything that follows (works across multiple lines)
-        text = text.replace(/Sources:[\s\S]*$/, '');
-        const chunks = generateDynamicChunks(text, 10);
-        const audioQueue = [];
-
-
-        // Fetch audio for each chunk
-        for (let i = 0; i < chunks.length; i += 2) {
-            const responses = await Promise.allSettled([
-                fetchAudioFromServer(chunks[i]),
-                chunks[i + 1] ? fetchAudioFromServer(chunks[i + 1]) : null
-            ]);
-
-
-            responses.forEach(result => {
-                if (result.status === 'fulfilled' && result.value) {
-                    audioQueue.push(result.value);
-                }
-            });
-
-
-            // Start playing if queue has audio
-            if (audioQueue.length > 0 && !isSpeakingF) {
-                playAudioQueueF(audioQueue);
-            }
-        }
+        await speakFromElement('AIFFText', () => isSpeakingF, playAudioQueueF);
     }
 }
 
@@ -2073,17 +1859,20 @@ function captureState() {
         transcriptionS: fullTranscriptionSummary,
         transcriptionF: fullTranscriptionFF,
         feedback: document.getElementById('feedback-content').innerHTML,
-        toggle: ToggleisSelectedSide
+        toggle: ToggleisSelectedSide,
+        savedToProfile: __roundSavedToProfile
     };
     return state;
 }
 function saveRound() {
+    if (!__savedRoundKey) return; // No signed-in user resolved yet
     const state = captureState();
-    localStorage.setItem('savedRound', JSON.stringify(state));
+    localStorage.setItem(__savedRoundKey, JSON.stringify(state));
 
 }
 function clearSavedRound() {
-    localStorage.removeItem('savedRound');
+    if (__savedRoundKey) localStorage.removeItem(__savedRoundKey);
+    localStorage.removeItem('savedRound'); // Old single-key format
 
     location.reload(); // Optional: Reload the page to reset the state
 }
@@ -2193,9 +1982,8 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
     document.querySelector('.loadingfeed').style.display = 'block';
     if (judgeType == 'tech') {
 
-        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/tech', {
-            method: 'POST', // Specify POST method
-            body: JSON.stringify({
+        pfFetch('/tech', {
+            json: {
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -2208,19 +1996,9 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
                 AIRebuttal: AIRebuttal,
                 AISummary: AISummary,
                 AIFinalFocus: AIFinalFocus
-            }), // Send user input in the request body
-            headers: {
-                'Content-Type': 'application/json'
             }
-        })
-            .then(response => {
-
-
-                if (!response.ok) {
-                    throw new Error('Failed to process user input');
-                }
-                return response.json(); // Parse JSON response
-            })
+        }, { page: 'Flow', button: generateFeedbackButton })
+            .then(response => response.json()) // Parse JSON response
             .then(data => {
                 // Get the AI response from the data
                 const { TechFeedback } = data;
@@ -2231,9 +2009,8 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
                 // Display the AI response
 
                 document.getElementById('feedback-content').innerHTML = "<p>" +
-                    TechFeedback
-                        .replace('Decision:', '<br>Decision:')  // Add line break before Decision
-                        .replace(/\n/g, '<br>') +
+                    pfSanitize(TechFeedback)
+                        .replace('Decision:', '<br>Decision:') +  // Add line break before Decision
                     "</p>";
             })
             .catch(error => {
@@ -2247,9 +2024,8 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
             }
             );
     } else if (judgeType == 'lay') {
-        fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/lay', {
-            method: 'POST', // Specify POST method
-            body: JSON.stringify({
+        pfFetch('/lay', {
+            json: {
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -2262,19 +2038,9 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
                 AIRebuttal: AIRebuttal,
                 AISummary: AISummary,
                 AIFinalFocus: AIFinalFocus
-            }), // Send user input in the request body
-            headers: {
-                'Content-Type': 'application/json'
             }
-        })
-            .then(response => {
-
-
-                if (!response.ok) {
-                    throw new Error('Failed to process user input');
-                }
-                return response.json(); // Parse JSON response
-            })
+        }, { page: 'Flow', button: generateFeedbackButton })
+            .then(response => response.json()) // Parse JSON response
             .then(data => {
                 // Get the AI response from the data
                 const { LayFeedback } = data;
@@ -2283,7 +2049,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
 
 
                 // Display the AI response
-                document.getElementById('feedback-content').innerHTML = "<p>" + LayFeedback.replace(/\n/g, '<br>') + "</p>";
+                document.getElementById('feedback-content').innerHTML = "<p>" + pfSanitize(LayFeedback) + "</p>";
             })
             .catch(error => {
                 console.error('Error processing user input:', error);
@@ -2302,7 +2068,8 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
 
 
 
-generateFeedbackButton.addEventListener('click', () => {
+generateFeedbackButton.addEventListener('click', async () => {
+    if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
     const selectedSide = document.getElementById('selectedSide').textContent;
     const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
     const transcription = fullTranscriptionContention;

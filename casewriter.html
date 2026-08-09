@@ -794,9 +794,20 @@ async function generateCase() {
             const topic = document.getElementById('topic').value;
             const side = document.getElementById('side').value;
             const skill = document.getElementById('skillLevel').value;
-            const contentions = document.querySelector('input[name="contentions"]:checked').value;
+            const contentionsInput = document.querySelector('input[name="contentions"]:checked');
+            const contentions = contentionsInput ? contentionsInput.value : '2';
 
-            // Add your logic for generating a case here
+            // Generating costs money; the typed form state survives the login trip.
+            if (window.pfGate) {
+                const ok = await pfGate.requireAuth({
+                    page: 'casewriter',
+                    saveState: function () {
+                        return { topic: topic, side: side, skillLevel: skill, contentions: contentions };
+                    }
+                });
+                if (!ok) return;
+            }
+
             document.getElementById('Output').innerHTML = '';
             // Show the loading animation
             document.querySelector('.loading').style.display = 'block';
@@ -804,22 +815,14 @@ async function generateCase() {
 
             try {
                 // First API call to generate AI case
-                const response1 = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/generate_ai_casewriter', {
-                    method: 'POST',
-                    body: JSON.stringify({
+                const response1 = await pfFetch('/generate_ai_casewriter', {
+                    json: {
                         debateTopic: topic,
                         nonselectedSide: side,
                         selectedSkill: skill,
                         contentions: contentions
-                    }),
-                    headers: {
-                        'Content-Type': 'application/json'
                     }
-                });
-
-                if (!response1.ok) {
-                    throw new Error('Failed to generate AI case');
-                }
+                }, { page: 'casewriter', button: document.getElementById('recordButton'), label: 'Generate' });
 
                 const data1 = await response1.json();
                 const AICase = data1.AICase;
@@ -828,25 +831,17 @@ async function generateCase() {
                 document.querySelector('.text10').textContent = 'Finding Sources (~10s)';
 
                 // Second API call to get sources
-                const response2 = await fetch('https://pf-ai-debater-24c5902c1a88.herokuapp.com/get_sources', {
-                    method: 'POST',
-                    body: JSON.stringify({
+                const response2 = await pfFetch('/get_sources', {
+                    json: {
                         AICase: AICase
-                    }),
-                    headers: {
-                        'Content-Type': 'application/json'
                     }
-                });
-
-                if (!response2.ok) {
-                    throw new Error('Failed to find sources');
-                }
+                }, { page: 'casewriter', button: document.getElementById('recordButton'), label: 'Generate' });
 
                 const data2 = await response2.json();
                 const modifiedAICase = data2.AICase;
 
                 // Display the AI case with sources
-                document.getElementById('Output').innerHTML = "<p>" + modifiedAICase.replace(/\n/g, '<br>') + "</p>";
+                document.getElementById('Output').innerHTML = "<p>" + pfSanitize(modifiedAICase) + "</p>";
             } catch (error) {
                 console.error('Error processing user input:', error);
             } finally {
@@ -855,6 +850,24 @@ async function generateCase() {
                 isGenerating = false;
             }
         }
+
+// Refill the form after the login round trip.
+document.addEventListener('DOMContentLoaded', function () {
+    if (!window.pfGate) return;
+    const fields = pfGate.restorePending('casewriter');
+    if (!fields) return;
+    if (fields.topic) document.getElementById('topic').value = fields.topic;
+    if (fields.side === 'Affirmative' || fields.side === 'Negative') {
+        document.getElementById('side').value = fields.side;
+    }
+    if (fields.skillLevel === 'high' || fields.skillLevel === 'middle') {
+        document.getElementById('skillLevel').value = fields.skillLevel;
+    }
+    if (['1', '2', '3'].indexOf(String(fields.contentions)) !== -1) {
+        const radio = document.querySelector('input[name="contentions"][value="' + fields.contentions + '"]');
+        if (radio) radio.checked = true;
+    }
+});
 
 
 function submitFeedback() {
@@ -899,5 +912,8 @@ emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', this)
 });
     </script>
 <script src="auth.js"></script>
+<script src="sanitize.js"></script>
+<script src="gate.js"></script>
+<script src="api.js"></script>
 </body>
 </html>

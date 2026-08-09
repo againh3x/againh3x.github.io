@@ -4563,15 +4563,50 @@ if (typeof modules !== 'undefined' && Array.isArray(modules)) {
 
 
 
+<script src="gate.js"></script>
 <script>
 /* PFAI_MODULES_AUTH_GATE */
 (function(){
-  try{ if (typeof ensureFirebase==='function') ensureFirebase(); }catch(_){}
-  function goLogin(){ try{ window.location.href = 'login.html?next=modules.html'; }catch(e){} }
-  if (typeof onAuth === 'function'){
-    onAuth(function(u){ if(!u) goLogin(); });
+  // Whole-page gate on a verified sign-in; next carries the open module and
+  // page so login lands the user back where they were.
+  function goLogin(){
+    var next = 'modules.html';
+    try {
+      if (typeof currentModule !== 'undefined' && currentModule && currentModule.id) {
+        var p = (typeof pageIndex === 'number' && pageIndex > 0) ? pageIndex : 0;
+        next += '?m=' + encodeURIComponent(currentModule.id) + '&p=' + p;
+      }
+    } catch(e){}
+    try{ window.location.href = 'login.html?next=' + encodeURIComponent(next); }catch(e){}
+  }
+  function restorePosition(){
+    try {
+      var params = new URLSearchParams(location.search);
+      var m = params.get('m');
+      if (!m || typeof modules === 'undefined' || typeof loadModule !== 'function') return;
+      var idx = modules.findIndex(function(mod){ return mod.id === m; });
+      if (idx < 0) return;
+      var mod = modules[idx];
+      var unlocked = idx === 0
+        || AppState.isModuleComplete(modules[idx - 1].id)
+        || AppState.isModuleComplete(mod.id);
+      if (!unlocked) return;
+      loadModule(mod);
+      var p = parseInt(params.get('p'), 10);
+      if (Number.isFinite(p) && p > 0 && p < mod.pages.length) {
+        pageIndex = p;
+        renderPage();
+      }
+    } catch(e){}
+  }
+  if (window.pfGate && typeof pfGate.isSignedInVerified === 'function') {
+    pfGate.isSignedInVerified().then(function(ok){
+      if (!ok) { goLogin(); return; }
+      restorePosition();
+      // Keep gating if the user signs out in another tab.
+      try{ if (typeof onAuth === 'function') onAuth(function(u){ if(!u) goLogin(); }); }catch(e){}
+    });
   } else {
-    // If auth helpers missing, send to login
     goLogin();
   }
 })();

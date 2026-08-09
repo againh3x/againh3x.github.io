@@ -2327,24 +2327,6 @@ const aiPageObserver = new IntersectionObserver((entries) => {
 aiPageObserver.observe(aiPage);
     </script>
 
-<script>
-// Gate New2Debate click: if signed in (per auth snapshot), go straight to modules.html;
-// otherwise, route to login with ?next=modules.html — avoids showing login then redirect.
-(function(){
-  var btn = document.getElementById('new2debateBtn');
-  if (!btn) return;
-  btn.addEventListener('click', function(e){
-    try {
-      var snapRaw = localStorage.getItem('pfai_auth_snapshot');
-      var snap = snapRaw ? JSON.parse(snapRaw) : null;
-      var signedIn = !!(snap && snap.uid);
-      if (!signedIn) {
-        e.preventDefault();
-        window.location.href = 'login.html?next=modules.html';
-      }
-    } catch(_) {}
-  });
-})();
-</script>
+<!-- New2Debate is a plain link; modules.html enforces its own sign-in gate. -->
 <script defer="True" src="auth.js"></script></body>
 </html>
