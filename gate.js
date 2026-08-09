@@ -5,7 +5,10 @@
 // ride the URL is stashed under pfai_pending::<nonce> for 24 hours.
 (function () {
   var PENDING_PREFIX = "pfai_pending::";
-  var PENDING_TTL_MS = 24 * 60 * 60 * 1000;
+  // Long enough to sign up, receive a verification email and come back; short
+  // enough that a school machine is not holding the last student's typed work
+  // for the rest of the day.
+  var PENDING_TTL_MS = 60 * 60 * 1000;
 
   function sweepPending() {
     try {

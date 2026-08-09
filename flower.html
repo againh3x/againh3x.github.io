@@ -747,7 +747,13 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
                     if (!validateFlowForm()) return;
                     // Recording feeds paid transcription, so gate before the
                     // microphone opens; audio cannot survive a login redirect.
-                    if (window.pfGate) {
+                    // Fails closed: without gate.js we cannot verify the user,
+                    // and the server cannot un-open a microphone.
+                    if (!window.pfGate) {
+                        location.href = 'login.html?next=' + encodeURIComponent(location.pathname + location.search);
+                        return;
+                    }
+                    {
                         const ok = await pfGate.requireAuth({
                             page: 'flower',
                             saveState: function () {

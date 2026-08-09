@@ -60,6 +60,18 @@ function getDebateTopicSafe(){
   catch { return 'Untitled Topic'; }
 }
 
+// Gate for actions the backend cannot protect on its own, namely opening the
+// microphone. Everywhere else a missing gate.js is harmless because the server
+// rejects the unauthenticated call, but a mic that opens is a mic that opened.
+// So this one fails closed: no gate.js means send them to sign in.
+async function pfGateOrLogin(opts) {
+    if (!window.pfGate) {
+        location.href = 'login.html?next=' + encodeURIComponent(location.pathname + location.search);
+        return false;
+    }
+    return await pfGate.requireAuth(opts);
+}
+
 function pfHash(str) {
     let h = 5381;
     for (let i = 0; i < str.length; i++) {
@@ -644,7 +656,7 @@ function updateFlowValues(selectedSide, nonselectedSide) {
 }
 recordButtonC.addEventListener('click', async () => {
     if (!isRecordingC) { // If not currently recording, start recording
-        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
+        if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
         startRecording();
         recordButtonC.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingC = true;
@@ -657,7 +669,7 @@ recordButtonC.addEventListener('click', async () => {
 });
 recordButtonR.addEventListener('click', async () => {
     if (!isRecordingR) { // If not currently recording, start recording
-        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
+        if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
         startRecordingR();
         recordButtonR.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingR = true;
@@ -670,7 +682,7 @@ recordButtonR.addEventListener('click', async () => {
 });
 recordButtonS.addEventListener('click', async () => {
     if (!isRecordingS) { // If not currently recording, start recording
-        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
+        if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
         startRecordingS();
         recordButtonS.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingS = true;
@@ -683,7 +695,7 @@ recordButtonS.addEventListener('click', async () => {
 });
 recordButtonF.addEventListener('click', async () => {
     if (!isRecordingF) { // If not currently recording, start recording
-        if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
+        if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
         startRecordingF();
         recordButtonF.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingF = true;
