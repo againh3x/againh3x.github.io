@@ -759,7 +759,9 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       const payload = toImportPayload(blob);
       if (!payload.rounds.length && !payload.gems && !Object.keys(payload.modulesState).length) return null;
       try {
-        await fetchJson('/profile/import', { json: payload });
+        // quiet: the migration is background work the user did not ask for, and
+        // the device copy still renders below if it does not land.
+        await fetchJson('/profile/import', { json: payload }, { quiet: true });
         try { localStorage.setItem(doneKey, '1'); } catch (e) {}
         const rCount = payload.rounds.length;
         const mCount = Object.keys(payload.modulesState).length;

@@ -360,7 +360,9 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
         let round = null;
         if (typeof window.pfFetch === 'function') {
           try {
-            const res = await window.pfFetch('/rounds/' + encodeURIComponent(id), null, { method: 'GET' });
+            // quiet: a 404 is the ordinary answer for a round that only exists
+            // on this device, and the fallback below renders it either way.
+            const res = await window.pfFetch('/rounds/' + encodeURIComponent(id), null, { method: 'GET', quiet: true });
             round = await res.json();
             if (round && round.round) round = round.round;
           } catch (e) { round = null; }
