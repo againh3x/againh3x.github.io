@@ -397,8 +397,10 @@ nav.toolbar #authSlot > a { display: none; }
   var NAME_RE = /^[A-Za-z0-9][A-Za-z0-9 _.\-]{1,29}$/;
 
   // next validation: same-origin, whitelisted path, query preserved.
+  // login.html is deliberately absent: a next pointing back here just sends the
+  // user in a circle, and a crafted ?next=/login.html?next=... loops forever.
   var PATH_WHITELIST = ['/', '/index.html', '/setup.html', '/Flow.html', '/round.html',
-    '/casewriter.html', '/modules.html', '/flower.html', '/profile.html', '/login.html'];
+    '/casewriter.html', '/modules.html', '/flower.html', '/profile.html'];
   function resolveNext() {
     var raw = new URLSearchParams(location.search).get('next');
     if (!raw) return 'index.html';
