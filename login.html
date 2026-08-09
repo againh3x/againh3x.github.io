@@ -54,6 +54,12 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 </script>
 <style>
 * { box-sizing: border-box; }
+
+/* The UA rule for [hidden] is display:none in the user-agent origin, so any
+   author `display:` (.tabbar below, .row on other pages) beats it and the
+   element keeps rendering. !important puts it back in charge. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -368,6 +374,14 @@ nav.toolbar #authSlot > a { display: none; }
     <form id="panel-recovery" class="panel" hidden novalidate>
       <h1>Account recovery</h1>
       <p class="lead">Locked out of two-step verification? Enter your email, password, and one of the recovery codes you saved when you set it up.</p>
+      <div class="warnbox" id="rc-google-note" hidden>
+        Recovery needs the password on the account. If you only ever used Continue with Google, you never set one:
+        <ul>
+          <li>Go back to sign in, choose "Forgot your password?", and set a password for this email address.</li>
+          <li>Then come back here with that password and a recovery code.</li>
+          <li>If no reset email arrives, send us a message through the contact form on the home page from your account's email address and we will sort it out. Your recovery codes stay unused either way.</li>
+        </ul>
+      </div>
       <div class="field">
         <label for="rc-email">Email</label>
         <input id="rc-email" type="email" autocomplete="email">
@@ -428,11 +442,17 @@ nav.toolbar #authSlot > a { display: none; }
   var resendTimer = null;
   var mfaResolver = null;
   var totpHint = null;
+  var mfaFromGoogle = false;
 
   function clearNotes(names) {
     names.forEach(function (id) { var el = $(id); if (el) el.textContent = ''; });
   }
   function show(name) {
+    // The resend throttle belongs to the account that asked for the email, so
+    // drop it on the way out of the pending panel. Checked before `current` is
+    // reassigned, and only on exit, because doCreate starts the cooldown before
+    // it shows the panel.
+    if (current === 'pending' && name !== 'pending') resetResendCooldown();
     current = name;
     Object.keys(panels).forEach(function (k) { panels[k].hidden = (k !== name); });
     var tabsVisible = (name === 'signin' || name === 'create');
@@ -542,6 +562,12 @@ nav.toolbar #authSlot > a { display: none; }
     resendTimer = setInterval(updateResendLabel, 1000);
     updateResendLabel();
   }
+  function resetResendCooldown() {
+    resendUntil = 0;
+    if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+    var btn = $('pend-resend');
+    if (btn) { btn.disabled = false; btn.textContent = 'Resend email'; }
+  }
   function updateResendLabel() {
     var left = Math.ceil((resendUntil - Date.now()) / 1000);
     var btn = $('pend-resend');
@@ -573,7 +599,7 @@ nav.toolbar #authSlot > a { display: none; }
       await f.A.signInWithEmailAndPassword(f.auth, email, pwd);
       routeUser(f.auth.currentUser);
     } catch (e) {
-      if (e && e.code === 'auth/multi-factor-auth-required') beginTotp(e);
+      if (e && e.code === 'auth/multi-factor-auth-required') { mfaFromGoogle = false; beginTotp(e); }
       else $('si-err').textContent = authMessage(e);
     } finally {
       busy($('si-btn'), false);
@@ -625,6 +651,9 @@ nav.toolbar #authSlot > a { display: none; }
       if (code === 'auth/popup-blocked') {
         $('g-err').textContent = 'Your browser blocked the sign-in popup. Allow popups for this site, then try again.';
       } else if (code === 'auth/multi-factor-auth-required') {
+        // Remembered so the recovery panel can explain that recovery needs a
+        // password this account may never have had.
+        mfaFromGoogle = true;
         beginTotp(e);
       } else if (code === 'auth/cancelled-popup-request') {
         // A second click while the first popup is open; nothing to report.
@@ -637,6 +666,10 @@ nav.toolbar #authSlot > a { display: none; }
   }
 
   // ── TOTP challenge ──
+  function showRecovery() {
+    $('rc-google-note').hidden = !mfaFromGoogle;
+    show('recovery');
+  }
   function beginTotp(err) {
     // fbReady has resolved by the time any sign-in error can carry MFA info.
     mfaResolver = fb.A.getMultiFactorResolver(fb.auth, err);
@@ -646,7 +679,7 @@ nav.toolbar #authSlot > a { display: none; }
     clearNotes(['totp-err']);
     $('totp-code').value = '';
     if (!totpHint) {
-      show('recovery');
+      showRecovery();
       $('rc-err').textContent = 'This account has a second factor this page cannot verify. Use a recovery code.';
       return;
     }
@@ -721,14 +754,19 @@ nav.toolbar #authSlot > a { display: none; }
       return;
     }
     if (!EMAIL_RE.test(idv)) { $('fp-err').textContent = 'That email address does not look right.'; return; }
+    // Same wording whether or not the address is on file, so this cannot be used
+    // to test which emails have accounts. The second sentence is the escape
+    // hatch for a Google-only account, where a reset may never arrive.
+    var sentMsg = 'If an account exists for ' + idv + ', a reset link is on its way. Check spam too. ' +
+      'If nothing arrives, send us a message through the contact form on the home page from that address and we will sort it out.';
     busy($('fp-btn'), true);
     try {
       var f = await fbReady();
       await f.A.sendPasswordResetEmail(f.auth, idv);
-      $('fp-msg').textContent = 'If an account exists for ' + idv + ', a reset link is on its way. Check spam too.';
+      $('fp-msg').textContent = sentMsg;
     } catch (e) {
       if (e && e.code === 'auth/user-not-found') {
-        $('fp-msg').textContent = 'If an account exists for ' + idv + ', a reset link is on its way. Check spam too.';
+        $('fp-msg').textContent = sentMsg;
       } else {
         $('fp-err').textContent = authMessage(e);
       }
@@ -738,13 +776,25 @@ nav.toolbar #authSlot > a { display: none; }
   }
 
   // ── 2FA recovery (unauthenticated backend flow) ──
+  function waitPhrase(seconds) {
+    var s = Math.ceil(Number(seconds));
+    if (!isFinite(s) || s <= 0) return 'in a little while';
+    if (s < 90) return 'in ' + s + ' seconds';
+    var m = Math.ceil(s / 60);
+    return 'in about ' + m + (m === 1 ? ' minute' : ' minutes');
+  }
   async function doRecover() {
     clearNotes(['rc-err']);
     var email = $('rc-email').value.trim();
     var pwd = $('rc-pwd').value;
     var code = $('rc-code').value.replace(/\s+/g, '');
-    if (!EMAIL_RE.test(email) || !pwd || !code) {
+    if (!EMAIL_RE.test(email) || !code) {
       $('rc-err').textContent = 'Fill in your email, password, and a recovery code.';
+      return;
+    }
+    if (!pwd) {
+      $('rc-google-note').hidden = false;
+      $('rc-err').textContent = 'Enter the password for this account.';
       return;
     }
     busy($('rc-btn'), true);
@@ -758,7 +808,21 @@ nav.toolbar #authSlot > a { display: none; }
         show('signin');
         $('si-id').value = email;
         $('si-msg').textContent = 'Two-step verification has been removed from your account. Sign in below, then set it up again from your profile page.';
+      } else if (res.status === 429) {
+        // The limit is per network address, not per account, so a shared school
+        // connection can spend it. Say so, and say the code survived: the whole
+        // point is to stop a locked-out student burning the rest of their codes.
+        var body = {};
+        try { body = (await res.json()) || {}; } catch (e2) {}
+        var wait = body.retry_after || res.headers.get('Retry-After');
+        $('rc-err').textContent = 'Too many recovery attempts from this network in the past hour. ' +
+          'Your recovery code was not used, so keep it. Try again ' + waitPhrase(wait) + '.';
+      } else if (res.status >= 500) {
+        $('rc-err').textContent = 'Account recovery is temporarily unavailable. This is a problem on our side, not with your code. Try again in a few minutes.';
       } else {
+        // Deliberately one message for every 400: the account lockout is routed
+        // through the same response so that nothing here answers "does this
+        // email exist" or "was that code real".
         $('rc-err').textContent = 'That did not work. Check your email, password, and recovery code, then try again.';
       }
     } catch (e) {
@@ -810,7 +874,7 @@ nav.toolbar #authSlot > a { display: none; }
     if (idv) $('fp-email').value = idv;
     show('forgot');
   });
-  $('totpRecoveryLink').addEventListener('click', function () { clearNotes(['rc-err']); show('recovery'); });
+  $('totpRecoveryLink').addEventListener('click', function () { clearNotes(['rc-err']); showRecovery(); });
   $('totpBackLink').addEventListener('click', function () { show('signin'); });
   $('fpBackLink').addEventListener('click', function () { show('signin'); });
   $('rcBackLink').addEventListener('click', function () { show('signin'); });
