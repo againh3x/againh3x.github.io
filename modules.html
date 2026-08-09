@@ -4,6 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PublicForumAI Learning App</title>
+<link rel="stylesheet" href="toolbar.css"/>
+<script>
+/* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
+(function () {
+  var snap = null;
+  try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
+  if (!snap || !snap.uid) return;
+  document.documentElement.classList.add('pfai-signed-in');
+  var painted = false;
+  function paint() {
+    if (painted) return;
+    var slot = document.getElementById('authSlot');
+    if (!slot) return;
+    painted = true;
+    obs.disconnect();
+    var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
+    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
+    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
+    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
+      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
+    slot.querySelector('.user-avatar-initials').textContent = initials;
+    slot.querySelector('.user-name').textContent = '@' + name;
+  }
+  var obs = new MutationObserver(paint);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('DOMContentLoaded', paint);
+})();
+</script>
   <style>
     /*
       Simple single–page application that mirrors the structure of the
@@ -249,88 +277,6 @@ mark {
 }
 </style>
 <style id="pfai-toolbar-and-tweaks">
-/* === PFAI Patch: Toolbar + Layout Tweaks (non-destructive) === */
-:root { --toolbar-accent: #6FCBFF; }
-
-/* Toolbar base */
-nav.toolbar,
-.toolbar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
-  border-bottom: 1px solid rgba(0,255,255,0.2);
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 30px;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
-}
-.toolbar::before {
-  content: '';
-  position: absolute; top:0; left:-100%;
-  width: 200%; height: 100%;
-  background: linear-gradient(90deg, transparent 25%, rgba(0,255,255,0.08) 50%, transparent 75%);
-  animation: scanner-beam 8s infinite linear;
-}
-@keyframes scanner-beam { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
-
-/* Logo + links */
-nav.toolbar .logo { display:flex; align-items:center; gap:15px; text-decoration:none; }
-nav.toolbar .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0,255,255,0.4)); transition: all 0.3s ease; }
-nav.toolbar .logo:hover img { filter: drop-shadow(0 0 12px rgba(0,255,255,0.6)); }
-nav.toolbar .logo-text { color: var(--toolbar-accent) !important; font-weight: 700 !important; font-family: 'Roboto', sans-serif !important; }
-
-nav.toolbar .nav-links { display:flex; gap:60px !important; position:relative; }
-nav.toolbar .nav-links a {
-  color: var(--toolbar-accent) !important;
-  font-weight: 700 !important;
-  font-family: 'Roboto', sans-serif !important;
-  font-size: 1rem !important;
-  text-decoration: none;
-  position: relative;
-  padding: 5px 0;
-  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(163,220,255,0.18) 100%);
-  background-size: 200% 100%;
-  transition: all 0.3s ease;
-}
-nav.toolbar .nav-links a::after {
-  content: '';
-  position: absolute; bottom: -2px; left: 0;
-  width: 0; height: 2px; background: var(--toolbar-accent);
-  transition: width 0.3s ease;
-}
-nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-/* Sign In button (decoupled from other .button styles) */
-nav.toolbar #authSlot a,
-nav.toolbar #authSlot a:hover,
-nav.toolbar #authSlot .button.signin,
-nav.toolbar #authSlot .button.signin:hover,
-nav.toolbar #authSlot .button.signin .title,
-nav.toolbar #authSlot .button.signin .title:hover {
-  text-decoration: none !important;
-  background: none !important;
-  position: static !important;
-}
-nav.toolbar #authSlot .button.signin {
-  border: 2px solid var(--toolbar-accent) !important;
-  color: var(--toolbar-accent) !important;
-  padding: 10px 16px !important;
-  border-radius: 12px !important;
-  display: inline-flex !important; align-items: center; justify-content: center;
-  box-shadow: 0 0 0 2px rgba(134,196,255,0.08) inset !important;
-}
-nav.toolbar #authSlot .button.signin .title {
-  font-family: 'Roboto', sans-serif !important;
-  font-weight: 700 !important; font-size: 1rem !important; line-height: 1 !important;
-  margin: 0 !important; text-transform: uppercase !important; letter-spacing: 0.3px !important;
-}
-nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
-nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
-
-/* Avoid overlap with fixed toolbar */
-body { padding-top: 64px; }
 
 /* ===== App Tweaks ===== */
 /* Wider content area without touching original rules (override via cascade) */
@@ -663,15 +609,15 @@ body { padding-top: 64px; }
 <body>
 
 <nav class="toolbar">
-  <a class="logo" href="https://publicforumai.com">
+  <a class="logo" href="index.html">
     <img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
     <span class="logo-text">PublicForumAI©</span>
   </a>
   <div class="nav-links">
-    <a href="https://publicforumai.com/flower.html">AI Flow</a>
-    <a href="https://publicforumai.com/setup.html">AI Practice Round</a>
-    <a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
-    <a href="https://publicforumai.com/new2debate.html">Training Modules</a>
+    <a href="flower.html">AI Flow</a>
+    <a href="setup.html">AI Practice Round</a>
+    <a href="casewriter.html">AI Casewriter</a>
+    <a href="modules.html">Training Modules</a>
   </div>
   <div id="authSlot">
     <a href="login.html">
@@ -702,15 +648,6 @@ body { padding-top: 64px; }
     </main>
   </div>
 
-<script>
-  (function(){
-    const tb = document.querySelector('nav.toolbar');
-    if (tb) {
-      const h = tb.getBoundingClientRect().height;
-      document.documentElement.style.setProperty('--toolbar-h', h + 'px');
-    }
-  })();
-</script>
 
   <script>
   // Text and data resources for Module 6
@@ -3640,7 +3577,7 @@ const m8Module={ id:'m8', title:'Case Writing', reward:25, state:{ q1:null, q2:n
     <h3>AI Casewriter</h3>
     <p><strong>PUBLICFORUMAI HELPS!</strong></p>
     <ul><li>Improve your case writing</li><li>Use PFAI’s AI Casewriter to draft and refine contentions</li><li>Explore potential contentions with auto-generated evidence</li><li>Practice & improve with guided suggestions</li></ul>
-    <p><a href="https://publicforumai.com/casewriter.html" target="_blank">Try it now at PublicForumAI.com</a></p>`; container.appendChild(card); },
+    <p><a href="casewriter.html" target="_blank">Try it now at PublicForumAI.com</a></p>`; container.appendChild(card); },
   function(container){ container.innerHTML=''; const card=makeCard(); card.innerHTML=`
     <h3>Recap</h3>
     <ul><li>Case = 2–3 contentions with clear structure</li><li>Signpost contentions clearly</li><li>Claim → Warrant → Evidence → Impact</li></ul>`; container.appendChild(card); },

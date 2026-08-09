@@ -13,6 +13,35 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
 
+<link rel="stylesheet" href="toolbar.css"/>
+<script>
+/* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
+(function () {
+  var snap = null;
+  try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
+  if (!snap || !snap.uid) return;
+  document.documentElement.classList.add('pfai-signed-in');
+  var painted = false;
+  function paint() {
+    if (painted) return;
+    var slot = document.getElementById('authSlot');
+    if (!slot) return;
+    painted = true;
+    obs.disconnect();
+    var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
+    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
+    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
+    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
+      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
+    slot.querySelector('.user-avatar-initials').textContent = initials;
+    slot.querySelector('.user-name').textContent = '@' + name;
+  }
+  var obs = new MutationObserver(paint);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('DOMContentLoaded', paint);
+})();
+</script>
+
   <style>
     /* ===== Page background + container ===== */
     body {
@@ -21,7 +50,7 @@
       background: linear-gradient(180deg, #8ac8ff, #185da1, #08316a, #011529);
       color: #EAFBFF;
       min-height: 100vh;
-      padding: 80px 20px 30px; /* space for fixed toolbar */
+      padding: 0 20px 30px;
     }
     .page {
       width: 95%;
@@ -34,27 +63,6 @@
       backdrop-filter: blur(6px);
       padding: 24px;
     }
-
-    /* ===== Toolbar (kept simple) ===== */
-    nav.toolbar {
-      position: fixed; top: 0; left: 0; right: 0;
-      background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
-      border-bottom: 1px solid rgba(0,255,255,.2);
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 30px; z-index: 1000; backdrop-filter: blur(10px);
-      box-shadow: 0 4px 30px rgba(0,0,0,.3);
-    }
-    nav.toolbar .logo { display:flex; align-items:center; gap:15px; text-decoration:none; }
-    nav.toolbar .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0,255,255,.4)); }
-    nav.toolbar .logo-text { color:#86C4FF; font-size:1.4rem; font-weight:700; font-family:'Roboto',sans-serif; }
-    nav.toolbar .nav-links { display:flex; gap:60px; }
-    nav.toolbar .nav-links a { color:#86C4FF; text-decoration:none; font-weight:700; padding:5px 0; }
-    nav.toolbar #authSlot .button.signin {
-      background: transparent; border:2px solid #86C4FF; color:#86C4FF;
-      padding:10px 16px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center;
-      font-weight:700; font-family:'Roboto',sans-serif; text-transform:uppercase; letter-spacing:.3px;
-    }
-    nav.toolbar #authSlot a { text-decoration: none; }
 
     /* ===== Header / meta ===== */
     .round-header {
@@ -128,14 +136,14 @@
 <body>
   <!-- Toolbar -->
   <nav class="toolbar">
-    <a class="logo" href="https://publicforumai.com">
+    <a class="logo" href="index.html">
       <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
       <span class="logo-text">PublicForumAI©</span>
     </a>
     <div class="nav-links">
-      <a href="https://publicforumai.com/flower.html">AI Flow</a>
-      <a href="https://publicforumai.com/setup.html">AI Practice Round</a>
-      <a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
+      <a href="flower.html">AI Flow</a>
+      <a href="setup.html">AI Practice Round</a>
+      <a href="casewriter.html">AI Casewriter</a>
       <a href="modules.html">Training Modules</a>
     </div>
     <div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>

@@ -14,6 +14,35 @@
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
 
+<link rel="stylesheet" href="toolbar.css"/>
+<script>
+/* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
+(function () {
+  var snap = null;
+  try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
+  if (!snap || !snap.uid) return;
+  document.documentElement.classList.add('pfai-signed-in');
+  var painted = false;
+  function paint() {
+    if (painted) return;
+    var slot = document.getElementById('authSlot');
+    if (!slot) return;
+    painted = true;
+    obs.disconnect();
+    var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
+    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
+    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
+    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
+      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
+    slot.querySelector('.user-avatar-initials').textContent = initials;
+    slot.querySelector('.user-name').textContent = '@' + name;
+  }
+  var obs = new MutationObserver(paint);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('DOMContentLoaded', paint);
+})();
+</script>
+
   <!-- ===== Base page styles (match casewriter body + container) ===== -->
   <style>
     body {
@@ -115,142 +144,7 @@
     .delete-btn i{ pointer-events:none; }
   </style>
 
-  <!-- ===== The toolbar styles copied from casewriter (kept verbatim to ensure exact match) ===== -->
   <style>
-    .toolbar {
-      position: fixed; top: 0; left: 0; right: 0;
-      background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
-      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 30px; z-index: 1000; backdrop-filter: blur(10px);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-    }
-    .toolbar::before { content: ''; position: absolute; top: 0; left: -100%; width: 200%; height: 100%;
-      background: linear-gradient(90deg, transparent 25%, rgba(0, 255, 255, 0.1) 50%, transparent 75%);
-      animation: scanner-beam 8s infinite linear; }
-    @keyframes scanner-beam { 0%{transform:translateX(0);} 100%{transform:translateX(100%);} }
-    .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4)); transition: all 0.3s ease; }
-    .logo:hover img { filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6)); }
-    .nav-links { display: flex; gap: 60px; position: relative; }
-    .nav-links a { color: #00f3ff !important; text-decoration: none; font-weight: 600; position: relative; padding: 5px 0;
-      background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
-      background-size: 200% 100%; transition: all 0.3s ease; }
-    .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #00f3ff; transition: width 0.3s ease; }
-    .nav-links a:hover { background-position: -100% 0; }
-    .nav-links a:hover::after { width: 100%; }
-    @keyframes border-glow { 0%{opacity:0.6;} 50%{opacity:0.3;} 100%{opacity:0.6;} }
-    .logo { display:flex; align-items:center; gap:15px; text-decoration:none !important; }
-    .logo-text { color:#00f3ff; font-size:1.4rem; font-weight:600; text-shadow:0 0 10px rgba(0,243,255,0.4); letter-spacing:0.5px; margin-left:10px; text-decoration:none !important; border-bottom:none !important; }
-
-    /* Casewriter-specific toolbar tweaks copied so appearance is identical */
-    nav.toolbar .nav-links { gap: 60px !important; }
-    nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-    nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-    nav.toolbar #authSlot .button.orange {
-      background: transparent !important; border: 2px solid #00f3ff !important; color: #00f3ff !important;
-      width: auto !important; height: auto !important; padding: 8px 14px !important; display: inline-flex !important;
-      align-items: center; justify-content: center; border-radius: 10px !important; box-shadow: none !important; transform: none !important;
-    }
-    nav.toolbar #authSlot .button.orange .title { color: inherit !important; font-weight: 700; font-size: 0.95rem; line-height: 1; margin: 0; }
-    nav.toolbar #authSlot .button.orange:hover { background: #00f3ff !important; color: #0a0e27 !important; }
-    nav.toolbar #authSlot .button.orange:hover .title { color: #0a0e27 !important; }
-
-    /* Standardization passes (kept verbatim from casewriter) */
-    nav.toolbar .logo-text { color: #00f3ff !important; font-weight: 700 !important; font-family: 'Roboto', sans-serif !important; }
-    nav.toolbar .nav-links { gap: 60px !important; position: relative; }
-    nav.toolbar .nav-links a { color: #00f3ff !important; font-weight: 700 !important; text-decoration: none; position: relative; padding: 5px 0; background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%); background-size: 200% 100%; transition: all 0.3s ease; }
-    nav.toolbar .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #00f3ff; transition: width 0.3s ease; }
-    nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-    nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-    nav.toolbar #authSlot .button.signin { background: transparent !important; border: 2px solid #00f3ff !important; color: #00f3ff !important; width: auto !important; height: auto !important; padding: 8px 14px !important; display: inline-flex !important; align-items: center; justify-content: center; border-radius: 10px !important; box-shadow: none !important; transform: none !important; }
-    nav.toolbar #authSlot .button.signin .title { color: inherit !important; font-weight: 700 !important; font-size: 0.95rem !important; line-height: 1 !important; margin: 0 !important; font-family: 'Roboto', sans-serif !important; }
-    nav.toolbar #authSlot .button.signin:hover { background: #00f3ff !important; color: #0a0e27 !important; }
-    nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
-
-    /* Progressive overrides (exactly as in casewriter) */
-    :root { --toolbar-accent: #A3DCFF; }
-    nav.toolbar .logo-text { color: var(--toolbar-accent) !important; }
-    nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(163, 220, 255, 0.18) 100%); }
-    nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
-    nav.toolbar #authSlot .button.signin { border: 2px solid var(--toolbar-accent) !important; color: var(--toolbar-accent) !important; }
-    nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
-    nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
-
-    :root { --toolbar-accent: #86C4FF; }
-    nav.toolbar .logo-text { color: var(--toolbar-accent) !important; }
-    nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(134,196,255,0.18) 100%); }
-    nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
-    nav.toolbar #authSlot .button.signin { border: 2px solid var(--toolbar-accent) !important; color: var(--toolbar-accent) !important; padding: 10px 16px !important; border-radius: 12px !important; box-shadow: 0 0 0 2px rgba(134,196,255,0.08) inset !important; }
-    nav.toolbar #authSlot .button.signin .title { font-family: 'Roboto', sans-serif !important; font-weight:700 !important; font-size:1rem !important; text-transform: uppercase !important; letter-spacing: .3px !important; }
-
-    :root { --toolbar-accent: #9FD6FF; }
-    nav.toolbar #authSlot a, nav.toolbar #authSlot a:hover, nav.toolbar #authSlot a:focus { text-decoration: none !important; background: none !important; position: static !important; }
-    nav.toolbar #authSlot a::after { content: none !important; }
-    nav.toolbar #authSlot .button.signin { border: 2px solid var(--toolbar-accent) !important; color: var(--toolbar-accent) !important; }
-    nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
-    nav.toolbar .logo-text { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
-    nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
-    nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
-
-    :root { --toolbar-accent: #7FCDFF; }
-    nav.toolbar .logo-text { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
-    nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
-    nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
-    nav.toolbar #authSlot a, nav.toolbar #authSlot a:hover, nav.toolbar #authSlot .button.signin, nav.toolbar #authSlot .button.signin:hover, nav.toolbar #authSlot .button.signin .title, nav.toolbar #authSlot .button.signin .title:hover { text-decoration: none !important; background: none !important; position: static !important; }
-    nav.toolbar #authSlot a::after, nav.toolbar #authSlot .button.signin::after, nav.toolbar #authSlot .button.signin .title::after { content: none !important; }
-    nav.toolbar #authSlot .button.signin { border: 2px solid var(--toolbar-accent) !important; color: var(--toolbar-accent) !important; padding: 10px 16px !important; border-radius: 12px !important; display: inline-flex !important; align-items: center; justify-content: center; }
-    nav.toolbar #authSlot .button.signin .title { font-family: 'Roboto', sans-serif !important; font-weight: 700 !important; font-size: 1rem !important; line-height: 1 !important; margin: 0 !important; text-transform: uppercase !important; letter-spacing: 0.3px !important; }
-    nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
-    nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
-
-    :root { --toolbar-accent: #6FCBFF; }
-    nav.toolbar .logo-text, nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; }
-    nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
-    nav.toolbar #authSlot .button.signin { border-color: var(--toolbar-accent) !important; color: var(--toolbar-accent) !important; }
-    nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
-    nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
-
-    /* Final override: bold nav links (exact copy) */
-    nav.toolbar .nav-links a { font-weight: 700 !important; }
-  </style>
-
-  <!-- Minimal dropdown menu styling (only used when user is logged in; harmless otherwise) -->
-  <style>
-    .user-menu-wrap { position: relative; display:inline-block; }
-    .user-btn { display:inline-flex; align-items:center; gap:10px; padding:10px 16px; border:2px solid var(--toolbar-accent); color:var(--toolbar-accent); border-radius:12px; cursor:pointer; font-family:'Roboto',sans-serif; font-weight:700; }
-    .user-avatar { width:24px; height:24px; border-radius:50%; object-fit:cover; background:#e8f6ff; }
-    .user-name { font-weight:700; }
-    .user-menu { position:absolute; right:0; top:110%; background:#0f1538; border:1px solid rgba(144,208,248,.35); border-radius:10px; min-width:180px; box-shadow:0 10px 25px rgba(0,0,0,.35); display:none; }
-    .user-menu.open { display:block; }
-    .user-menu a { display:block; color:#A3DCFF; text-decoration:none; padding:10px 12px; font-family:'Roboto',sans-serif; font-weight:700; }
-    .user-menu a:hover { background:rgba(163,220,255,.12); }
-  </style>
-  <style>
-    /* === HOVER FIX: ensure effect only triggers on hover === */
-    nav.toolbar .nav-links a { background-position: 0 0 !important; }
-    nav.toolbar .nav-links a::after { width: 0 !important; }
-    nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-    nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-  </style>
-  <style>
-    /* === DEFINITIVE HOVER OVERRIDE (matches casewriter behavior) === */
-    /* Start with no tint under links; slide tint in on hover */
-    nav.toolbar .nav-links a { background-position: 100% 0 !important; }
-    nav.toolbar .nav-links a::after { width: 0 !important; }
-    nav.toolbar .nav-links a:hover { background-position: 0 0 !important; }
-    nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-  </style>
-  <style>
-    /* === KILL ALWAYS-ON HIGHLIGHT; ONLY SHOW ON HOVER === */
-    nav.toolbar .nav-links a { background: none !important; }
-    nav.toolbar .nav-links a::after { width: 0 !important; }
-    nav.toolbar .nav-links a:hover {
-      background-image: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(127,205,255,0.18) 100%) !important;
-      background-size: 200% 100% !important;
-      background-position: -100% 0 !important;
-    }
 .open-btn {
   background: linear-gradient(135deg, #00f3ff, #00a6ff);
   color: #052b36;
@@ -273,14 +167,14 @@
 <body>
   <!-- ===== Toolbar (markup identical to casewriter) ===== -->
   <nav class="toolbar">
-    <a class="logo" href="https://publicforumai.com">
+    <a class="logo" href="index.html">
       <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
       <span class="logo-text">PublicForumAI©</span>
     </a>
     <div class="nav-links">
-      <a href="https://publicforumai.com/flower.html">AI Flow</a>
-      <a href="https://publicforumai.com/setup.html">AI Practice Round</a>
-      <a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
+      <a href="flower.html">AI Flow</a>
+      <a href="setup.html">AI Practice Round</a>
+      <a href="casewriter.html">AI Casewriter</a>
       <a href="modules.html">Training Modules</a>
     </div>
     <!-- Pre-render SIGN IN like casewriter; auth.js will replace when logged in -->

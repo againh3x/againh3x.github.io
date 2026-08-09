@@ -6,6 +6,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sign In</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="toolbar.css"/>
+<script>
+/* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
+(function () {
+  var snap = null;
+  try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
+  if (!snap || !snap.uid) return;
+  document.documentElement.classList.add('pfai-signed-in');
+  var painted = false;
+  function paint() {
+    if (painted) return;
+    var slot = document.getElementById('authSlot');
+    if (!slot) return;
+    painted = true;
+    obs.disconnect();
+    var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
+    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
+    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
+    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
+      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
+    slot.querySelector('.user-avatar-initials').textContent = initials;
+    slot.querySelector('.user-name').textContent = '@' + name;
+  }
+  var obs = new MutationObserver(paint);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('DOMContentLoaded', paint);
+})();
+</script>
 <style>
 .login-wrap {
   max-width: 560px; margin: 80px auto; padding: 24px;
@@ -30,6 +58,19 @@
 </style>
 </head>
 <body>
+  <nav class="toolbar">
+    <a class="logo" href="index.html">
+      <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
+      <span class="logo-text">PublicForumAI©</span>
+    </a>
+    <div class="nav-links">
+      <a href="flower.html">AI Flow</a>
+      <a href="setup.html">AI Practice Round</a>
+      <a href="casewriter.html">AI Casewriter</a>
+      <a href="modules.html">Training Modules</a>
+    </div>
+    <div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+  </nav>
   <div class="login-wrap">
     <h1>Sign in / Create account</h1>
     <div class="field">

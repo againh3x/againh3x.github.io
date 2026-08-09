@@ -21,6 +21,34 @@
 <link href="/site.webmanifest" rel="manifest"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<link rel="stylesheet" href="toolbar.css"/>
+<script>
+/* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
+(function () {
+  var snap = null;
+  try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
+  if (!snap || !snap.uid) return;
+  document.documentElement.classList.add('pfai-signed-in');
+  var painted = false;
+  function paint() {
+    if (painted) return;
+    var slot = document.getElementById('authSlot');
+    if (!slot) return;
+    painted = true;
+    obs.disconnect();
+    var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
+    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
+    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
+    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
+      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
+    slot.querySelector('.user-avatar-initials').textContent = initials;
+    slot.querySelector('.user-name').textContent = '@' + name;
+  }
+  var obs = new MutationObserver(paint);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('DOMContentLoaded', paint);
+})();
+</script>
 <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -851,575 +879,16 @@
     border: none;
 }
     </style>
-<style>
-.toolbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
-            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 30px;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .toolbar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 200%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent 25%,
-                rgba(0, 255, 255, 0.1) 50%,
-                transparent 75%
-            );
-            animation: scanner-beam 8s infinite linear;
-        }
-
-        @keyframes scanner-beam {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(100%); }
-        }
-
-        .logo img {
-            height: 40px;
-            filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
-            transition: all 0.3s ease;
-        }
-
-        .logo:hover img {
-            filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6));
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 100px;
-            position: relative;
-        }
-
-        .nav-links a {
-            color: #00f3ff !important;
-            text-decoration: none;
-            font-weight: 600;
-            position: relative;
-            padding: 5px 0;
-            background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
-            background-size: 200% 100%;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: #00f3ff;
-            transition: width 0.3s ease;
-        }
-
-        .nav-links a:hover 
-</style>
-<style>
-/* === TOOLBAR CONSISTENCY PATCH === */
-/* Match link spacing to 60px on all toolbars */
-nav.toolbar .nav-links { gap: 60px !important; }
-/* Ensure hover effect (background slide + underline expand) */
-nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-
-/* === SIGN IN BUTTON REFRESH (toolbar only) === */
-nav.toolbar #authSlot .button.orange {
-  background: transparent !important;
-  border: 2px solid #00f3ff !important;
-  color: #00f3ff !important;
-  width: auto !important;
-  height: auto !important;
-  padding: 8px 14px !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-nav.toolbar #authSlot .button.orange .title {
-  color: inherit !important;
-  font-weight: 700;
-  font-size: 0.95rem;
-  line-height: 1;
-  margin: 0;
-}
-nav.toolbar #authSlot .button.orange:hover {
-  background: #00f3ff !important;
-  color: #0a0e27 !important;
-}
-nav.toolbar #authSlot .button.orange:hover .title {
-  color: #0a0e27 !important;
-}
-
-
-/* === HOME ONLY: prevent fixed toolbar overlap === */
-body { padding-top: 100px !important; }
-</style><style>
-/* === TOOLBAR STANDARDIZATION === */
-/* Colors, font-weight, spacing, and hover underline */
-nav.toolbar .logo-text {
-  color: #00f3ff !important;
-  font-weight: 700 !important;
-  font-family: 'Roboto', sans-serif !important;
-}
-nav.toolbar .nav-links { gap: 60px !important; position: relative; }
-nav.toolbar .nav-links a {
-  color: #00f3ff !important;
-  font-weight: 700 !important;
-  text-decoration: none;
-  position: relative;
-  padding: 5px 0;
-  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
-  background-size: 200% 100%;
-  transition: all 0.3s ease;
-}
-nav.toolbar .nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: #00f3ff;
-  transition: width 0.3s ease;
-}
-nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-/* === SIGN IN button (decoupled from .button.orange) === */
-nav.toolbar #authSlot .button.signin {
-  background: transparent !important;
-  border: 2px solid #00f3ff !important;
-  color: #00f3ff !important;
-  width: auto !important;
-  height: auto !important;
-  padding: 8px 14px !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-nav.toolbar #authSlot .button.signin .title {
-  color: inherit !important;
-  font-weight: 700 !important;
-  font-size: 0.95rem !important;
-  line-height: 1 !important;
-  margin: 0 !important;
-  font-family: 'Roboto', sans-serif !important;
-}
-nav.toolbar #authSlot .button.signin:hover {
-  background: #00f3ff !important;
-  color: #0a0e27 !important;
-}
-nav.toolbar #authSlot .button.signin:hover .title {
-  color: #0a0e27 !important;
-}
-</style><style>
-/* === FINAL TOOLBAR STANDARDIZATION === */
-nav.toolbar .logo-text {
-  color: #00f3ff !important;
-  font-weight: 700 !important;
-  font-family: 'Roboto', sans-serif !important;
-}
-nav.toolbar .nav-links { gap: 60px !important; position: relative; }
-nav.toolbar .nav-links a {
-  color: #00f3ff !important;
-  font-weight: 700 !important;
-  font-family: 'Roboto', sans-serif !important;
-  font-size: 1rem !important;
-  text-decoration: none;
-  position: relative;
-  padding: 5px 0;
-  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
-  background-size: 200% 100%;
-  transition: all 0.3s ease;
-}
-nav.toolbar .nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: #00f3ff;
-  transition: width 0.3s ease;
-}
-nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-/* Sign In button (decoupled from .button.orange CTA) */
-nav.toolbar #authSlot .button.signin {
-  background: transparent !important;
-  border: 2px solid #00f3ff !important;
-  color: #00f3ff !important;
-  width: auto !important;
-  height: auto !important;
-  padding: 8px 14px !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-nav.toolbar #authSlot .button.signin .title {
-  color: inherit !important;
-  font-weight: 700 !important;
-  font-size: 0.95rem !important;
-  line-height: 1 !important;
-  margin: 0 !important;
-  font-family: 'Roboto', sans-serif !important;
-}
-nav.toolbar #authSlot .button.signin:hover {
-  background: #00f3ff !important;
-  color: #0a0e27 !important;
-}
-nav.toolbar #authSlot .button.signin:hover .title {
-  color: #0a0e27 !important;
-}
-</style><style>
-/* === GLOBAL TOOLBAR ACCENT + CONSISTENCY === */
-nav.toolbar .logo-text {
-  color: #90D0F8 !important;
-  font-weight: 700 !important;
-  font-family: 'Roboto', sans-serif !important;
-}
-nav.toolbar .nav-links { gap: 60px !important; position: relative; }
-nav.toolbar .nav-links a {
-  color: #90D0F8 !important;
-  font-weight: 700 !important;
-  font-family: 'Roboto', sans-serif !important;
-  font-size: 1rem !important;
-  text-decoration: none;
-  position: relative;
-  padding: 5px 0;
-  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(144, 208, 248, 0.15) 100%);
-  background-size: 200% 100%;
-  transition: all 0.3s ease;
-}
-nav.toolbar .nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: #90D0F8;
-  transition: width 0.3s ease;
-}
-nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-/* Sign In button: use accent color; keep decoupled from .button.orange */
-nav.toolbar #authSlot .button.signin {
-  background: transparent !important;
-  border: 2px solid #90D0F8 !important;
-  color: #90D0F8 !important;
-  width: auto !important;
-  height: auto !important;
-  padding: 8px 14px !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-nav.toolbar #authSlot .button.signin .title {
-  color: inherit !important;
-  font-weight: 700 !important;
-  font-size: 0.95rem !important;
-  line-height: 1 !important;
-  margin: 0 !important;
-  font-family: 'Roboto', sans-serif !important;
-}
-nav.toolbar #authSlot .button.signin:hover {
-  background: #90D0F8 !important;
-  color: #0a0e27 !important;
-}
-nav.toolbar #authSlot .button.signin:hover .title {
-  color: #0a0e27 !important;
-}
-</style><style>
-/* === FINAL PASS: Bright accent + bold everywhere + Sign In styling === */
-:root { --toolbar-accent: #A3DCFF; }
-
-nav.toolbar .logo-text {
-  color: var(--toolbar-accent) !important;
-  font-weight: 700 !important;
-  font-family: 'Roboto', sans-serif !important;
-}
-nav.toolbar .nav-links { gap: 60px !important; position: relative; }
-nav.toolbar .nav-links a {
-  color: var(--toolbar-accent) !important;
-  font-weight: 700 !important;
-  font-family: 'Roboto', sans-serif !important;
-  font-size: 1rem !important;
-  text-decoration: none;
-  position: relative;
-  padding: 5px 0;
-  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(163, 220, 255, 0.18) 100%);
-  background-size: 200% 100%;
-  transition: all 0.3s ease;
-}
-nav.toolbar .nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--toolbar-accent);
-  transition: width 0.3s ease;
-}
-nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-/* Sign In button (decoupled from New2Debate) */
-nav.toolbar #authSlot .button.signin {
-  background: transparent !important;
-  border: 2px solid var(--toolbar-accent) !important;
-  color: var(--toolbar-accent) !important;
-  width: auto !important;
-  height: auto !important;
-  padding: 8px 14px !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-nav.toolbar #authSlot .button.signin .title {
-  color: inherit !important;
-  font-weight: 700 !important;
-  font-size: 0.95rem !important;
-  line-height: 1 !important;
-  margin: 0 !important;
-  font-family: 'Roboto', sans-serif !important;
-}
-nav.toolbar #authSlot .button.signin:hover {
-  background: var(--toolbar-accent) !important;
-  color: #0a0e27 !important;
-}
-nav.toolbar #authSlot .button.signin:hover .title {
-  color: #0a0e27 !important;
-}
-</style><style>
-/* === TOOLBAR: Bluer accent + bold + consistent sizing === */
-:root { --toolbar-accent: #86C4FF; }
-
-nav.toolbar .logo-text {
-  color: var(--toolbar-accent) !important;
-  font-weight: 700 !important;
-  font-family: 'Roboto', sans-serif !important;
-}
-
-nav.toolbar .nav-links { gap: 60px !important; position: relative; }
-nav.toolbar .nav-links a {
-  color: var(--toolbar-accent) !important;
-  font-weight: 700 !important;
-  font-family: 'Roboto', sans-serif !important;
-  font-size: 1rem !important;
-  text-decoration: none;
-  position: relative;
-  padding: 5px 0;
-  background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(134,196,255,0.18) 100%);
-  background-size: 200% 100%;
-  transition: all 0.3s ease;
-}
-nav.toolbar .nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--toolbar-accent);
-  transition: width 0.3s ease;
-}
-nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-/* === SIGN IN (decoupled, visible, same everywhere) === */
-nav.toolbar #authSlot .button.signin {
-  background: transparent !important;
-  border: 2px solid var(--toolbar-accent) !important;
-  color: var(--toolbar-accent) !important;
-  width: auto !important;
-  height: auto !important;
-  padding: 10px 16px !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px !important;
-  box-shadow: 0 0 0 2px rgba(134,196,255,0.08) inset !important;
-  transform: none !important;
-}
-/* Lock in typography so it can't be affected by other .title rules */
-nav.toolbar #authSlot .button.signin .title {
-  color: inherit !important;
-  font-family: 'Roboto', sans-serif !important;
-  font-weight: 700 !important;
-  font-size: 1rem !important;
-  line-height: 1 !important;
-  margin: 0 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.3px !important;
-}
-nav.toolbar #authSlot .button.signin:hover {
-  background: var(--toolbar-accent) !important;
-  color: #0a0e27 !important;
-}
-nav.toolbar #authSlot .button.signin:hover .title {
-  color: #0a0e27 !important;
-}
-</style><style>
-/* === LIGHTER-BLUER ACCENT + SIGN IN UNDERLINE FIX === */
-:root { --toolbar-accent: #9FD6FF; }
-
-/* Ensure the Sign In anchor never picks up nav/CTA underline/hover effects */
-nav.toolbar #authSlot a,
-nav.toolbar #authSlot a:hover,
-nav.toolbar #authSlot a:focus {
-  text-decoration: none !important;
-  background: none !important;
-  position: static !important;
-}
-nav.toolbar #authSlot a::after { content: none !important; }
-
-/* Keep the button styling consistent and visible */
-nav.toolbar #authSlot .button.signin {
-  border: 2px solid var(--toolbar-accent) !important;
-  color: var(--toolbar-accent) !important;
-}
-nav.toolbar #authSlot .button.signin:hover {
-  background: var(--toolbar-accent) !important;
-  color: #0a0e27 !important;
-}
-
-/* Bold everywhere for logo + links, with the new accent */
-nav.toolbar .logo-text {
-  color: var(--toolbar-accent) !important;
-  font-weight: 700 !important;
-}
-nav.toolbar .nav-links a {
-  color: var(--toolbar-accent) !important;
-  font-weight: 700 !important;
-}
-nav.toolbar .nav-links a::after {
-  background: var(--toolbar-accent) !important;
-}
-</style><style>
-/* === LIGHTER, BLUER ACCENT + ABSOLUTE UNDERLINE REMOVAL FOR SIGN IN === */
-:root { --toolbar-accent: #7FCDFF; }
-
-/* Accent + bold for logo/links */
-nav.toolbar .logo-text { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
-nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; font-weight: 700 !important; }
-nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
-
-/* Kill any underline/pseudo-element bleed on Sign In (anchor, button, and title) */
-nav.toolbar #authSlot a,
-nav.toolbar #authSlot a:hover,
-nav.toolbar #authSlot .button.signin,
-nav.toolbar #authSlot .button.signin:hover,
-nav.toolbar #authSlot .button.signin .title,
-nav.toolbar #authSlot .button.signin .title:hover {
-  text-decoration: none !important;
-  background: none !important;
-  position: static !important;
-}
-nav.toolbar #authSlot a::after,
-nav.toolbar #authSlot .button.signin::after,
-nav.toolbar #authSlot .button.signin .title::after { content: none !important; }
-
-/* Keep the button visible/consistent */
-nav.toolbar #authSlot .button.signin {
-  border: 2px solid var(--toolbar-accent) !important;
-  color: var(--toolbar-accent) !important;
-  padding: 10px 16px !important;
-  border-radius: 12px !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-}
-nav.toolbar #authSlot .button.signin .title {
-  font-family: 'Roboto', sans-serif !important;
-  font-weight: 700 !important;
-  font-size: 1rem !important;
-  line-height: 1 !important;
-  margin: 0 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.3px !important;
-}
-nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
-nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
-</style>
-<style>
-/* === FINAL OVERRIDE (Home only) === */
-:root { --toolbar-accent: #6FCBFF; }
-
-/* Kill leftover underline gap under Sign In title on HOME toolbar */
-nav.toolbar #authSlot .button.signin .title {
-  padding-bottom: 0 !important;
-}
-
-/* Ensure no pseudo-underline can appear for the Sign In on HOME */
-nav.toolbar #authSlot a::after,
-nav.toolbar #authSlot .button.signin::after,
-nav.toolbar #authSlot .button.signin .title::after { content: none !important; }
-
-/* Ensure toolbar items use the accent */
-nav.toolbar .logo-text,
-nav.toolbar .nav-links a { color: var(--toolbar-accent) !important; }
-nav.toolbar .nav-links a::after { background: var(--toolbar-accent) !important; }
-nav.toolbar #authSlot .button.signin {
-  border-color: var(--toolbar-accent) !important;
-  color: var(--toolbar-accent) !important;
-}
-nav.toolbar #authSlot .button.signin:hover {
-  background: var(--toolbar-accent) !important;
-  color: #0a0e27 !important;
-}
-nav.toolbar #authSlot .button.signin:hover .title {
-  color: #0a0e27 !important;
-}
-</style>
-
-<style>
-/* === FINAL OVERRIDE: Bold toolbar nav links === */
-nav.toolbar .nav-links a { font-weight: 700 !important; }
-</style>
 </head>
 <body>
 <nav class="toolbar">
-<a class="logo" href="https://publicforumai.com">
+<a class="logo" href="index.html">
 <img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
 <span class="logo-text">PublicForumAI©</span>
 </a>
-<div class="nav-links"><a href="https://publicforumai.com/flower.html">AI Flow</a>
-<a href="https://publicforumai.com/setup.html">AI Practice Round</a>
-<a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
+<div class="nav-links"><a href="flower.html">AI Flow</a>
+<a href="setup.html">AI Practice Round</a>
+<a href="casewriter.html">AI Casewriter</a>
 <a href="modules.html">Training Modules</a>
 </div>
 <div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
@@ -1583,7 +1052,7 @@ nav.toolbar .nav-links a { font-weight: 700 !important; }
 <div class="footer-content">
 <!-- Brand Section -->
 <div class="footer-column">
-<a class="logo" href="https://publicforumai.com">
+<a class="logo" href="index.html">
 <img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
 <span class="logo-text">PublicForumAI©</span>
 </a>
@@ -2752,13 +2221,6 @@ header .hero-title {
     linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb);      /* same gradient border */
   box-shadow: 0 0 28px rgba(125, 211, 252, 0.35);
   transform: translateY(-3px);
-}
-nav.toolbar .nav-links a {
-  font-weight: bold !important;
-}
-nav.toolbar .nav-links a {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-  font-weight: 600 !important;
 }
     </style>
 <script>

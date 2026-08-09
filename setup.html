@@ -14,6 +14,34 @@
   <title>Free AI Public Forum Debater</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<link rel="stylesheet" href="toolbar.css"/>
+<script>
+/* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
+(function () {
+  var snap = null;
+  try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
+  if (!snap || !snap.uid) return;
+  document.documentElement.classList.add('pfai-signed-in');
+  var painted = false;
+  function paint() {
+    if (painted) return;
+    var slot = document.getElementById('authSlot');
+    if (!slot) return;
+    painted = true;
+    obs.disconnect();
+    var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
+    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
+    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
+    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
+      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
+    slot.querySelector('.user-avatar-initials').textContent = initials;
+    slot.querySelector('.user-name').textContent = '@' + name;
+  }
+  var obs = new MutationObserver(paint);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('DOMContentLoaded', paint);
+})();
+</script>
 
   <style>
     /* Basic Reset */
@@ -132,43 +160,9 @@
     }
     @media screen and (max-width: 768px) { #homeButton { display: none; } }
 
-    /* Base toolbar style (kept) */
-    .toolbar {
-      position: fixed; top: 0; left: 0; right: 0;
-      background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
-      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 30px; z-index: 1000; backdrop-filter: blur(10px);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-    }
-    .toolbar::before {
-      content: ''; position: absolute; top: 0; left: -100%; width: 200%; height: 100%;
-      background: linear-gradient(90deg, transparent 25%, rgba(0, 255, 255, 0.1) 50%, transparent 75%);
-      animation: scanner-beam 8s infinite linear;
-    }
-    @keyframes scanner-beam { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
-
-    .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4)); transition: all 0.3s ease; }
-    .logo:hover img { filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6)); }
-
-    .nav-links { display: flex; gap: 100px; position: relative; } /* will be overridden below to 60px */
-
-    .nav-links a {
-      color: #00f3ff !important; text-decoration: none; font-weight: 600; position: relative; padding: 5px 0;
-      background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
-      background-size: 200% 100%; transition: all 0.3s ease;
-    }
-    .nav-links a::after {
-      content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #00f3ff;
-      transition: width 0.3s ease;
-    }
-    .nav-links a:hover { background-position: -100% 0; }
-    .nav-links a:hover::after { width: 100%; }
 
     @keyframes border-glow { 0% { opacity: 0.6; } 50% { opacity: 0.3; } 100% { opacity: 0.6; } }
 
-    /* Adjust body offset so content isn't hidden under fixed toolbar */
-    body { margin-top: 0px; padding-top: 100px; }
 
     /* Card buttons (unchanged) */
     .button.orange { background: linear-gradient(135deg,#FFD700, #F57C00); width: 300px; height: 50px; padding: 0; }
@@ -202,12 +196,6 @@
       background: linear-gradient(45deg, #FFD700, #F57C00, #FFD700); z-index: -1; border-radius: 25px;
       animation: border-glow 2s linear infinite; opacity: 0.6; }
 
-    .logo { display: flex; align-items: center; gap: 15px; }
-    .logo-text {
-      color: #00f3ff; font-size: 1.4rem; font-weight: 600; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
-      letter-spacing: 0.5px; margin-left: 10px;
-    }
-    .logo, .logo-text { text-decoration: none !important; }
     main {
       background: linear-gradient(180deg, #b4dcff, #085eb3);
       padding-top: 30px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -297,6 +285,12 @@
     .button.orange:hover { background: linear-gradient(135deg, #5A4FCF, #483d8b); border: 2px solid #A78BFA; box-shadow: 0 4px 25px rgba(123, 104, 238, 0.3); }
     .button.orange::after { content: none; }
 
+    .site-footer .logo { display: flex; align-items: center; gap: 15px; text-decoration: none; }
+    .site-footer .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4)); }
+    .site-footer .logo-text {
+      color: #00f3ff; font-size: 1.4rem; font-weight: 600; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+      letter-spacing: 0.5px; margin-left: 10px; text-decoration: none;
+    }
     .site-footer {
       background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
       color: #00f3ff; padding: 40px 20px; margin-top: 50px; border-top: 1px solid rgba(0, 255, 255, 0.2); width: 100%;
@@ -336,194 +330,22 @@
     .feedback-form button { background: linear-gradient(135deg, #00f3ff, #0066cc); color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; transition: transform 0.3s ease; }
   </style>
 
-  <!-- Roboto to match casewriter toolbar typography -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
 
-  <!-- === CASEWRITER TOOLBAR OVERRIDES (exact look) === -->
-  <style>
-    :root { --toolbar-accent: #6FCBFF; }
 
-    /* Match spacing + colors */
-    nav.toolbar .nav-links { gap: 60px !important; position: relative; }
-    nav.toolbar .logo-text,
-    nav.toolbar .nav-links a {
-      color: var(--toolbar-accent) !important;
-      font-weight: 700 !important;
-      font-family: 'Roboto', sans-serif !important;
-      font-size: 1rem !important;
-    }
-    nav.toolbar .nav-links a {
-      text-decoration: none;
-      position: relative;
-      padding: 5px 0;
-      background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(163, 220, 255, 0.18) 100%);
-      background-size: 200% 100%;
-      transition: all 0.3s ease;
-    }
-    nav.toolbar .nav-links a::after {
-      content: '';
-      position: absolute;
-      bottom: -2px; left: 0; width: 0; height: 2px;
-      background: var(--toolbar-accent);
-      transition: width 0.3s ease;
-    }
-    nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-    nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-    /* SIGN IN button (decoupled from .button.orange) */
-    nav.toolbar #authSlot a,
-    nav.toolbar #authSlot a:hover,
-    nav.toolbar #authSlot a:focus {
-      text-decoration: none !important;
-      background: none !important;
-      position: static !important;
-    }
-    nav.toolbar #authSlot a::after { content: none !important; }
-
-    nav.toolbar #authSlot .button.signin {
-      background: transparent !important;
-      border: 2px solid var(--toolbar-accent) !important;
-      color: var(--toolbar-accent) !important;
-      width: auto !important;
-      height: auto !important;
-      padding: 10px 16px !important;
-      display: inline-flex !important;
-      align-items: center; justify-content: center;
-      border-radius: 12px !important;
-      box-shadow: 0 0 0 2px rgba(134,196,255,0.08) inset !important;
-      transform: none !important;
-    }
-    nav.toolbar #authSlot .button.signin .title {
-      color: inherit !important;
-      font-family: 'Roboto', sans-serif !important;
-      font-weight: 700 !important;
-      font-size: 1rem !important;
-      line-height: 1 !important;
-      margin: 0 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.3px !important;
-    }
-    nav.toolbar #authSlot .button.signin:hover {
-      background: var(--toolbar-accent) !important;
-      color: #0a0e27 !important;
-    }
-    nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
-
-    /* Bold nav links (as in casewriter "FINAL OVERRIDE") */
-    nav.toolbar .nav-links a { font-weight: 700 !important; }
-  </style>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  :root { --toolbar-accent: #6FCBFF; }
-
-  /* Match casewriter's top offset (removes the extra vertical space) */
-  body { padding-top: 80px !important; }
-
-  /* Toolbar base spacing */
-  nav.toolbar { padding: 12px 30px !important; }
-  nav.toolbar .logo { text-decoration: none !important; display: flex; align-items: center; gap: 12px; }
-  nav.toolbar .logo img { height: 40px !important; }
-
-  /* Make "PublicForumAI©" look exactly the same */
-  nav.toolbar .logo-text {
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 1.55rem !important;   /* lock size */
-    line-height: 1 !important;
-    letter-spacing: 0.2px !important;
-    color: var(--toolbar-accent) !important;
-  }
-
-  /* Nav links: spacing + weight + underline hover */
-  nav.toolbar .nav-links { gap: 60px !important; align-items: center !important; }
-  nav.toolbar .nav-links a {
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    line-height: 1 !important;
-    color: var(--toolbar-accent) !important;
-    text-decoration: none !important;
-    position: relative;
-    padding: 5px 0;
-    background: linear-gradient(120deg, transparent 0%, transparent 50%, rgba(163,220,255,0.18) 100%);
-    background-size: 200% 100%;
-    transition: all 0.3s ease;
-  }
-  nav.toolbar .nav-links a::after {
-    content: '';
-    position: absolute;
-    left: 0; bottom: -2px; height: 2px; width: 0;
-    background: var(--toolbar-accent);
-    transition: width 0.3s ease;
-  }
-  nav.toolbar .nav-links a:hover { background-position: -100% 0 !important; }
-  nav.toolbar .nav-links a:hover::after { width: 100% !important; }
-
-  /* Prevent global .button rules from affecting toolbar buttons */
-  nav.toolbar .button {
-    width: auto !important;
-    height: auto !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  /* Rebuild the SIGN IN pill to match casewriter exactly */
-  nav.toolbar #authSlot { display: flex; align-items: center; }
-  nav.toolbar #authSlot a,
-  nav.toolbar #authSlot a:hover,
-  nav.toolbar #authSlot a:focus {
-    text-decoration: none !important;
-    background: none !important;
-    position: static !important;
-  }
-  nav.toolbar #authSlot a::after { content: none !important; }
-
-  nav.toolbar #authSlot .button.signin {
-    background: transparent !important;
-    border: 2px solid var(--toolbar-accent) !important;
-    color: var(--toolbar-accent) !important;
-    padding: 10px 16px !important;
-    border-radius: 12px !important;
-    display: inline-flex !important;
-    align-items: center; justify-content: center;
-    box-shadow: 0 0 0 2px rgba(134,196,255,0.08) inset !important;
-    transform: none !important;
-  }
-  nav.toolbar #authSlot .button.signin .title {
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    line-height: 1 !important;
-    letter-spacing: 0.3px !important;
-    text-transform: uppercase !important;
-    margin: 0 !important;
-    color: inherit !important;
-  }
-  nav.toolbar #authSlot .button.signin:hover { background: var(--toolbar-accent) !important; color: #0a0e27 !important; }
-  nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27 !important; }
-  nav.toolbar .nav-links a {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-  font-weight: 600 !important;
-}
-</style>
-
-  </style>
 </head>
 <body>
 
   <!-- === REPLACED TOOLBAR (exact markup from casewriter) === -->
   <nav class="toolbar">
-    <a class="logo" href="https://publicforumai.com">
+    <a class="logo" href="index.html">
       <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
       <span class="logo-text">PublicForumAI©</span>
     </a>
 
     <div class="nav-links">
-      <a href="https://publicforumai.com/flower.html">AI Flow</a>
-      <a href="https://publicforumai.com/setup.html">AI Practice Round</a>
-      <a href="https://publicforumai.com/casewriter.html">AI Casewriter</a>
+      <a href="flower.html">AI Flow</a>
+      <a href="setup.html">AI Practice Round</a>
+      <a href="casewriter.html">AI Casewriter</a>
       <a href="modules.html">Training Modules</a>
     </div>
 
@@ -590,7 +412,7 @@
     <div class="footer-content">
       <!-- Brand Section -->
       <div class="footer-column">
-        <a href="https://publicforumai.com" class="logo">
+        <a href="index.html" class="logo">
           <img src="android-chrome-192x192.png" alt="Public Forum AI Logo">
           <span class="logo-text">PublicForumAI&copy;</span>
         </a>
