@@ -284,6 +284,11 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
             <p id="mfaOffErr" class="err" hidden></p>
           </div>
 
+          <div id="mfaGoogleOnly" hidden>
+            <p class="mfa-note">You sign in with Google, so your Google account already decides what a second step looks like. Turn on 2-Step Verification in your Google account and it protects PublicForumAI too.</p>
+            <p class="mfa-note">We do not add a separate authenticator here for Google sign-ins. Recovering one needs a password, and your account does not have a password to check, so losing your phone would lock you out for good.</p>
+          </div>
+
           <div id="mfaEnrollBox" hidden>
             <p class="mfa-note">Scan this code with your authenticator app, or type the key in by hand.</p>
             <div class="qr-wrap"><canvas id="mfaQr"></canvas></div>
@@ -896,9 +901,17 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
         return (multiFactor(user).enrolledFactors || []).find((f) => f.factorId === 'totp') || null;
       }
 
+      // A Google-only account has no password credential, and /2fa/recover
+      // proves ownership with a password. Enrolling one of these accounts
+      // would mean a lost phone locks the student out permanently, so offer
+      // enrollment only where recovery can actually work. Anyone already
+      // enrolled keeps the management UI so they can turn it back off.
+      const hasPassword = (user.providerData || []).some((p) => p.providerId === 'password');
+
       function renderState() {
         const f = totpFactor();
-        show($('mfaOff'), !f);
+        show($('mfaOff'), !f && hasPassword);
+        show($('mfaGoogleOnly'), !f && !hasPassword);
         show($('mfaOn'), !!f);
         show($('mfaEnrollBox'), false);
         show($('mfaRegenConfirm'), false);
