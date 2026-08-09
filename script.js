@@ -137,8 +137,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!ok) return;
         return pfGate.authUser().then(function (user) {
             if (!user) return;
+            // selectedSkill is part of the key: a middle-school round and a
+            // high-school round on the same topic are different rounds.
             __savedRoundKey = 'savedRound::' + user.uid + '::' +
-                pfHash(debateTopic + '|' + selectedSide + '|' + selectedTurn);
+                pfHash(debateTopic + '|' + selectedSide + '|' + selectedTurn + '|' + selectedSkill);
             restoreSavedRound(selectedSide, nonselectedSide);
         });
     });
@@ -179,6 +181,9 @@ function restoreSavedRound(selectedSide, nonselectedSide) {
         updateFlowValues(selectedSide, nonselectedSide);
     }
     __roundSavedToProfile = !!state.savedToProfile;
+    // Reusing the saved id keeps one round identity across reloads, so feedback
+    // updates the right round and the server gem award stays deduplicated.
+    if (state.roundId) window.__currentRoundId = state.roundId;
 
     updateResultsVisibility()
     console.log('Round auto-loaded!');
@@ -320,6 +325,9 @@ function splitForTTS(text) {
         if (cut < MAX / 2) cut = rest.lastIndexOf(' ', MAX);
         if (cut <= 0) cut = MAX;
         else cut += 1;
+        // A boundary found at MAX becomes MAX + 1 above, one over the cap the
+        // backend enforces, so clamp after the increment.
+        if (cut > MAX) cut = MAX;
         chunks.push(rest.slice(0, cut));
         rest = rest.slice(cut);
     }
@@ -348,43 +356,41 @@ async function speakFromElement(elementId, isActive, playQueue) {
         if (audioQueue.length > 0 && !isActive()) {
             playQueue(audioQueue);
         }
+
+        // A failed chunk means the rest of the speech would fail the same way,
+        // so stop instead of firing a toast per chunk.
+        if (!url) break;
     }
 }
 
 
 async function fetchAudioFromServer(text) {
-    // On a per-user 429, wait out Retry-After and try again rather than
-    // dropping the audio.
-    for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-            const response = await pfFetch('/tts', {
-                json: {
-                    input: { text: text },
-                    voice: {
-                        languageCode: "en-US",
-                        name: "en-US-Chirp3-HD-Orus"
-                    },
-                    audioConfig: {
-                        audioEncoding: "LINEAR16",
-                        pitch: 0,
-                        speakingRate: 1.19,
-                        effectsProfileId: ["small-bluetooth-speaker-class-device"]
-                    }
+    // No client-side retry: the /tts limit is a rolling hour, so retry_after is
+    // measured in tens of minutes and every retry would fail. api.js shows the
+    // cooldown toast with the real wait instead.
+    try {
+        const response = await pfFetch('/tts', {
+            json: {
+                input: { text: text },
+                voice: {
+                    languageCode: "en-US",
+                    name: "en-US-Chirp3-HD-Orus"
+                },
+                audioConfig: {
+                    audioEncoding: "LINEAR16",
+                    pitch: 0,
+                    speakingRate: 1.19,
+                    effectsProfileId: ["small-bluetooth-speaker-class-device"]
                 }
-            }, { page: 'Flow', retry429: true });
-
-            const blob = await response.blob();
-            return URL.createObjectURL(blob);
-        } catch (error) {
-            if (error && error.code === 'rate_limited' && error.scope !== 'global' && attempt < 2) {
-                await new Promise(r => setTimeout(r, Math.min(error.retryAfter || 30, 120) * 1000));
-                continue;
             }
-            console.error("TTS error:", error);
-            return null;
-        }
+        }, { page: 'Flow' });
+
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+    } catch (error) {
+        console.error("TTS error:", error);
+        return null;
     }
-    return null;
 }
 
 
@@ -522,7 +528,10 @@ async function startSpeakingR() {
 async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
     generateButtonAI.classList.remove('glowing');
     fullAIContentionRaw = '';
-    document.getElementById('AIContentionText').innerHTML = '';
+    const caseElement = document.getElementById('AIContentionText');
+    const previousCase = caseElement.innerHTML;
+    let caseGenerated = false;
+    caseElement.innerHTML = '';
     document.querySelector('#AIContention .loading').style.display = 'block';
     // Update text within AIContention's loading
     document.querySelector('#AIContention .text10').textContent = 'Generating Case (~15s)';
@@ -542,6 +551,17 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
         const data1 = await response1.json();
         const AICase = data1.AICase;
 
+        // Show the case as soon as it exists. /get_sources replaces it below
+        // when it works; when it fails the student still has the case that was
+        // generated for them. The evidence markers and bold markup that
+        // /get_sources would have stripped are stripped here too, because this
+        // text is what the judge reads back off the page.
+        if (typeof AICase === 'string' && AICase.trim() !== '') {
+            caseGenerated = true;
+            const plainCase = AICase.replace(/µ/g, '').replace(/\*\*/g, '');
+            caseElement.innerHTML = "<p>" + pfSanitize(plainCase) + "</p>";
+        }
+
 
         // Update loading text
         document.querySelector('#AIContention .text10').textContent = 'Finding Sources (~10s)';
@@ -559,10 +579,18 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
         const modifiedAICase = data2.AICase;
 
 
-        // Display the AI case with sources
-        document.getElementById('AIContentionText').innerHTML = "<p>" + pfSanitize(modifiedAICase) + "</p>";
+        // Display the AI case with sources, keeping the sourceless one if the
+        // sourced version came back empty.
+        if (typeof modifiedAICase === 'string' && modifiedAICase.trim() !== '') {
+            caseElement.innerHTML = "<p>" + pfSanitize(modifiedAICase) + "</p>";
+        }
     } catch (error) {
         console.error('Error processing user input:', error);
+        if (!caseGenerated) {
+            caseElement.innerHTML = previousCase;
+        } else if (window.pfToast) {
+            pfToast('Your case is ready, but sources could not be attached this time. It will argue the same points with no citations behind them.', { duration: 9000 });
+        }
     } finally {
         // Hide the loading animation and reset UI elements
         document.querySelector('#AIContention .loading').style.display = 'none';
@@ -1872,7 +1900,9 @@ function captureState() {
         transcriptionF: fullTranscriptionFF,
         feedback: document.getElementById('feedback-content').innerHTML,
         toggle: ToggleisSelectedSide,
-        savedToProfile: __roundSavedToProfile
+        savedToProfile: __roundSavedToProfile,
+        skill: document.getElementById('selectedSkill')?.textContent?.trim() || '',
+        roundId: window.__currentRoundId || null
     };
     return state;
 }
@@ -1908,6 +1938,58 @@ function selectJudgeType(type) {
     }
 
 }
+// The meta block every locally saved round carries. Kept in one place because
+// saveFeedbackToProfile replaces meta wholesale when it patches a round.
+function currentRoundMeta() {
+  return {
+    debateTopic: getDebateTopicSafe(),
+    selectedSide: document.getElementById('selectedSide')?.textContent?.trim() || '',
+    selectedTurn: document.getElementById('selectedTurn')?.textContent?.trim() || '',
+    selectedSkill: document.getElementById('selectedSkill')?.textContent?.trim() || '',
+    judgeType: (typeof judgeType !== 'undefined' ? judgeType : 'tech')
+  };
+}
+
+// Map a locally saved round onto the flat shape POST /rounds accepts. The
+// backend rejects an oversize field rather than truncating it, so the caps are
+// applied here.
+function toServerRound(round) {
+  const SHORT = 100;
+  const LONG = 60000;
+  const text = (value, cap) => (typeof value === 'string' ? value.slice(0, cap) : '');
+  const meta = round.meta || {};
+  return {
+    id: round.id,
+    topic: text(meta.debateTopic, 500) || 'Practice Round',
+    side: text(meta.selectedSide, SHORT),
+    turn: text(meta.selectedTurn, SHORT),
+    skill: text(meta.selectedSkill, SHORT),
+    judgeType: text(meta.judgeType, SHORT),
+    transcription: text(round.transcriptionC, LONG),
+    transcriptionR: text(round.transcriptionR, LONG),
+    transcriptionS: text(round.transcriptionS, LONG),
+    transcriptionF: text(round.transcriptionF, LONG),
+    AICase: text(round.AICase, LONG),
+    AIRebuttal: text(round.AIRebuttal, LONG),
+    AISummary: text(round.AISummary, LONG),
+    AIFinalFocus: text(round.AIFF, LONG),
+    feedback: text(round.Feedback || round.feedback, LONG)
+  };
+}
+
+// Best-effort copy to the account. The round is already in localStorage, so a
+// failure here costs the student nothing on this device.
+function syncRoundToServer(round) {
+  if (typeof window.pfFetch !== 'function') return;
+  if (!round || !round.id) return;
+  try {
+    pfFetch('/rounds', { json: toServerRound(round) }, { page: 'Flow', quiet: true })
+      .catch(error => { console.error('Could not save this round to your account:', error); });
+  } catch (error) {
+    console.error('Could not save this round to your account:', error);
+  }
+}
+
 function onResultsButtonShown(){
   if (__roundSavedToProfile) return;
 
@@ -1920,12 +2002,7 @@ function onResultsButtonShown(){
   const round = {
     ...state,
     // Make sure we persist the topic + judge + quick meta for the profile card
-    meta: {
-      debateTopic: getDebateTopicSafe(),
-      selectedSide: document.getElementById('selectedSide')?.textContent?.trim() || '',
-      selectedTurn: document.getElementById('selectedTurn')?.textContent?.trim() || '',
-      judgeType: (typeof judgeType !== 'undefined' ? judgeType : 'tech')
-    },
+    meta: currentRoundMeta(),
     // Keep the feedback HTML if it already exists in the DOM
     Feedback: document.getElementById('feedback-content')?.innerHTML || '',
     timestamp: Date.now()
@@ -1935,57 +2012,52 @@ function onResultsButtonShown(){
   // so the server-side gem award and this saved round share one key)
   round.id = pfCurrentRoundId();
   const id = (window.addRoundForUser && addRoundForUser(user.uid, round)) || null;
-  if (id) window.__currentRoundId = id;   // <-- add this line
-  if (window.addGemsToUser) addGemsToUser(user.uid, 100);
+  if (id) window.__currentRoundId = id;
+  // No local gem credit here. The server awards the round's gems once per round
+  // id when the judge runs, and the profile reads that total, so crediting the
+  // same round again on this device only makes the two disagree.
 
   __roundSavedToProfile = true;
+  // Persist the id with the round state so a reload reuses it instead of
+  // minting a new one.
+  saveRound();
+  syncRoundToServer(round);
 
   // (Optional) tiny visual cue on the button
   try { document.getElementById('results-btn')?.setAttribute('data-saved', '1'); } catch {}
 }
-// NEW: update the saved profile round with feedback (no extra gems, no duplicates)
+// Update the saved profile round with feedback (no extra gems, no duplicates).
+// Writes only to the round this page is running, and only once there is
+// feedback to write: a missing id or empty feedback means there is nothing to
+// save, never a licence to overwrite some other round.
 function saveFeedbackToProfile() {
   try {
     const user = (window.currentUser && window.currentUser()) || null;
     if (!user) return;
 
     const id = window.__currentRoundId || null;
-    const feedbackHtml = document.getElementById('feedback-content')?.innerHTML || '';
-    const judge = (typeof judgeType !== 'undefined' ? judgeType : 'tech');
+    if (!id) return;
 
-    // What we want to update on the saved round
+    const feedbackHtml = document.getElementById('feedback-content')?.innerHTML || '';
+    if (feedbackHtml.trim() === '') return;
+
     const patch = {
       Feedback: feedbackHtml,
       // keep judge + topic + quick meta in sync
-      meta: {
-        debateTopic: getDebateTopicSafe(),
-        selectedSide: document.getElementById('selectedSide')?.textContent?.trim() || '',
-        selectedTurn: document.getElementById('selectedTurn')?.textContent?.trim() || '',
-        judgeType: judge
-      }
+      meta: currentRoundMeta()
     };
 
-    // If auth.js exposes an updater, use it.
-    if (typeof window.updateRoundForUser === 'function' && id) {
-      window.updateRoundForUser(user.uid, id, patch);
-      return;
-    }
-
-    // Fallback: mutate localStorage directly (same schema as profile.html)
     const key = `pfai_profile::${user.uid}`;
     const profile = JSON.parse(localStorage.getItem(key) || '{"gems":0,"rounds":[]}');
     const rounds = profile.rounds || [];
 
-    // Prefer updating by id; otherwise update the most recent round
-    const idx = id ? rounds.findIndex(r => r.id === id) : -1;
-    if (idx >= 0) {
-      rounds[idx] = { ...rounds[idx], ...patch };
-    } else if (rounds.length) {
-      rounds[rounds.length - 1] = { ...rounds[rounds.length - 1], ...patch };
-    }
+    const idx = rounds.findIndex(r => r.id === id);
+    if (idx < 0) return;
+    rounds[idx] = { ...rounds[idx], ...patch };
 
     profile.rounds = rounds;
     localStorage.setItem(key, JSON.stringify(profile));
+    syncRoundToServer(rounds[idx]);
   } catch (e) {
     console.error('saveFeedbackToProfile failed:', e);
   }
@@ -2001,6 +2073,9 @@ function pfCurrentRoundId() {
 }
 
 function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, transcriptionF, AICase, AIRebuttal, AISummary, AIFinalFocus) {
+    // Feedback already on the page is put back if this request fails, so a
+    // rate-limited second opinion does not cost the student the first one.
+    const previousFeedback = document.getElementById('feedback-content').innerHTML;
     document.getElementById('feedback-content').innerHTML = ''
     document.querySelector('.loadingfeed').style.display = 'block';
     if (judgeType == 'tech') {
@@ -2036,14 +2111,14 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
                     pfSanitize(TechFeedback)
                         .replace('Decision:', '<br>Decision:') +  // Add line break before Decision
                     "</p>";
+                saveRound()
+                saveFeedbackToProfile();
             })
             .catch(error => {
                 console.error('Error processing user input:', error);
+                document.getElementById('feedback-content').innerHTML = previousFeedback;
             })
             .finally(() => {
-
-                saveRound()
-                saveFeedbackToProfile();
                 document.querySelector('.loadingfeed').style.display = 'none';
             }
             );
@@ -2075,14 +2150,14 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
 
                 // Display the AI response
                 document.getElementById('feedback-content').innerHTML = "<p>" + pfSanitize(LayFeedback) + "</p>";
+                saveRound()
+                saveFeedbackToProfile();
             })
             .catch(error => {
                 console.error('Error processing user input:', error);
+                document.getElementById('feedback-content').innerHTML = previousFeedback;
             })
             .finally(() => {
-
-                saveRound()
-                saveFeedbackToProfile();
                 document.querySelector('.loadingfeed').style.display = 'none';
             }
             );
