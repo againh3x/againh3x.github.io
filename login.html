@@ -1,12 +1,29 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign In</title>
-<link rel="stylesheet" href="styles.css">
+<title>Sign in | PublicForumAI</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-ERE3HL6LKB');
+    </script>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
 <link rel="stylesheet" href="toolbar.css"/>
+<script>
+/* Framebuster: the only clickjacking mitigation available on GitHub Pages. */
+if (window.top !== window.self) {
+  try { window.top.location = window.self.location; }
+  catch (e) { document.documentElement.style.display = 'none'; }
+}
+</script>
 <script>
 /* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
 (function () {
@@ -35,26 +52,164 @@
 })();
 </script>
 <style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0a0e27, #121a3d 45%, #0a1a2f);
+  color: #eaf6ff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .login-wrap {
-  max-width: 560px; margin: 80px auto; padding: 24px;
-  background: rgba(255,255,255,0.06); border:1px solid rgba(0,243,255,0.3); border-radius:16px; color:#eaffff;
-  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  width: min(460px, calc(100% - 32px));
+  margin: 48px auto 64px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(111, 203, 255, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
-.login-wrap h1 { margin: 0 0 12px; color: #00f3ff; }
-.field { margin-bottom: 10px; }
-.field label { display:block; margin:0 0 6px; font-weight:700; color:#b6f7ff;}
+.login-wrap h1 {
+  margin: 0 0 6px;
+  font-size: 1.45rem;
+  color: #6FCBFF;
+}
+.lead { margin: 0 0 18px; color: #b9d9f2; font-size: 0.95rem; line-height: 1.45; }
+
+.tabbar { display: flex; margin-bottom: 22px; border-bottom: 1px solid rgba(111, 203, 255, 0.2); }
+.tabbar button {
+  flex: 1;
+  padding: 12px 4px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #9fc3e0;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tabbar button.active { color: #6FCBFF; border-bottom-color: #6FCBFF; }
+.tabbar button:hover { color: #7df9ff; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; margin: 0 0 6px; font-weight: 700; font-size: 0.92rem; color: #b6e4ff; }
 .field input {
-  width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(0,255,255,0.3);
-  background: rgba(0,0,0,0.35); color:#eaffff; outline:none;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(111, 203, 255, 0.3);
+  background: rgba(4, 10, 26, 0.6);
+  color: #eaf6ff;
+  font-family: inherit;
+  font-size: 1rem;
+  outline: none;
 }
-.actions { display:flex; gap:10px; margin-top: 12px; flex-wrap:wrap; }
-.bigbtn { flex:1; padding:12px; border-radius:999px; border:none; font-weight:800; cursor:pointer; font-size: 1.2rem;}
-.primary { background:#00f3ff; color:#052b36; }
-.ghost { background:rgba(0,0,0,0.4); color:#eaffff; border:1px solid rgba(0,255,255,0.4); }
-.hint { font-size: .9rem; opacity:.9; color:#cfefff; margin-top:8px;}
-.google { background:#fff; color:#222; }
-.note { font-size: .9rem; color:#ffefc7; margin-top: 6px;}
-.center { text-align:center; margin-top: 10px;}
+.field input:focus { border-color: #6FCBFF; box-shadow: 0 0 0 3px rgba(111, 203, 255, 0.15); }
+.field .fieldhint { margin: 5px 0 0; font-size: 0.82rem; color: #8fb4d4; }
+
+.bigbtn {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 999px;
+  background: #6FCBFF;
+  color: #0a0e27;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.bigbtn:hover { background: #8fd8ff; }
+.bigbtn.secondary {
+  background: transparent;
+  color: #6FCBFF;
+  border: 2px solid rgba(111, 203, 255, 0.6);
+}
+.bigbtn.secondary:hover { background: rgba(111, 203, 255, 0.12); }
+button.busy, button:disabled { opacity: 0.55; cursor: default; }
+button.busy:hover, button:disabled:hover { background: inherit; }
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dadce0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f1f1f;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.google-btn:hover { background: #f3f7fb; }
+.google-btn svg { flex: none; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: #8fb4d4;
+  font-size: 0.85rem;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(111, 203, 255, 0.2);
+}
+
+.form-error { margin: 10px 0 0; font-size: 0.9rem; color: #ffb4a8; line-height: 1.4; }
+.form-msg { margin: 10px 0 0; font-size: 0.9rem; color: #a8e6b8; line-height: 1.4; }
+.form-note { margin: 10px 0 0; font-size: 0.9rem; color: #ffe9a8; line-height: 1.45; }
+.form-error:empty, .form-msg:empty, .form-note:empty { display: none; }
+
+.warnbox {
+  margin: 14px 0;
+  padding: 10px 12px;
+  border-left: 3px solid #ffd166;
+  border-radius: 0 8px 8px 0;
+  background: rgba(255, 209, 102, 0.08);
+  color: #ffe9c2;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.warnbox ul { margin: 6px 0 0; padding-left: 18px; }
+
+.linkrow { margin-top: 14px; font-size: 0.9rem; text-align: center; }
+.linkrow + .linkrow { margin-top: 8px; }
+a.textlink, button.textlink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #7df9ff;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+a.textlink:hover, button.textlink:hover { color: #b3fbff; }
+
+.btnrow { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+.btnrow .bigbtn { flex: 1 1 140px; margin-top: 0; }
+
+/* This page must hold together on small phones even though toolbar.css has no
+   breakpoints yet; scope the fallback here. */
+@media (max-width: 720px) {
+  nav.toolbar { padding: 0 16px; }
+  nav.toolbar .nav-links { display: none; }
+  nav.toolbar .logo-text { font-size: 1.1rem; }
+  .login-wrap { padding: 20px 16px; margin-top: 24px; }
+}
 </style>
 </head>
 <body>
@@ -71,82 +226,593 @@
     </div>
     <div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
   </nav>
+
   <div class="login-wrap">
-    <h1>Sign in / Create account</h1>
-    <div class="field">
-      <label>Username <span style="color:#ffdd57">*</span></label>
-      <input id="uname" type="text" placeholder="e.g., PFPro123">
+    <div class="tabbar" id="tabbar">
+      <button type="button" id="tabSignin" class="active">Sign in</button>
+      <button type="button" id="tabCreate">Create account</button>
     </div>
-    <div class="field">
-      <label>Password <span style="color:#ffdd57">*</span></label>
-      <input id="pwd" type="password" placeholder="••••••••">
+
+    <!-- Sign in -->
+    <form id="panel-signin" class="panel" novalidate>
+      <div class="field">
+        <label for="si-id">Email or username</label>
+        <input id="si-id" type="text" autocomplete="username" autofocus>
+      </div>
+      <div class="field">
+        <label for="si-pwd">Password</label>
+        <input id="si-pwd" type="password" autocomplete="current-password">
+      </div>
+      <div class="form-msg" id="si-msg" aria-live="polite"></div>
+      <div class="form-error" id="si-err" aria-live="polite"></div>
+      <button class="bigbtn" type="submit" id="si-btn">Sign in</button>
+      <div class="linkrow"><button type="button" class="textlink" id="forgotLink">Forgot your password?</button></div>
+    </form>
+
+    <!-- Create account -->
+    <form id="panel-create" class="panel" hidden novalidate>
+      <div class="field">
+        <label for="cr-name">Username</label>
+        <input id="cr-name" type="text" autocomplete="nickname" maxlength="30">
+        <p class="fieldhint">Shown with your work. You sign in with your email.</p>
+      </div>
+      <div class="field">
+        <label for="cr-email">Email</label>
+        <input id="cr-email" type="email" autocomplete="email">
+        <p class="fieldhint">A real address you can open. We send a verification link there.</p>
+      </div>
+      <div class="field">
+        <label for="cr-pwd">Password</label>
+        <input id="cr-pwd" type="password" autocomplete="new-password">
+        <p class="fieldhint">At least 8 characters.</p>
+      </div>
+      <div class="form-error" id="cr-err" aria-live="polite"></div>
+      <button class="bigbtn" type="submit" id="cr-btn">Create account</button>
+    </form>
+
+    <!-- Shared Google area for the two tabs -->
+    <div id="googleArea">
+      <div class="divider">or</div>
+      <button type="button" class="google-btn" id="googleBtn">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+      <div class="form-error" id="g-err" aria-live="polite"></div>
     </div>
-    <div class="field">
-      <label>Email (optional)</label>
-      <input id="email" type="email" placeholder="you@example.com">
+
+    <!-- TOTP challenge -->
+    <form id="panel-totp" class="panel" hidden novalidate>
+      <h1>Two-step verification</h1>
+      <p class="lead">Enter the 6-digit code from your authenticator app.</p>
+      <div class="field">
+        <label for="totp-code">Code</label>
+        <input id="totp-code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+      </div>
+      <div class="form-error" id="totp-err" aria-live="polite"></div>
+      <button class="bigbtn" type="submit" id="totp-btn">Verify</button>
+      <div class="linkrow"><button type="button" class="textlink" id="totpRecoveryLink">Lost your device? Use a recovery code</button></div>
+      <div class="linkrow"><button type="button" class="textlink" id="totpBackLink">Back to sign in</button></div>
+    </form>
+
+    <!-- Verification pending -->
+    <div id="panel-pending" class="panel" hidden>
+      <h1>Check your email</h1>
+      <p class="lead">We sent a verification link to <strong id="pend-email"></strong>. Click it, then come back here. This page checks on its own every few seconds. Look in spam if it does not show up.</p>
+      <div class="btnrow">
+        <button class="bigbtn" type="button" id="pend-check">I verified</button>
+        <button class="bigbtn secondary" type="button" id="pend-resend">Resend email</button>
+      </div>
+      <div class="form-msg" id="pend-msg" aria-live="polite"></div>
+      <div class="form-error" id="pend-err" aria-live="polite"></div>
+      <div class="linkrow"><button type="button" class="textlink" id="pendSwitchLink">Use a different account</button></div>
     </div>
-    <div class="actions">
-      <button class="bigbtn primary" id="create">Create account</button>
-      <button class="bigbtn ghost" id="signin">Sign in</button>
-    </div>
-    <div class="actions">
-    </div>
-    <p class="note">Creating an account lets you track past debates and save progress on training modules.</p>
-    <p class="center"><a href="index.html" style="color:#7df9ff;">Back to Home</a></p>
+
+    <!-- Legacy account: attach a real email -->
+    <form id="panel-legacy" class="panel" hidden novalidate>
+      <h1>Add an email to your account</h1>
+      <p class="lead">Your account <strong id="lg-user"></strong> was made before we required an email address. Without one, a forgotten password means the account is gone for good. Add a real email now to keep it safe.</p>
+      <div class="field">
+        <label for="lg-email">Your email</label>
+        <input id="lg-email" type="email" autocomplete="email">
+      </div>
+      <div class="warnbox">
+        After you click the link we send:
+        <ul>
+          <li>You will be signed out on every device.</li>
+          <li>You sign in with this email from then on. Your username stays as your display name.</li>
+        </ul>
+      </div>
+      <div class="field" id="lg-reauth" hidden>
+        <label for="lg-pwd">Confirm your password to continue</label>
+        <input id="lg-pwd" type="password" autocomplete="current-password">
+      </div>
+      <div class="form-msg" id="lg-msg" aria-live="polite"></div>
+      <div class="form-error" id="lg-err" aria-live="polite"></div>
+      <button class="bigbtn" type="submit" id="lg-btn">Send verification link</button>
+      <div class="linkrow"><button type="button" class="textlink" id="lgSwitchLink">Use a different account</button></div>
+    </form>
+
+    <!-- Forgot password -->
+    <form id="panel-forgot" class="panel" hidden novalidate>
+      <h1>Reset your password</h1>
+      <p class="lead">Enter your account email and we will send a reset link.</p>
+      <div class="field">
+        <label for="fp-email">Email</label>
+        <input id="fp-email" type="text" autocomplete="email">
+      </div>
+      <div class="form-note" id="fp-note" aria-live="polite"></div>
+      <div class="form-msg" id="fp-msg" aria-live="polite"></div>
+      <div class="form-error" id="fp-err" aria-live="polite"></div>
+      <button class="bigbtn" type="submit" id="fp-btn">Send reset link</button>
+      <div class="linkrow"><button type="button" class="textlink" id="fpBackLink">Back to sign in</button></div>
+    </form>
+
+    <!-- 2FA recovery -->
+    <form id="panel-recovery" class="panel" hidden novalidate>
+      <h1>Account recovery</h1>
+      <p class="lead">Locked out of two-step verification? Enter your email, password, and one of the recovery codes you saved when you set it up.</p>
+      <div class="field">
+        <label for="rc-email">Email</label>
+        <input id="rc-email" type="email" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="rc-pwd">Password</label>
+        <input id="rc-pwd" type="password" autocomplete="current-password">
+      </div>
+      <div class="field">
+        <label for="rc-code">Recovery code</label>
+        <input id="rc-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40">
+      </div>
+      <div class="form-error" id="rc-err" aria-live="polite"></div>
+      <button class="bigbtn" type="submit" id="rc-btn">Recover account</button>
+      <p class="fieldhint" style="margin-top:12px">No recovery codes left? Send us a message through the contact form on the home page from your account's email address and we will sort it out.</p>
+      <div class="linkrow"><button type="button" class="textlink" id="rcBackLink">Back to sign in</button></div>
+    </form>
   </div>
+
   <script src="auth.js"></script>
   <script>
-// AUTO-REDIRECT-IF-AUTH
-(function(){
-  const _params = new URLSearchParams(location.search);
-  const _next = _params.get('next') || 'modules.html';
-  if (typeof onAuth === 'function') {
-    onAuth(function(u){ if(u){ try{ window.location.href = _next; }catch(e){} } });
-  }
-})();
-    const _params = new URLSearchParams(location.search);
-    const _next = _params.get('next') || 'modules.html';
-    async function ensureFirebase(){
-      if (!window.FIREBASE_CONFIG) { alert("Add Firebase config in auth.js to enable sign-in across devices."); throw new Error("No Firebase config"); }
-      const app = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js');
-      const auth = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
-      if (!window._fb) window._fb = app.initializeApp(window.FIREBASE_CONFIG);
-      if (!window._auth) window._auth = auth.getAuth(window._fb);
-      await auth.setPersistence(window._auth, auth.browserLocalPersistence);
-      return { auth };
-    }
-    function toEmail(username, emailInput){
-      const u = (username||'').trim();
-      const e = (emailInput||'').trim();
-      if (e) return e;
-      // synthesize an email from username for Firebase
-      return u + "@pf.local";
-    }
-    async function signIn(mode){
-      const username = document.getElementById('uname').value.trim();
-      const pwd = document.getElementById('pwd').value.trim();
-      const email = document.getElementById('email').value.trim();
-      if (!username || !pwd){ alert("Username and password are required."); return; }
-      const { auth } = await ensureFirebase();
-      try {
-        if (mode === 'create') {
-          const { createUserWithEmailAndPassword, updateProfile } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
-          const cred = await createUserWithEmailAndPassword(window._auth, toEmail(username,email), pwd);
-          await updateProfile(cred.user, { displayName: username });
-        } else {
-          const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
-          await signInWithEmailAndPassword(window._auth, toEmail(username,email), pwd);
-        }
-        window.location.href = _next;
-      } catch (e) {
-        console.error(e);
-        alert(e.message || 'Error');
-      }
-    }
-    document.getElementById('create').onclick = () => signIn('create');
-    document.getElementById('signin').onclick = () => signIn('signin');
-    // Google login removed by request.
+(function () {
+  'use strict';
 
+  var BACKEND = 'https://pf-ai-debater-24c5902c1a88.herokuapp.com';
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var NAME_RE = /^[A-Za-z0-9][A-Za-z0-9 _.\-]{1,29}$/;
+
+  // next validation: same-origin, whitelisted path, query preserved.
+  var PATH_WHITELIST = ['/', '/index.html', '/setup.html', '/Flow.html', '/round.html',
+    '/casewriter.html', '/modules.html', '/flower.html', '/profile.html', '/login.html'];
+  function resolveNext() {
+    var raw = new URLSearchParams(location.search).get('next');
+    if (!raw) return 'index.html';
+    if (raw.indexOf('//') === 0 || raw.indexOf('\\') !== -1) return 'index.html';
+    var u;
+    try { u = new URL(raw, location.origin); } catch (e) { return 'index.html'; }
+    if (u.origin !== location.origin) return 'index.html';
+    if (PATH_WHITELIST.indexOf(u.pathname) === -1) return 'index.html';
+    return u.pathname + u.search + u.hash;
+  }
+  var NEXT = resolveNext();
+  var VERIFY_ACS = { url: 'https://publicforumai.com/login.html?next=' + encodeURIComponent(NEXT) };
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  var panels = {
+    signin: $('panel-signin'), create: $('panel-create'), totp: $('panel-totp'),
+    pending: $('panel-pending'), legacy: $('panel-legacy'), forgot: $('panel-forgot'),
+    recovery: $('panel-recovery')
+  };
+  var current = 'signin';
+  var redirecting = false;
+  var pollTimer = null;
+  var resendUntil = 0;
+  var resendTimer = null;
+  var mfaResolver = null;
+  var totpHint = null;
+
+  function clearNotes(names) {
+    names.forEach(function (id) { var el = $(id); if (el) el.textContent = ''; });
+  }
+  function show(name) {
+    current = name;
+    Object.keys(panels).forEach(function (k) { panels[k].hidden = (k !== name); });
+    var tabsVisible = (name === 'signin' || name === 'create');
+    $('tabbar').hidden = !tabsVisible;
+    $('googleArea').hidden = !tabsVisible;
+    $('tabSignin').classList.toggle('active', name === 'signin');
+    $('tabCreate').classList.toggle('active', name === 'create');
+    stopPoll();
+    if (name === 'pending') startPoll();
+  }
+  function busy(btn, on) { btn.disabled = on; btn.classList.toggle('busy', on); }
+
+  // Firebase bootstrap; shares the app/auth instances auth.js creates.
+  var fb = null;
+  async function fbReady() {
+    if (fb) return fb;
+    var appMod = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js');
+    var A = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
+    if (!window._fb) {
+      var apps = appMod.getApps();
+      window._fb = apps.length ? apps[0] : appMod.initializeApp(window.FIREBASE_CONFIG);
+    }
+    if (!window._auth) window._auth = A.getAuth(window._fb);
+    await A.setPersistence(window._auth, A.browserLocalPersistence);
+    fb = { auth: window._auth, A: A };
+    return fb;
+  }
+
+  function authMessage(e) {
+    switch (e && e.code) {
+      case 'auth/invalid-email': return 'That email address does not look right.';
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+      case 'auth/invalid-login-credentials': return 'Wrong email, username, or password.';
+      case 'auth/user-disabled': return 'This account has been disabled.';
+      case 'auth/email-already-in-use': return 'An account with that email already exists. Try signing in instead.';
+      case 'auth/weak-password': return 'Your password needs at least 8 characters.';
+      case 'auth/too-many-requests': return 'Too many attempts. Wait a minute, then try again.';
+      case 'auth/network-request-failed': return 'Could not reach the sign-in service. Check your connection and try again.';
+      case 'auth/popup-closed-by-user': return 'The Google window was closed before finishing. Try again when you are ready.';
+      case 'auth/invalid-verification-code': return 'That code did not work. Codes change every 30 seconds, so enter the newest one.';
+      default: return 'Something went wrong. Please try again.';
+    }
+  }
+
+  function isGoogleUser(user) {
+    return (user.providerData || []).some(function (p) { return p.providerId === 'google.com'; });
+  }
+  function isLegacy(user) {
+    return ((user.email || '').toLowerCase()).slice(-9) === '@pf.local';
+  }
+
+  async function finishAndGo(user) {
+    if (redirecting) return;
+    redirecting = true;
+    try { await user.getIdToken(true); } catch (e) {}
+    location.href = NEXT;
+  }
+
+  // Single router for signed-in states. Never redirects a user who is
+  // unverified; that is what caused the old gate loop.
+  function routeUser(user) {
+    if (redirecting) return;
+    if (!user) {
+      if (current === 'pending' || current === 'legacy' || current === 'totp') show('signin');
+      return;
+    }
+    if (isLegacy(user)) {
+      var name = user.displayName || (user.email || '').split('@')[0];
+      $('lg-user').textContent = '@' + name;
+      show('legacy');
+      return;
+    }
+    if (user.emailVerified || isGoogleUser(user)) {
+      redirecting = true;
+      location.href = NEXT;
+      return;
+    }
+    $('pend-email').textContent = user.email || '';
+    show('pending');
+  }
+
+  // ── Verification pending: poll + resend ──
+  function startPoll() {
+    stopPoll();
+    pollTimer = setInterval(checkVerified, 5000);
+  }
+  function stopPoll() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+  async function checkVerified(showFeedback) {
+    var user = window._auth && window._auth.currentUser;
+    if (!user) return;
+    try { await user.reload(); } catch (e) { return; }
+    if (user.emailVerified) {
+      stopPoll();
+      await finishAndGo(user);
+    } else if (showFeedback) {
+      $('pend-msg').textContent = '';
+      $('pend-err').textContent = 'Not verified yet. Open the link in the email first, then try again.';
+    }
+  }
+  function startResendCooldown() {
+    resendUntil = Date.now() + 60000;
+    if (resendTimer) clearInterval(resendTimer);
+    resendTimer = setInterval(updateResendLabel, 1000);
+    updateResendLabel();
+  }
+  function updateResendLabel() {
+    var left = Math.ceil((resendUntil - Date.now()) / 1000);
+    var btn = $('pend-resend');
+    if (left > 0) {
+      btn.disabled = true;
+      btn.textContent = 'Resend email (' + left + 's)';
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Resend email';
+      if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+    }
+  }
+  async function sendVerification(user) {
+    var f = await fbReady();
+    await f.A.sendEmailVerification(user, VERIFY_ACS);
+    startResendCooldown();
+  }
+
+  // ── Sign in ──
+  async function doSignIn() {
+    clearNotes(['si-err', 'si-msg']);
+    var id = $('si-id').value.trim();
+    var pwd = $('si-pwd').value;
+    if (!id || !pwd) { $('si-err').textContent = 'Enter your email or username, and your password.'; return; }
+    var email = id.indexOf('@') !== -1 ? id : id + '@pf.local';
+    busy($('si-btn'), true);
+    try {
+      var f = await fbReady();
+      await f.A.signInWithEmailAndPassword(f.auth, email, pwd);
+      routeUser(f.auth.currentUser);
+    } catch (e) {
+      if (e && e.code === 'auth/multi-factor-auth-required') beginTotp(e);
+      else $('si-err').textContent = authMessage(e);
+    } finally {
+      busy($('si-btn'), false);
+    }
+  }
+
+  // ── Create account ──
+  async function doCreate() {
+    clearNotes(['cr-err']);
+    var name = $('cr-name').value.trim();
+    var email = $('cr-email').value.trim();
+    var pwd = $('cr-pwd').value;
+    if (!NAME_RE.test(name)) {
+      $('cr-err').textContent = 'Pick a username of 2 to 30 characters: letters, numbers, spaces, dots, dashes, or underscores.';
+      return;
+    }
+    if (!EMAIL_RE.test(email) || email.toLowerCase().slice(-9) === '@pf.local') {
+      $('cr-err').textContent = 'Enter a real email address you can open. You need it to verify your account and reset your password.';
+      return;
+    }
+    if (pwd.length < 8) { $('cr-err').textContent = 'Your password needs at least 8 characters.'; return; }
+    busy($('cr-btn'), true);
+    try {
+      var f = await fbReady();
+      var cred = await f.A.createUserWithEmailAndPassword(f.auth, email, pwd);
+      await f.A.updateProfile(cred.user, { displayName: name });
+      if (typeof writeSnap === 'function') writeSnap(cred.user);
+      try { await sendVerification(cred.user); } catch (e) { /* resend is available on the next screen */ }
+      $('pend-email').textContent = email;
+      show('pending');
+    } catch (e) {
+      $('cr-err').textContent = authMessage(e);
+    } finally {
+      busy($('cr-btn'), false);
+    }
+  }
+
+  // ── Google ──
+  async function doGoogle() {
+    clearNotes(['g-err']);
+    busy($('googleBtn'), true);
+    try {
+      var f = await fbReady();
+      var provider = new f.A.GoogleAuthProvider();
+      await f.A.signInWithPopup(f.auth, provider);
+      routeUser(f.auth.currentUser);
+    } catch (e) {
+      var code = e && e.code;
+      if (code === 'auth/popup-blocked') {
+        $('g-err').textContent = 'Your browser blocked the sign-in popup. Allow popups for this site, then try again.';
+      } else if (code === 'auth/multi-factor-auth-required') {
+        beginTotp(e);
+      } else if (code === 'auth/cancelled-popup-request') {
+        // A second click while the first popup is open; nothing to report.
+      } else {
+        $('g-err').textContent = authMessage(e);
+      }
+    } finally {
+      busy($('googleBtn'), false);
+    }
+  }
+
+  // ── TOTP challenge ──
+  function beginTotp(err) {
+    // fbReady has resolved by the time any sign-in error can carry MFA info.
+    mfaResolver = fb.A.getMultiFactorResolver(fb.auth, err);
+    totpHint = (mfaResolver.hints || []).find(function (h) {
+      return h.factorId === fb.A.TotpMultiFactorGenerator.FACTOR_ID;
+    });
+    clearNotes(['totp-err']);
+    $('totp-code').value = '';
+    if (!totpHint) {
+      show('recovery');
+      $('rc-err').textContent = 'This account has a second factor this page cannot verify. Use a recovery code.';
+      return;
+    }
+    show('totp');
+    $('totp-code').focus();
+  }
+  async function doTotp() {
+    clearNotes(['totp-err']);
+    var code = $('totp-code').value.trim();
+    if (!/^\d{6}$/.test(code)) { $('totp-err').textContent = 'Enter the 6-digit code from your app.'; return; }
+    if (!mfaResolver || !totpHint) { show('signin'); return; }
+    busy($('totp-btn'), true);
+    try {
+      var assertion = fb.A.TotpMultiFactorGenerator.assertionForSignIn(totpHint.uid, code);
+      var cred = await mfaResolver.resolveSignIn(assertion);
+      routeUser(cred.user);
+    } catch (e) {
+      $('totp-err').textContent = authMessage(e);
+    } finally {
+      busy($('totp-btn'), false);
+    }
+  }
+
+  // ── Legacy migration ──
+  async function doLegacySend() {
+    clearNotes(['lg-err', 'lg-msg']);
+    var newEmail = $('lg-email').value.trim();
+    if (!EMAIL_RE.test(newEmail) || newEmail.toLowerCase().slice(-9) === '@pf.local') {
+      $('lg-err').textContent = 'Enter a real email address you can open.';
+      return;
+    }
+    var f = await fbReady();
+    var user = f.auth.currentUser;
+    if (!user) { show('signin'); return; }
+    busy($('lg-btn'), true);
+    try {
+      if (!$('lg-reauth').hidden) {
+        var pwd = $('lg-pwd').value;
+        if (!pwd) { $('lg-err').textContent = 'Enter your password to continue.'; return; }
+        var cred = f.A.EmailAuthProvider.credential(user.email, pwd);
+        await f.A.reauthenticateWithCredential(user, cred);
+        $('lg-reauth').hidden = true;
+      }
+      await f.A.verifyBeforeUpdateEmail(user, newEmail, { url: 'https://publicforumai.com/login.html' });
+      $('lg-msg').textContent = 'Link sent to ' + newEmail + '. Open it to confirm. Once you do, you will be signed out everywhere; sign back in with your new email.';
+    } catch (e) {
+      var code = e && e.code;
+      if (code === 'auth/requires-recent-login') {
+        $('lg-reauth').hidden = false;
+        $('lg-err').textContent = 'For safety, confirm your password first, then send the link again.';
+        $('lg-pwd').focus();
+      } else if (code === 'auth/email-already-in-use') {
+        $('lg-err').textContent = 'That email already belongs to another account.';
+      } else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') {
+        $('lg-err').textContent = 'That password did not match. Try again.';
+      } else {
+        $('lg-err').textContent = authMessage(e);
+      }
+    } finally {
+      busy($('lg-btn'), false);
+    }
+  }
+
+  // ── Forgot password ──
+  async function doForgot() {
+    clearNotes(['fp-err', 'fp-msg', 'fp-note']);
+    var idv = $('fp-email').value.trim();
+    if (!idv) { $('fp-err').textContent = 'Enter your account email.'; return; }
+    if (idv.indexOf('@') === -1 || idv.toLowerCase().slice(-9) === '@pf.local') {
+      // Honest dead end: a synthesized address can never receive the reset mail.
+      $('fp-note').textContent = 'This account uses a username only, so there is no email on file to send a reset link to. If you still know the password, sign in and add an email from this page. If not, we cannot recover the account, and the safest move is to create a new one with a real email.';
+      return;
+    }
+    if (!EMAIL_RE.test(idv)) { $('fp-err').textContent = 'That email address does not look right.'; return; }
+    busy($('fp-btn'), true);
+    try {
+      var f = await fbReady();
+      await f.A.sendPasswordResetEmail(f.auth, idv);
+      $('fp-msg').textContent = 'If an account exists for ' + idv + ', a reset link is on its way. Check spam too.';
+    } catch (e) {
+      if (e && e.code === 'auth/user-not-found') {
+        $('fp-msg').textContent = 'If an account exists for ' + idv + ', a reset link is on its way. Check spam too.';
+      } else {
+        $('fp-err').textContent = authMessage(e);
+      }
+    } finally {
+      busy($('fp-btn'), false);
+    }
+  }
+
+  // ── 2FA recovery (unauthenticated backend flow) ──
+  async function doRecover() {
+    clearNotes(['rc-err']);
+    var email = $('rc-email').value.trim();
+    var pwd = $('rc-pwd').value;
+    var code = $('rc-code').value.replace(/\s+/g, '');
+    if (!EMAIL_RE.test(email) || !pwd || !code) {
+      $('rc-err').textContent = 'Fill in your email, password, and a recovery code.';
+      return;
+    }
+    busy($('rc-btn'), true);
+    try {
+      var res = await fetch(BACKEND + '/2fa/recover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: pwd, recoveryCode: code })
+      });
+      if (res.ok) {
+        show('signin');
+        $('si-id').value = email;
+        $('si-msg').textContent = 'Two-step verification has been removed from your account. Sign in below, then set it up again from your profile page.';
+      } else {
+        $('rc-err').textContent = 'That did not work. Check your email, password, and recovery code, then try again.';
+      }
+    } catch (e) {
+      $('rc-err').textContent = 'Could not reach the server. Check your connection and try again.';
+    } finally {
+      busy($('rc-btn'), false);
+    }
+  }
+
+  async function switchAccount() {
+    try {
+      var f = await fbReady();
+      await f.A.signOut(f.auth);
+    } catch (e) {}
+    if (typeof clearSnap === 'function') clearSnap();
+    show('signin');
+  }
+
+  // ── Wiring ──
+  $('tabSignin').addEventListener('click', function () { show('signin'); });
+  $('tabCreate').addEventListener('click', function () { show('create'); });
+
+  panels.signin.addEventListener('submit', function (e) { e.preventDefault(); doSignIn(); });
+  panels.create.addEventListener('submit', function (e) { e.preventDefault(); doCreate(); });
+  panels.totp.addEventListener('submit', function (e) { e.preventDefault(); doTotp(); });
+  panels.legacy.addEventListener('submit', function (e) { e.preventDefault(); doLegacySend(); });
+  panels.forgot.addEventListener('submit', function (e) { e.preventDefault(); doForgot(); });
+  panels.recovery.addEventListener('submit', function (e) { e.preventDefault(); doRecover(); });
+
+  $('googleBtn').addEventListener('click', doGoogle);
+  $('pend-check').addEventListener('click', function () { checkVerified(true); });
+  $('pend-resend').addEventListener('click', async function () {
+    if (Date.now() < resendUntil) return;
+    clearNotes(['pend-msg', 'pend-err']);
+    var user = window._auth && window._auth.currentUser;
+    if (!user) { show('signin'); return; }
+    try {
+      await sendVerification(user);
+      $('pend-msg').textContent = 'Sent. Give it a minute to arrive.';
+    } catch (e) {
+      $('pend-err').textContent = (e && e.code === 'auth/too-many-requests')
+        ? 'Too many emails sent. Wait a few minutes, then try again.'
+        : authMessage(e);
+    }
+  });
+  $('forgotLink').addEventListener('click', function () {
+    clearNotes(['fp-err', 'fp-msg', 'fp-note']);
+    var idv = $('si-id').value.trim();
+    if (idv) $('fp-email').value = idv;
+    show('forgot');
+  });
+  $('totpRecoveryLink').addEventListener('click', function () { clearNotes(['rc-err']); show('recovery'); });
+  $('totpBackLink').addEventListener('click', function () { show('signin'); });
+  $('fpBackLink').addEventListener('click', function () { show('signin'); });
+  $('rcBackLink').addEventListener('click', function () { show('signin'); });
+  $('pendSwitchLink').addEventListener('click', switchAccount);
+  $('lgSwitchLink').addEventListener('click', switchAccount);
+
+  // Boot: subscribe to real auth state and route from it.
+  (async function init() {
+    try {
+      var f = await fbReady();
+      f.A.onAuthStateChanged(f.auth, routeUser);
+    } catch (e) {
+      $('si-err').textContent = 'Could not load sign-in. Check your connection and refresh the page.';
+    }
+  })();
+})();
   </script>
 </body>
 </html>
