@@ -240,18 +240,8 @@
 
     /* Small-screen toolbar handling. toolbar.css has none below ~900px, so
        this page carries its own until the shared file does. Candidate for toolbar.css. */
-    @media (max-width: 900px) {
-      nav.toolbar { flex-wrap: wrap; height: auto; min-height: 64px; padding: 10px 14px; row-gap: 6px; }
-      nav.toolbar .nav-links {
-        order: 3; width: 100%; justify-content: flex-start; gap: 18px;
-        overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; font-size: 0.95rem;
-      }
-      body { padding-top: 118px !important; }
-    }
+    /* Toolbar responsive rules live in toolbar.css. */
     @media (max-width: 480px) {
-      nav.toolbar .logo { gap: 8px; }
-      nav.toolbar .logo img { height: 32px; }
-      nav.toolbar .logo-text { font-size: 1.1rem; }
       main { padding: 22px 14px; }
       section { padding: 20px 14px; }
     }
@@ -324,7 +314,7 @@
   <nav class="toolbar">
     <a class="logo" href="index.html">
       <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
-      <span class="logo-text">PublicForumAI©</span>
+      <span class="logo-text">PublicForumAI</span>
     </a>
 
     <div class="nav-links">
@@ -403,7 +393,7 @@
       <div class="footer-column">
         <a href="index.html" class="logo">
           <img src="android-chrome-192x192.png" alt="Public Forum AI Logo">
-          <span class="logo-text">PublicForumAI&copy;</span>
+          <span class="logo-text">PublicForumAI</span>
         </a>
         <p>Empowering debaters through AI</p>
       </div>

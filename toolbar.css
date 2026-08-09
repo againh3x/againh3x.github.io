@@ -264,3 +264,47 @@ nav.toolbar .user-menu .menu-item:hover {
   background: rgba(111, 203, 255, 0.12);
   color: #7df9ff;
 }
+
+/* Responsive behavior, one policy for every page. Below 720px the bar wraps
+   to two rows (logo + auth on top, scrollable nav links underneath), so the
+   body clearance grows with it. Pages must not ship their own toolbar media
+   rules. */
+@media (max-width: 900px) {
+  nav.toolbar { padding: 0 16px; }
+  nav.toolbar .logo { gap: 10px; }
+  nav.toolbar .logo img { height: 34px; }
+  nav.toolbar .logo-text { font-size: 1.2rem; }
+  nav.toolbar .nav-links { gap: clamp(12px, 3vw, 28px); }
+  nav.toolbar .nav-links a { font-size: 0.95rem; }
+  nav.toolbar #authSlot .user-name { max-width: 110px; }
+}
+
+@media (max-width: 720px) {
+  body { padding-top: 100px !important; }
+  nav.toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 64px;
+    padding: 8px 12px;
+    row-gap: 4px;
+  }
+  nav.toolbar .logo { order: 1; }
+  nav.toolbar #authSlot { order: 2; }
+  nav.toolbar .nav-links {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: flex-start;
+    gap: 18px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  nav.toolbar .nav-links::-webkit-scrollbar { display: none; }
+  nav.toolbar .nav-links a { font-size: 0.9rem; }
+}
+
+@media (max-width: 400px) {
+  nav.toolbar .logo-text { font-size: 1.05rem; letter-spacing: 0.2px; }
+  nav.toolbar #authSlot .user-name { max-width: 80px; }
+}

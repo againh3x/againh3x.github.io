@@ -73,14 +73,7 @@
 
     /* The toolbar may wrap to two rows on narrow screens; the layout follows
        because --toolbar-h is measured, not assumed. */
-    @media (max-width: 900px) {
-      nav.toolbar { flex-wrap: wrap; height: auto; min-height: 64px; padding: 8px 14px; row-gap: 2px; }
-      nav.toolbar .nav-links { order: 3; width: 100%; justify-content: center; gap: 12px 18px; flex-wrap: wrap; font-size: 0.9rem; }
-    }
-    @media (max-width: 480px) {
-      nav.toolbar { padding: 6px 10px; }
-      nav.toolbar .logo-text { font-size: 1.1rem; }
-    }
+    /* Toolbar responsive rules live in toolbar.css. */
 
     /* App frame between the toolbar and the bottom of the viewport */
     .app-container {

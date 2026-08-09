@@ -136,13 +136,7 @@
       flex: 1 1 auto; /* stretch inside card */
     }
 
-    /* toolbar.css has no breakpoints yet; keep this page usable on phones. */
-    @media (max-width: 720px) {
-      nav.toolbar { padding: 0 16px; }
-      nav.toolbar .nav-links { display: none; }
-      nav.toolbar .logo-text { font-size: 1.1rem; }
-      nav.toolbar #authSlot .user-name { max-width: 90px; }
-    }
+    /* Toolbar responsive rules live in toolbar.css. */
     @media (max-width: 600px) {
       body { padding: 0 12px 20px; }
       .page { width: 100%; margin-top: 12px; padding: 16px; }

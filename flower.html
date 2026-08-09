@@ -301,56 +301,9 @@
         }
 
         /* Narrow-screen toolbar: page-scoped until toolbar.css handles it. */
-        @media (max-width: 960px) {
-            nav.toolbar {
-                padding: 0 16px;
-            }
+        /* Toolbar responsive rules live in toolbar.css. */
 
-            nav.toolbar .nav-links {
-                gap: 14px;
-                font-size: 0.9rem;
-            }
-
-            nav.toolbar .logo-text {
-                font-size: 1.15rem;
-            }
-        }
-
-        @media (max-width: 760px) {
-            nav.toolbar {
-                height: auto;
-                min-height: 64px;
-                flex-wrap: wrap;
-                padding: 8px 12px;
-                row-gap: 4px;
-            }
-
-            nav.toolbar .logo {
-                order: 1;
-            }
-
-            nav.toolbar #authSlot {
-                order: 2;
-            }
-
-            nav.toolbar .nav-links {
-                order: 3;
-                width: 100%;
-                justify-content: flex-start;
-                gap: 18px;
-                overflow-x: auto;
-                padding-bottom: 4px;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            nav.toolbar .logo-text {
-                display: none;
-            }
-
-            body {
-                padding-top: 100px !important;
-            }
-        }
+        /* Toolbar wrap behavior and body clearance live in toolbar.css. */
 .site-footer .logo { display: flex; align-items: center; gap: 15px; text-decoration: none; }
 .site-footer .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4)); }
 .site-footer .logo-text {
@@ -606,7 +559,7 @@
 <nav class="toolbar">
 <a class="logo" href="index.html">
 <img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
-<span class="logo-text">PublicForumAI©</span>
+<span class="logo-text">PublicForumAI</span>
 </a>
 <div class="nav-links"><a href="flower.html">AI Flow</a>
 <a href="setup.html">AI Practice Round</a>
@@ -686,7 +639,7 @@
 <div class="footer-column">
 <a class="logo" href="index.html">
 <img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
-<span class="logo-text">PublicForumAI©</span>
+<span class="logo-text">PublicForumAI</span>
 </a>
 <p>Empowering debaters through AI</p>
 </div>
