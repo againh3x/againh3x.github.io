@@ -170,6 +170,9 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     .warn { color:#ffd98a; font-size:.95rem; margin:.5rem 0; }
     .err { color:#ff8f8f; font-size:.95rem; margin:.5rem 0; }
     .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:.6rem 0; }
+    /* .row sets display, which beats the UA sheet's [hidden] rule, so the
+       reauth rows stayed on screen while marked hidden. */
+    [hidden] { display: none !important; }
 
     .text-input {
       background: rgba(0,0,0,.35); border:1px solid rgba(0,255,255,.3);
@@ -582,6 +585,16 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       for (const k of keys) if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
       return dflt;
     };
+    // Timestamps arrive three ways: Unix seconds from the API (createdAt,
+    // savedAt), milliseconds from localStorage, and an ISO string from Firebase.
+    const toDate = (value) => {
+      if (value === null || value === undefined || value === '') return null;
+      let n = (typeof value === 'number') ? value : NaN;
+      if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) n = Number(value);
+      if (Number.isFinite(n)) return new Date(n < 1e12 ? n * 1000 : n);
+      const d = new Date(value);
+      return isNaN(d) ? null : d;
+    };
     const show = (el, on) => { if (el) el.hidden = !on; };
     const setErr = (el, msg) => { if (el) { el.textContent = msg || ''; el.hidden = !msg; } };
     const canFetch = () => typeof window.pfFetch === 'function';
@@ -651,8 +664,8 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       }
 
       const createdAt = pick(me || {}, ['createdAt', 'created_at'], localCreated);
-      const createdDt = createdAt ? new Date(createdAt) : null;
-      $('created').textContent = (createdDt && !isNaN(createdDt)) ? createdDt.toLocaleDateString() : 'Unknown';
+      const createdDt = toDate(createdAt);
+      $('created').textContent = createdDt ? createdDt.toLocaleDateString() : 'Unknown';
 
       if (verified) initMfa(user, me);
     }
@@ -674,6 +687,64 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     }
 
     // ── One-time migration of the old localStorage profile ────────────────
+    const ROUND_TOPIC_CAP = 500;
+    const ROUND_META_CAP = 100;
+    const ROUND_TEXT_CAP = 60000;
+    // The API rejects an oversize field instead of trimming it, so trim here.
+    const cut = (value, cap) => {
+      const s = (typeof value === 'string') ? value : (value == null ? '' : String(value));
+      return s.length > cap ? s.slice(0, cap) : s;
+    };
+
+    // A stored round nests its topic and judge under meta and uses its own
+    // names for two fields (transcriptionC, AIFF). The API takes one flat
+    // object per round, so map it here.
+    function toServerRound(r) {
+      const m = r.meta || {};
+      const out = {
+        topic: cut(m.debateTopic || r.topic || '', ROUND_TOPIC_CAP).trim() || 'Practice Round',
+        side: cut(m.selectedSide || r.side, ROUND_META_CAP),
+        turn: cut(m.selectedTurn || r.turn, ROUND_META_CAP),
+        skill: cut(m.selectedSkill || r.skill, ROUND_META_CAP),
+        judgeType: cut(m.judgeType || r.judgeType, ROUND_META_CAP),
+        transcription: cut(r.transcriptionC || r.transcription, ROUND_TEXT_CAP),
+        transcriptionR: cut(r.transcriptionR, ROUND_TEXT_CAP),
+        transcriptionS: cut(r.transcriptionS, ROUND_TEXT_CAP),
+        transcriptionF: cut(r.transcriptionF, ROUND_TEXT_CAP),
+        AICase: cut(r.AICase, ROUND_TEXT_CAP),
+        AIRebuttal: cut(r.AIRebuttal, ROUND_TEXT_CAP),
+        AISummary: cut(r.AISummary, ROUND_TEXT_CAP),
+        AIFinalFocus: cut(r.AIFF || r.AIFinalFocus, ROUND_TEXT_CAP),
+        feedback: cut(r.Feedback || r.feedback, ROUND_TEXT_CAP)
+      };
+      // Keeping the id ties the imported round to the gems already awarded for
+      // it and to any round.html link already in the wild. Anything the API
+      // would reject is left out so the server can mint a fresh id instead.
+      if (typeof r.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(r.id)) out.id = r.id;
+      return out;
+    }
+
+    // The import runs once per account and the request body is capped, so send
+    // the newest rounds that fit rather than letting one huge blob fail it all.
+    const IMPORT_MAX_ROUNDS = 50;
+    const IMPORT_BODY_BUDGET = 180 * 1024;
+    function toImportPayload(blob) {
+      const modulesState = {};
+      completedModules(blob.modulesState || blob.modulesEarned).forEach((id) => { modulesState[id] = true; });
+      const gems = Math.max(0, Math.floor(Number(blob.gems) || 0));
+      const rounds = [];
+      let size = JSON.stringify({ gems: gems, rounds: [], modulesState: modulesState }).length;
+      for (const r of (blob.rounds || []).slice(0, IMPORT_MAX_ROUNDS)) {
+        if (!r || typeof r !== 'object') continue;
+        const mapped = toServerRound(r);
+        const cost = JSON.stringify(mapped).length + 1;
+        if (size + cost > IMPORT_BODY_BUDGET) break;
+        size += cost;
+        rounds.push(mapped);
+      }
+      return { gems: gems, rounds: rounds, modulesState: modulesState };
+    }
+
     async function maybeImport(user, me) {
       const doneKey = 'pfai_profile_imported::' + user.uid;
       try { if (localStorage.getItem(doneKey)) return null; } catch (e) { return null; }
@@ -684,16 +755,32 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       }
       let blob = null;
       try { blob = JSON.parse(localStorage.getItem('pfai_profile::' + user.uid)); } catch (e) {}
-      if (!blob || (!(blob.rounds || []).length && !blob.gems)) return null;
+      if (!blob) return null;
+      const payload = toImportPayload(blob);
+      if (!payload.rounds.length && !payload.gems && !Object.keys(payload.modulesState).length) return null;
       try {
-        const res = await fetchJson('/profile/import', { json: blob });
+        await fetchJson('/profile/import', { json: payload });
         try { localStorage.setItem(doneKey, '1'); } catch (e) {}
-        const nRounds = pick(res || {}, ['roundsImported', 'rounds'], (blob.rounds || []).length);
-        const nGems = pick(res || {}, ['gemsImported', 'gems'], blob.gems || 0);
-        const rCount = Array.isArray(nRounds) ? nRounds.length : nRounds;
-        return 'Moved ' + rCount + ' saved debate' + (rCount === 1 ? '' : 's') +
-               ' and ' + nGems + ' gems from this device to your account.';
+        const rCount = payload.rounds.length;
+        const mCount = Object.keys(payload.modulesState).length;
+        const parts = [];
+        if (rCount) parts.push(rCount + ' saved debate' + (rCount === 1 ? '' : 's'));
+        if (mCount) parts.push(mCount + ' training module' + (mCount === 1 ? '' : 's'));
+        if (payload.gems) parts.push(payload.gems + ' gems');
+        if (!parts.length) return null;
+        const list = parts.length > 1
+          ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1]
+          : parts[0];
+        return 'Moved ' + list + ' from this device to your account.';
       } catch (e) {
+        // 400 means the server will never accept this blob and 409 means the
+        // account was migrated already. Retrying either on every page load only
+        // repeats the error toast, so stop. A 429, a 5xx or a dead connection
+        // is worth trying again on the next visit.
+        const status = e && e.status;
+        if (status === 400 || status === 409) {
+          try { localStorage.setItem(doneKey, '1'); } catch (e2) {}
+        }
         return null;
       }
     }
@@ -706,11 +793,11 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       if (Array.isArray(rounds)) {
         renderRounds(rounds);
       } else {
-        loadRoundsList(user);
+        loadRoundsList(user, me);
       }
     }
 
-    async function loadRoundsList(user) {
+    async function loadRoundsList(user, me) {
       let rounds = null;
       if (canFetch()) {
         try {
@@ -718,9 +805,14 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
           rounds = Array.isArray(res) ? res : pick(res || {}, ['rounds'], null);
         } catch (e) {}
       }
-      if (!Array.isArray(rounds)) {
-        rounds = (typeof getRoundsForUser === 'function') ? getRoundsForUser(user.uid) : [];
-        if (rounds.length) {
+      // An empty list means the account has nothing on the server yet, not that
+      // the user has no debates, so show the device copy until the migration
+      // has been confirmed. Once it has, the server list is the whole truth.
+      const migrated = !!pick(me || {}, ['imported', 'profileImported', 'importDone'], false);
+      if (!Array.isArray(rounds) || (!rounds.length && !migrated)) {
+        const local = (typeof getRoundsForUser === 'function') ? getRoundsForUser(user.uid) : [];
+        if (local.length || !Array.isArray(rounds)) rounds = local;
+        if (local.length) {
           $('roundsStatus').textContent = 'Showing debates saved on this device.';
           $('roundsStatus').hidden = false;
         }
@@ -730,9 +822,9 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 
     function renderFromLocal(user) {
       const p = (typeof getProfileForUser === 'function')
-        ? getProfileForUser(user.uid) : { gems: 0, rounds: [], modulesEarned: {} };
+        ? getProfileForUser(user.uid) : { gems: 0, rounds: [], modulesState: {} };
       $('statGems').textContent = p.gems || 0;
-      renderModules(p.modulesEarned || {});
+      renderModules(p.modulesState || p.modulesEarned);
       renderRounds(p.rounds || []);
     }
 
@@ -745,13 +837,17 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
         return;
       }
       roundsDiv.innerHTML = rounds.map((r) => {
+        // Device rounds nest under meta; API summaries are flat and date their
+        // rounds with savedAt.
         const m = r.meta || r;
         const topic = m.debateTopic || r.topic || 'Practice Round';
-        const ts = r.timestamp || r.createdAt;
-        const date = ts ? new Date(ts).toLocaleString() : '';
-        const side = m.selectedSide || '';
-        const turn = m.selectedTurn ? ' (' + m.selectedTurn + ')' : '';
-        const judge = (m.judgeType || 'tech').toUpperCase() + ' judge';
+        const dt = toDate(r.timestamp || r.createdAt || r.savedAt);
+        const date = dt ? dt.toLocaleString() : '';
+        const side = m.selectedSide || r.side || '';
+        const turnValue = m.selectedTurn || r.turn || '';
+        const turn = turnValue ? ' (' + turnValue + ')' : '';
+        const judgeValue = m.judgeType || r.judgeType || '';
+        const judge = judgeValue ? judgeValue.toUpperCase() + ' judge' : '';
         const metaLine = [date, (side + turn).trim(), judge].filter(Boolean).join(' • ');
         return '<div class="round-card">' +
           '<h4>' + esc(topic) + '</h4>' +
@@ -761,9 +857,20 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       }).join('');
     }
 
+    // Module progress comes in two shapes: the API's flat
+    // { m1: { completed: true } } and the device blob's { gems, modules: {...} },
+    // where opening a module writes { started: true } with no completed flag.
+    function completedModules(state) {
+      let map = (state && typeof state === 'object') ? state : {};
+      if (map.modules && typeof map.modules === 'object') map = map.modules;
+      return Object.keys(map).filter((k) => {
+        const v = map[k];
+        return v === true || !!(v && typeof v === 'object' && v.completed);
+      });
+    }
+
     function renderModules(state) {
-      state = state || {};
-      const done = Object.keys(state).filter((k) => state[k]);
+      const done = completedModules(state);
       $('modulesCount').textContent = done.length;
       $('modulesChips').innerHTML = done.map((id) => '<span class="module-chip">' + esc(id) + '</span>').join('');
     }
@@ -869,6 +976,7 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
             show($('reauthPwRow'), false);
             show($('reauthCodeRow'), true);
             $('reauthGoBtn').textContent = 'Confirm';
+            $('reauthCode').value = '';
             $('reauthCode').focus();
             return;
           }

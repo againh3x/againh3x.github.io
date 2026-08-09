@@ -278,20 +278,33 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       document.querySelector('.page').appendChild(p);
     }
 
+    // Server rounds date themselves with savedAt in Unix seconds; rounds saved
+    // on the device use timestamp in milliseconds.
+    function toDate(value){
+      if (value === null || value === undefined || value === '') return null;
+      var n = (typeof value === 'number') ? value : NaN;
+      if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) n = Number(value);
+      if (Number.isFinite(n)) return new Date(n < 1e12 ? n * 1000 : n);
+      var d = new Date(value);
+      return isNaN(d) ? null : d;
+    }
+
     function renderRound(round){
-      // Title & meta
+      // Title & meta. Rounds saved on the device nest these under meta; the
+      // server returns one flat object.
       const meta  = round.meta || {};
-      const topic = meta.debateTopic || 'Practice Round';
-      const ts    = round.timestamp || round.createdAt;
-      const when  = ts ? new Date(ts).toLocaleString() : '';
-      const side  = meta.selectedSide || '';
-      const turn  = meta.selectedTurn ? ' (' + meta.selectedTurn + ')' : '';
-      const judge = (meta.judgeType || 'tech').toUpperCase();
+      const topic = meta.debateTopic || round.topic || 'Practice Round';
+      const dt    = toDate(round.timestamp || round.createdAt || round.savedAt);
+      const when  = dt ? dt.toLocaleString() : '';
+      const side  = meta.selectedSide || round.side || '';
+      const turnValue = meta.selectedTurn || round.turn || '';
+      const turn  = turnValue ? ' (' + turnValue + ')' : '';
+      const judgeValue = meta.judgeType || round.judgeType || '';
 
       document.getElementById('roundTopic').textContent = topic;
       document.title = topic + ' | PublicForumAI';
       document.getElementById('roundMeta').textContent =
-        [when, (side + turn).trim(), judge + ' judge'].filter(Boolean).join(' • ');
+        [when, (side + turn).trim(), judgeValue ? judgeValue.toUpperCase() + ' judge' : ''].filter(Boolean).join(' • ');
 
       // Side headers: Aff always left, Neg always right. Add (you) to the user's side.
       var affHeader = document.getElementById('affHeader');
@@ -299,16 +312,18 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       if (affHeader) affHeader.textContent = 'Aff' + (side === 'Aff' ? ' (you)' : '');
       if (negHeader) negHeader.textContent = 'Neg' + (side === 'Neg' ? ' (you)' : '');
 
-      // Fill the saved snapshots (prefer capitalized Feedback key if present)
+      // Fill the saved snapshots. The server stores the final focus as
+      // AIFinalFocus and keeps the speech transcripts rather than the flow
+      // columns, so fall back to those for rounds loaded from the account.
       var map = {
         AICase: round.AICase,
         AIRebuttal: round.AIRebuttal,
         AISummary: round.AISummary,
-        AIFF: round.AIFF,
-        ContentionFlow: round.ContentionFlow,
-        RebuttalFlow: round.RebuttalFlow,
-        SummaryFlow: round.SummaryFlow,
-        FFFlow: round.FFFlow,
+        AIFF: round.AIFF || round.AIFinalFocus,
+        ContentionFlow: round.ContentionFlow || round.transcriptionC || round.transcription,
+        RebuttalFlow: round.RebuttalFlow || round.transcriptionR,
+        SummaryFlow: round.SummaryFlow || round.transcriptionS,
+        FFFlow: round.FFFlow || round.transcriptionF,
         Feedback: round.Feedback || round.feedback
       };
 
@@ -350,9 +365,17 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
             if (round && round.round) round = round.round;
           } catch (e) { round = null; }
         }
+        const localRounds = (typeof getRoundsForUser === 'function') ? getRoundsForUser(user.uid) : [];
+        const localRound = localRounds.find(r => r.id === id) || null;
         if (!round) {
-          const rounds = (typeof getRoundsForUser === 'function') ? getRoundsForUser(user.uid) : [];
-          round = rounds.find(r => r.id === id) || null;
+          round = localRound;
+        } else if (localRound) {
+          // The account copy carries no flow columns, so fill whatever it left
+          // empty from the copy this device still holds.
+          Object.keys(localRound).forEach(function (k) {
+            const v = round[k];
+            if (v === undefined || v === null || v === '') round[k] = localRound[k];
+          });
         }
 
         if (!round) {
