@@ -16,6 +16,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI PF Debate Practice Round</title>
     <link rel="stylesheet" href="oldstyles.css">
+    <style>
+        /* New Round confirmation popover, anchored to the .save-button box.
+           Page-scoped on purpose: oldstyles.css is shared. */
+        .new-round-confirm {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 270px;
+            padding: 14px;
+            background: rgba(10, 14, 39, 0.97);
+            border: 1px solid rgba(111, 203, 255, 0.4);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            z-index: 200;
+            text-align: left;
+        }
+
+        .new-round-confirm.open {
+            display: block;
+        }
+
+        .new-round-confirm p {
+            margin: 0 0 10px;
+            color: #cfeaff;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .new-round-confirm .confirm-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .save-button .new-round-confirm button {
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 10px;
+            box-shadow: none;
+        }
+
+        .save-button .new-round-confirm button:first-child {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(111, 203, 255, 0.4);
+            color: #cfeaff;
+        }
+
+        .save-button .new-round-confirm button:last-child {
+            background: linear-gradient(145deg, #ff1744, #d50000);
+            border: none;
+            color: #fff;
+        }
+    </style>
 </head>
 
 
@@ -70,7 +123,14 @@
     </div>
     <div class="save-button">
         <div class="save-note">Rounds autosave</div>
-        <button onclick="clearSavedRound()">New Round</button>
+        <div id="newRoundConfirm" class="new-round-confirm" role="alertdialog" aria-label="Start a new round?">
+            <p>Start a new round? This deletes the current round for good.</p>
+            <div class="confirm-actions">
+                <button type="button" onclick="hideNewRoundConfirm()">Keep round</button>
+                <button type="button" onclick="clearSavedRound()">Delete it</button>
+            </div>
+        </div>
+        <button id="newRoundBtn" aria-expanded="false" onclick="showNewRoundConfirm()">New Round</button>
 
     </div>
     <div id="container">
@@ -298,10 +358,29 @@
     </div>
 
 
-    <div class="small-text">User: <span id="selectedTurn"></span>, <span id="selectedSide"></span>| Level: <span
+    <div class="small-text">User: <span id="selectedTurn"></span>, <span id="selectedSide"></span> | Level: <span
             id="selectedSkill"></span></div>
 
 
+    <script>
+        // Inline confirmation for New Round; clearSavedRound (script.js) only
+        // runs after the user confirms.
+        function showNewRoundConfirm() {
+            document.getElementById('newRoundConfirm').classList.add('open');
+            document.getElementById('newRoundBtn').setAttribute('aria-expanded', 'true');
+        }
+        function hideNewRoundConfirm() {
+            document.getElementById('newRoundConfirm').classList.remove('open');
+            document.getElementById('newRoundBtn').setAttribute('aria-expanded', 'false');
+        }
+        document.addEventListener('click', function (e) {
+            var box = document.querySelector('.save-button');
+            if (box && !box.contains(e.target)) hideNewRoundConfirm();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') hideNewRoundConfirm();
+        });
+    </script>
     <script src="script.js"></script>
 <script src="auth.js"></script>
 <script src="sanitize.js"></script>

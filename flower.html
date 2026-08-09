@@ -46,20 +46,17 @@
 </script>
 <style>
         body {
-
-
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(180deg, #b4dcff, #3589dd, #1858b3, #06294d);
             margin: 0;
-            padding: 40px;
+            padding: 20px;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
             color: #333;
-            flex-direction: column; /* Stack children vertically */
-    align-items: center; /* Center content horizontally */
-    justify-content: flex-start; /* Align content to top */
+            overflow-x: hidden;
         }
 
         .loading {
@@ -130,19 +127,17 @@
         }
 
         .container {
+            box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            width: 95%;
-            /* Changed from 100% to occupy more width within the viewport */
+            width: 100%;
             max-width: 1400px;
-            /* Increased maximum width */
             background: #fff;
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             height: 700px;
-            /* Increased height */
         }
 
         .controls {
@@ -241,185 +236,121 @@
         }
 
 
-        @keyframes border-glow {
-            0% {
-                opacity: 0.6;
-            }
-
-            50% {
-                opacity: 0.3;
-            }
-
-            100% {
-                opacity: 0.6;
-            }
-        }
-
-        /* Adjust body margin */
-        body {
-            margin-top: 80px;
-            padding: 20px;
-            flex-direction: column; /* Stack children vertically */
-    align-items: center; /* Center content horizontally */
-    justify-content: flex-start; /* Align content to top */
-        }
-
-        .button.orange {
-            background: linear-gradient(135deg, #FFD700, #F57C00);
-            width: 300px;
-            /* Wider than the default 300px */
-            height: 50px;
-            /* Much smaller than the default 150px */
-            padding: 0;
-            /* Remove extra padding to keep height compact */
-        }
-
-        .button.orange:hover {
-            background: linear-gradient(135deg, #F57C00, #E65100);
-        }
-
-        .button {
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            width: 300px;
-            height: 150px;
-            font-size: 1rem;
-            color: #fff;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .button:hover {
-            background: linear-gradient(135deg, #0056b3, #004080);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 123, 255, 0.5);
-        }
-
-        .button-wrapper {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            flex-wrap: nowrap;
-        }
-
-        .button:hover {
-            background: linear-gradient(135deg, #0056b3, #004080);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 123, 255, 0.5);
-        }
-
-        .button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 200%;
-            height: 100%;
-            background: linear-gradient(120deg, rgba(255, 255, 255, 0.1), transparent, rgba(255, 255, 255, 0.1));
-            transform: skewX(-45deg);
-            transition: all 0.4s ease;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .button:hover::before {
-            left: 100%;
-            transition: all 0.6s ease;
-        }
-
-        .button:hover::before {
-            left: 100%;
-            transition: all 0.6s ease;
-        }
-
-        .button span {
-            position: relative;
-            z-index: 2;
-        }
-
-        .button .title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 0px;
-        }
-
-        .button .description {
-            font-size: 1rem;
-            color: #e0e0e0;
-        }
-
-        .button .note {
-            font-size: 0.9rem;
-            color: #b0b0b0;
-            font-style: italic;
-            margin-top: 8px;
-        }
-
-        .button.full-ai::after {
-            content: '★';
-            color: #FFD700;
-            font-size: 1.5rem;
-            position: absolute;
-            top: 5px;
-            right: 5px;
-        }
-
-        .button.orange {
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(0, 255, 255, 0.3);
-        }
-
-        .button.orange::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, #FFD700, #F57C00, #FFD700);
-            z-index: -1;
-            border-radius: 25px;
-            animation: border-glow 2s linear infinite;
-            opacity: 0.6;
-        }
-
-
         .loading0U {
             text-align: center;
             margin-top: 100px;
             display: none;
         }
-        .button.orange {
-    background: linear-gradient(135deg, #7B68EE, #5A4FCF);
-    border: 2px solid #A78BFA;
-    box-shadow: 0 4px 20px rgba(123, 104, 238, 0.2);
-    width: 300px;
-    height: 50px;
-    padding: 0;
-}
 
-.button.orange:hover {
-    background: linear-gradient(135deg, #5A4FCF, #483d8b);
-    border: 2px solid #A78BFA;
-    box-shadow: 0 4px 25px rgba(123, 104, 238, 0.3);
-}
+        /* Audio visualizer: hidden until a recording starts; sized to its box. */
+        .listeningC {
+            display: none;
+            margin-top: 10px;
+        }
 
-/* Remove the orange border glow animation */
-.button.orange::after {
-    content: none;
-}
+        .listeningC canvas {
+            display: block;
+            width: 100%;
+            height: 200px;
+        }
+
+        /* Inline validation shown when Record is pressed with missing fields. */
+        .form-error {
+            display: none;
+            margin-top: 12px;
+            padding: 10px 12px;
+            border: 1px solid #e05555;
+            border-radius: 5px;
+            background: #fdecec;
+            color: #b02a2a;
+            font-size: 0.95rem;
+        }
+
+        .form-error.show {
+            display: block;
+        }
+
+        .input-error {
+            border-color: #e05555 !important;
+            box-shadow: 0 0 6px rgba(224, 85, 85, 0.5);
+        }
+
+        .flow-error {
+            color: #b02a2a;
+            font-weight: 600;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .controls {
+                margin-right: 0;
+                width: 100%;
+            }
+
+            .output {
+                width: 100%;
+            }
+
+            #flowOutput {
+                height: 400px;
+            }
+        }
+
+        /* Narrow-screen toolbar: page-scoped until toolbar.css handles it. */
+        @media (max-width: 960px) {
+            nav.toolbar {
+                padding: 0 16px;
+            }
+
+            nav.toolbar .nav-links {
+                gap: 14px;
+                font-size: 0.9rem;
+            }
+
+            nav.toolbar .logo-text {
+                font-size: 1.15rem;
+            }
+        }
+
+        @media (max-width: 760px) {
+            nav.toolbar {
+                height: auto;
+                min-height: 64px;
+                flex-wrap: wrap;
+                padding: 8px 12px;
+                row-gap: 4px;
+            }
+
+            nav.toolbar .logo {
+                order: 1;
+            }
+
+            nav.toolbar #authSlot {
+                order: 2;
+            }
+
+            nav.toolbar .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: flex-start;
+                gap: 18px;
+                overflow-x: auto;
+                padding-bottom: 4px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            nav.toolbar .logo-text {
+                display: none;
+            }
+
+            body {
+                padding-top: 100px !important;
+            }
+        }
 .site-footer .logo { display: flex; align-items: center; gap: 15px; text-decoration: none; }
 .site-footer .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4)); }
 .site-footer .logo-text {
@@ -427,6 +358,7 @@
   letter-spacing: 0.5px; margin-left: 10px; text-decoration: none;
 }
 .site-footer {
+    box-sizing: border-box;
     background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
     color: #00f3ff;
     padding: 40px 20px;
@@ -631,6 +563,7 @@
 
 .feedback-form input,
 .feedback-form textarea {
+  box-sizing: border-box;
   width: 100%;
   margin: 8px 0;
   padding: 10px;
@@ -649,6 +582,24 @@
   cursor: pointer;
   transition: transform 0.3s ease;
 }
+
+.feedback-status {
+  display: none;
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.feedback-status.show {
+  display: block;
+}
+
+.feedback-status.ok {
+  color: #7cffb2;
+}
+
+.feedback-status.err {
+  color: #ff9c9c;
+}
     </style>
 </head>
 <body>
@@ -666,7 +617,7 @@
 </nav>
 <div class="container">
 <div class="controls">
-<h1>Speech Flow Manager</h1>
+<h1>AI Flow</h1>
 <div class="input-group">
 <label for="topic">Topic:</label>
 <input id="topic" placeholder="Enter the topic" type="text"/>
@@ -691,9 +642,10 @@
 <label for="finalFocus">Final Focus</label>
 </div>
 <button id="recordButton" onclick="toggleRecording()">Record</button>
+<div id="formError" class="form-error" role="alert"></div>
 <p id="cautionNote" style="font-size: 12px; color: gray; margin-top: 4px;">
-                It may ask for your microphone to be enabled twice. If so, please press "allow" twice for speech
-                recognition to work properly.
+                Your browser will ask for microphone access. Record at least 10 seconds of your speech so there is
+                enough to flow.
             </p>
 </div>
 <div class="output">
@@ -748,6 +700,7 @@
 <input name="from_email" placeholder="Your email" required="" type="email"/>
 <textarea name="message" placeholder="Your feedback" required=""></textarea>
 <button type="submit">Submit Feedback</button>
+<div id="feedbackStatus" class="feedback-status" role="status"></div>
 </form>
 </div>
 </div>
@@ -769,7 +722,7 @@
 </div>
 <!-- Copyright -->
 <div class="footer-bottom">
-<p>© 2025 PublicForumAI. All rights reserved.</p>
+<p>© 2026 PublicForumAI. All rights reserved.</p>
 </div>
 </footer>
 <script>
@@ -779,13 +732,58 @@
             let mediaRecorder;
             let audioChunks = [];
             let audioStream;
+            let audioCtx;
             let animationFrame;
             let recordingStartTime;
+
+            function closeAudioContext() {
+                if (audioCtx) {
+                    try { audioCtx.close(); } catch (e) {}
+                    audioCtx = null;
+                }
+            }
+
+            function validateFlowForm() {
+                const topicInput = document.getElementById('topic');
+                const sideSelect = document.getElementById('side');
+                const speechChecked = document.querySelector('input[name="speech"]:checked');
+                const errorBox = document.getElementById('formError');
+                const missing = [];
+
+                topicInput.classList.toggle('input-error', topicInput.value.trim() === '');
+                sideSelect.classList.toggle('input-error', sideSelect.value === '');
+                if (topicInput.value.trim() === '') missing.push('the topic');
+                if (sideSelect.value === '') missing.push('your side');
+                if (!speechChecked) missing.push('a speech type');
+
+                if (missing.length > 0) {
+                    let list = missing.join(', ');
+                    if (missing.length > 1) {
+                        list = missing.slice(0, -1).join(', ') + ' and ' + missing[missing.length - 1];
+                    }
+                    errorBox.textContent = 'Before recording, please fill in ' + list + '.';
+                    errorBox.classList.add('show');
+                    return false;
+                }
+                errorBox.classList.remove('show');
+                return true;
+            }
+
+            // Clear field highlights as soon as the user fixes them.
+            document.addEventListener('DOMContentLoaded', function () {
+                document.getElementById('topic').addEventListener('input', function () {
+                    this.classList.remove('input-error');
+                });
+                document.getElementById('side').addEventListener('change', function () {
+                    this.classList.remove('input-error');
+                });
+            });
 
             async function toggleRecording() {
                 const recordButton = document.getElementById('recordButton');
 
                 if (!isRecording) {
+                    if (!validateFlowForm()) return;
                     // Recording feeds paid transcription, so gate before the
                     // microphone opens; audio cannot survive a login redirect.
                     if (window.pfGate) {
@@ -831,24 +829,26 @@
             });
 
             async function startRecording() {
-                document.getElementById('OutputText').innerHTML = "<p>" // Reset full transcription
+                document.getElementById('OutputText').innerHTML = ''; // Reset previous output
                 fullTranscription = ''
                 audioChunks = [];
-
-
-                // Visualization setup
-                const canvas = document.getElementById('visualizer');
-                const ctx = canvas.getContext('2d');
-                canvas.width = window.innerWidth / 4;
-                canvas.height = window.innerHeight;
-                
 
                 try {
                     // Get audio stream and set up visualization
                     audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    const audioContext = new AudioContext();
-                    const source = audioContext.createMediaStreamSource(audioStream);
-                    const analyser = audioContext.createAnalyser();
+
+                    // Visualization setup: show the box first so the canvas
+                    // can be sized to its rendered container, not the window.
+                    const listeningBox = document.querySelector('.listeningC');
+                    listeningBox.style.display = 'block';
+                    const canvas = document.getElementById('visualizer');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = canvas.clientWidth || 600;
+                    canvas.height = canvas.clientHeight || 200;
+
+                    audioCtx = new AudioContext();
+                    const source = audioCtx.createMediaStreamSource(audioStream);
+                    const analyser = audioCtx.createAnalyser();
                     analyser.fftSize = 64;
 
 
@@ -861,7 +861,7 @@
 
                     // Visualization animation
                     function draw() {
-                        requestAnimationFrame(draw);
+                        animationFrame = requestAnimationFrame(draw);
                         analyser.getByteFrequencyData(dataArray);
 
 
@@ -870,11 +870,11 @@
 
                         const cylinderWidth = 3;
                         const spacing = cylinderWidth;
-                        const centerY = (canvas.height / 2) - (window.innerWidth / 10);
+                        const centerY = canvas.height / 2;
 
 
                         // Right side visualization
-                        let xRight = (canvas.width / 2) - (window.innerWidth / 90);
+                        let xRight = canvas.width / 2 + spacing;
                         for (let i = 0; i < bufferLength; i++) {
                             const barHeight = dataArray[i] / 4;
                             ctx.fillStyle = `rgb(53, 121, 246)`;
@@ -906,7 +906,7 @@
                         ctx.scale(-1, 1);
 
 
-                        let xLeft = 1 / 90 * window.innerWidth;
+                        let xLeft = spacing;
                         for (let i = 0; i < bufferLength; i++) {
                             const barHeight = dataArray[i] / 4;
                             ctx.fillStyle = `rgb(53, 121, 246)`;
@@ -947,13 +947,14 @@
                     mediaRecorder.start();
                     recordingStartTime = Date.now();
 
-                    // Show listening animation
-                    document.querySelector('.listeningC').style.display = 'block';
-
-
                 } catch (err) {
                     console.error('Error accessing audio stream:', err);
-                    // Handle microphone access errors here
+                    document.querySelector('.listeningC').style.display = 'none';
+                    closeAudioContext();
+                    document.getElementById('OutputText').innerHTML =
+                        '<p class="flow-error">Microphone access failed. Please allow the microphone in your browser settings, then press Record again.</p>';
+                    document.getElementById('recordButton').textContent = 'Record';
+                    isRecording = false;
                 }
             }
 
@@ -964,13 +965,13 @@
 
                     mediaRecorder.onstop = async () => {
                         document.querySelector('.listeningC').style.display = 'none';
+                        closeAudioContext();
 
                         const durationSeconds = (Date.now() - recordingStartTime) / 1000;
 
                         if (durationSeconds < 10) {
-                            // Hide loading and show error message
-
-                            document.getElementById('OutputText').innerHTML = 'Please record the full public forum debate speech';
+                            document.getElementById('OutputText').innerHTML =
+                                '<p class="flow-error">That recording was under 10 seconds. Please record your full speech so there is enough to flow.</p>';
 
                             // Cleanup audio resources
                             audioStream.getTracks().forEach(track => track.stop());
@@ -1001,6 +1002,10 @@
                         } catch (error) {
                             console.error('Transcription error:', error);
                             document.querySelector('.loading0U').style.display = 'none';
+                            if (!error || error.code !== 'auth_required') {
+                                document.getElementById('OutputText').innerHTML =
+                                    '<p class="flow-error">Transcription did not go through. Please press Record and try again.</p>';
+                            }
                         }
 
                         audioStream.getTracks().forEach(track => track.stop());
@@ -1072,26 +1077,15 @@
                     }
                 } catch (error) {
                     console.error('Failed to process transcription:', error);
+                    if (!error || error.code !== 'auth_required') {
+                        document.getElementById('OutputText').innerHTML =
+                            '<p class="flow-error">Generating the flow did not work this time. Please try again in a moment.</p>';
+                    }
                 } finally {
                     document.querySelector('.loading').style.display = 'none';
                 }
             }
 
-
-function submitFeedback() {
-  const email = document.getElementById('feedbackEmail').value;
-  const message = document.getElementById('feedbackMessage').value;
-  
-  if (!email || !message) {
-    alert('Please fill in all fields');
-    return;
-  }
-
-  // Here you would typically send this data to your backend
-  alert('Thank you for your feedback! We\'ll be in touch soon.');
-  document.getElementById('feedbackEmail').value = '';
-  document.getElementById('feedbackMessage').value = '';
-}
 
 (function() {
 emailjs.init('wgsczkr19C1FrKtLj'); // Your actual User ID
@@ -1102,16 +1096,21 @@ document.getElementById('feedbackForm').addEventListener('submit', function(e) {
 e.preventDefault();
 
 const btn = this.querySelector('button');
+const status = document.getElementById('feedbackStatus');
 btn.disabled = true;
 btn.textContent = 'Sending...';
+status.className = 'feedback-status';
+status.textContent = '';
 
 emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', this)
   .then(() => {
-    
     this.reset();
+    status.textContent = 'Thanks! Your feedback was sent.';
+    status.className = 'feedback-status show ok';
   }, (error) => {
-    alert('Failed to send feedback. Please try again later.');
     console.error('Error:', error);
+    status.textContent = 'Sending failed. Please try again later, or email us directly.';
+    status.className = 'feedback-status show err';
   })
   .finally(() => {
     btn.disabled = false;
