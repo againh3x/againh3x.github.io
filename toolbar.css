@@ -1,0 +1,266 @@
+/* toolbar.css - the one shared toolbar. Load in <head> before page styles.
+   Geometry is fixed: 64px bar, 40px auth controls. auth.js swaps #authSlot
+   content only; nothing inside the slot may change the bar's size. */
+
+:root {
+  --toolbar-accent: #6FCBFF;
+  --toolbar-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Page styles load after this file and often set their own body padding or
+   margin, so the toolbar clearance has to win the cascade. */
+body { padding-top: 64px !important; margin-top: 0 !important; }
+
+nav.toolbar {
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  padding: 0 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
+  border-bottom: 1px solid rgba(111, 203, 255, 0.25);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  font-family: var(--toolbar-font);
+  font-weight: 700;
+}
+
+nav.toolbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 25%, rgba(111, 203, 255, 0.1) 50%, transparent 75%);
+  animation: toolbar-scan 8s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes toolbar-scan {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+nav.toolbar .logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 0;
+  text-decoration: none;
+  position: relative;
+}
+
+nav.toolbar .logo img {
+  height: 40px;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
+  transition: filter 0.3s ease;
+}
+
+nav.toolbar .logo:hover img {
+  filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6));
+}
+
+nav.toolbar .logo-text {
+  color: var(--toolbar-accent);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 10px rgba(111, 203, 255, 0.4);
+  white-space: nowrap;
+  margin: 0;
+  border-bottom: none;
+}
+
+nav.toolbar .nav-links {
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 5vw, 60px);
+  position: relative;
+}
+
+nav.toolbar .nav-links a {
+  color: var(--toolbar-accent);
+  text-decoration: none;
+  font-weight: 700;
+  position: relative;
+  padding: 5px 0;
+  white-space: nowrap;
+  background: none;
+  transition: background 0.3s ease;
+}
+
+nav.toolbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 2px;
+  background: var(--toolbar-accent);
+  transition: width 0.3s ease;
+}
+
+nav.toolbar .nav-links a:hover {
+  background: rgba(111, 203, 255, 0.1);
+}
+
+nav.toolbar .nav-links a:hover::after {
+  width: 100%;
+}
+
+/* Auth slot: fixed 40px box in a 64px bar. Both auth states render controls
+   with identical outer geometry, so swapping them never moves the bar. */
+nav.toolbar #authSlot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 40px;
+  position: relative;
+}
+
+nav.toolbar #authSlot a {
+  text-decoration: none;
+  background: none;
+  position: static;
+  padding: 0;
+}
+
+nav.toolbar #authSlot a::after { content: none; }
+
+/* Head snippet marks the html element from the cached snapshot; hiding the
+   static SIGN IN anchor keeps a signed-in first paint from flashing it. */
+html.pfai-signed-in nav.toolbar #authSlot > a { display: none; }
+
+nav.toolbar #authSlot .button.signin,
+nav.toolbar #authSlot .user-btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  width: auto;
+  margin: 0;
+  padding: 0 16px;
+  border: 2px solid var(--toolbar-accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--toolbar-accent);
+  font-family: var(--toolbar-font);
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  overflow: visible;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Pages define broad .button rules with ::before shine overlays; keep them
+   out of the slot. */
+nav.toolbar #authSlot .button.signin::before,
+nav.toolbar #authSlot .button.signin::after,
+nav.toolbar #authSlot .user-btn::before { content: none; }
+
+nav.toolbar #authSlot .button.signin .title {
+  margin: 0;
+  color: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+nav.toolbar #authSlot .button.signin:hover,
+nav.toolbar #authSlot .user-btn:hover {
+  background: var(--toolbar-accent);
+  color: #0a0e27;
+}
+
+nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27; }
+
+nav.toolbar #authSlot .user-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(111, 203, 255, 0.5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex: none;
+}
+
+nav.toolbar #authSlot .user-avatar-initials {
+  background: #123a5e;
+  color: var(--toolbar-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+nav.toolbar #authSlot .user-btn:hover .user-avatar-initials {
+  color: #0a0e27;
+  background: rgba(10, 14, 39, 0.15);
+}
+
+nav.toolbar #authSlot .user-name {
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+nav.toolbar .user-menu-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+}
+
+nav.toolbar .user-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 14px);
+  min-width: 190px;
+  padding: 6px;
+  background: rgba(2, 17, 33, 0.95);
+  border: 1px solid rgba(111, 203, 255, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  display: none;
+  z-index: 9999;
+}
+
+nav.toolbar .user-menu.open { display: block; }
+
+nav.toolbar .user-menu .menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: transparent;
+  color: #eaffff;
+  border: none;
+  font-family: var(--toolbar-font);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+nav.toolbar .user-menu .menu-item:hover {
+  background: rgba(111, 203, 255, 0.12);
+  color: #7df9ff;
+}

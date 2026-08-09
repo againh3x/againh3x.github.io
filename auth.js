@@ -1,9 +1,8 @@
 
 // ─────────────────────────────────────────────────────────────────────────────
-// auth.js — Flicker-free toolbar auth + styled dropdown (Firebase v9 modular)
-// - Works with #authSlot or #toolbarAuth (first one found)
-// - Pre-renders from localStorage (instant) and then reconciles with Firebase
-// - Reserves space while hydrating to prevent layout jump
+// auth.js — toolbar auth state + per-user profile storage (Firebase v9 modular)
+// Geometry lives in toolbar.css. This file only swaps #authSlot content; the
+// inline head snippet on each page pre-paints the slot from the same snapshot.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // 1) Firebase config (or set window.FIREBASE_CONFIG in HTML before this <script>)
@@ -16,46 +15,33 @@ window.FIREBASE_CONFIG = window.FIREBASE_CONFIG || {
   appId: "1:1077321088730:web:4d79890a069b28472f2fe3"
 };
 
-// 2) Tiny CSS injection: dropdown styles + no-flicker reservation (does NOT alter your .button.signin)
-(function injectAuthStyles() {
-  if (document.getElementById("authjs-styles")) return;
-  const css = `
-  .user-menu-wrap{position:relative;display:inline-block}
-  .user-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:2px solid var(--toolbar-accent,#7dd3fc);background:transparent;color:var(--toolbar-accent,#7dd3fc);font-weight:700;cursor:pointer;line-height:1}
-  .user-btn:hover{background:rgba(125,211,252,.12)}
-  .user-avatar{width:26px;height:26px;border-radius:50%;border:1px solid rgba(125,211,252,.5)}
-  .user-name{white-space:nowrap}
-  .user-menu{position:absolute;right:0;top:calc(100% + 8px);min-width:190px;padding:6px;background:rgba(2,17,33,.92);border:1px solid rgba(125,211,252,.25);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:none;z-index:9999;backdrop-filter:blur(6px)}
-  .user-menu.open{display:block}
-  .user-menu .menu-item{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:8px;background:transparent;color:#eaffff;border:none;font-weight:700;text-decoration:none;cursor:pointer}
-  .user-menu .menu-item:hover{background:rgba(125,211,252,.12);color:#7df9ff}
-
-  /* Prevent layout shift during hydration while keeping the toolbar aligned */
-  .auth-hydrating #authSlot, .auth-hydrating #toolbarAuth{
-    visibility:hidden;            /* hide the transient SIGN IN or empty state */
-    min-width:260px;              /* reserve width similar to @username button */
-    min-height:44px;              /* reserve height similar to your buttons */
-    display:inline-flex; align-items:center; justify-content:flex-end;
-  }
-  `;
-  const tag = document.createElement("style");
-  tag.id = "authjs-styles";
-  tag.textContent = css;
-  document.head.appendChild(tag);
-})();
-
-// 3) Utilities
+// 2) Utilities
 const SNAP_KEY = "pfai_auth_snapshot";
-const $ = (sel) => document.querySelector(sel);
 const slotEl = () => document.querySelector("#authSlot, #toolbarAuth");
-const avatar = (name) =>
-  "https://api.dicebear.com/7.x/thumbs/svg?seed=" + encodeURIComponent(name || "User");
 
 function readSnap(){ try{ const s=localStorage.getItem(SNAP_KEY); return s?JSON.parse(s):null; }catch{ return null; } }
 function writeSnap(u){ try{ if(u) localStorage.setItem(SNAP_KEY, JSON.stringify({displayName:u.displayName||"", email:u.email||"", photoURL:u.photoURL||"", uid:u.uid||""})); }catch{} }
 function clearSnap(){ try{ localStorage.removeItem(SNAP_KEY); }catch{} }
 
-// 4) Firebase helpers (dynamic import, lightweight)
+function initialsOf(name){
+  const parts = (name || "").trim().split(/\s+/).filter(Boolean);
+  const initials = parts.slice(0, 2).map(w => w[0]).join("").toUpperCase();
+  return initials || "?";
+}
+
+// Local initials avatar: inline SVG data URI, no external requests.
+function initialsAvatar(name){
+  const text = initialsOf(name).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52">' +
+    '<rect width="52" height="52" rx="26" fill="#123a5e"/>' +
+    '<text x="26" y="26" dy=".36em" text-anchor="middle" font-family="Segoe UI, sans-serif" ' +
+    'font-size="20" font-weight="700" fill="#6FCBFF">' + text + "</text></svg>";
+  return "data:image/svg+xml," + encodeURIComponent(svg);
+}
+window.pfaiInitialsAvatar = initialsAvatar;
+
+// 3) Firebase helpers (dynamic import, lightweight)
 async function ensureFirebase(){
   if(!window.FIREBASE_CONFIG) return null;
   const appMod  = await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js");
@@ -70,33 +56,37 @@ function onAuth(cb){
     .then(({ onAuthStateChanged }) => onAuthStateChanged(window._auth, cb));
 }
 
-// 5) Renderers (keeps your existing SIGN IN button styling)
+// 4) Renderers (content-only: both states share the fixed slot geometry)
 function renderSignedOut(){
   const el = slotEl(); if(!el) return;
-  el.innerHTML = '<a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a>';
-  // Ensure it’s clickable even if some parent applied pointer-events accidentally
-  el.style.pointerEvents = "auto";
+  document.documentElement.classList.remove("pfai-signed-in");
+  const next = encodeURIComponent(location.pathname + location.search);
+  el.innerHTML = '<a href="login.html?next=' + next + '"><div class="button signin"><span class="title">SIGN IN</span></div></a>';
 }
+
 function renderSignedIn(userLike){
   const el = slotEl(); if(!el) return;
+  document.documentElement.classList.add("pfai-signed-in");
   const name = (userLike.displayName || (userLike.email ? userLike.email.split("@")[0] : "User")).trim();
-  const pic  = userLike.photoURL || avatar(name);
+  const pic  = userLike.photoURL || initialsAvatar(name);
 
   el.innerHTML = `
     <div class="user-menu-wrap">
-      <button id="userMenuBtn" class="user-btn" aria-haspopup="true" aria-expanded="false">
-        <img class="user-avatar" src="${pic}" alt="${name}" />
-        <span class="user-name">@${name}</span>
+      <button id="userMenuBtn" class="user-btn" type="button" aria-haspopup="true" aria-expanded="false">
+        <img class="user-avatar" alt="" />
+        <span class="user-name"></span>
         <svg class="chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </button>
       <div id="userMenu" class="user-menu" role="menu" aria-hidden="true">
         <a class="menu-item" role="menuitem" href="profile.html">View profile</a>
-        <button id="logoutBtn" class="menu-item" role="menuitem">Log out</button>
+        <button id="logoutBtn" class="menu-item" role="menuitem" type="button">Log out</button>
       </div>
     </div>
   `;
+  el.querySelector(".user-avatar").src = pic;
+  el.querySelector(".user-name").textContent = "@" + name;
 
   const btn    = document.getElementById("userMenuBtn");
   const menu   = document.getElementById("userMenu");
@@ -115,127 +105,82 @@ function renderSignedIn(userLike){
     clearSnap();
     renderSignedOut();
   };
-
-  // Ensure interactive
-  el.style.pointerEvents = "auto";
 }
 
-// 6) Hydration control: prevent flash, then remove as soon as we render something real
-(function startHydration() {
-  // Add the class immediately so the server/default markup doesn't flash
+// 5) Paint from the snapshot now, then reconcile with real Firebase state.
+// The auth-hydrating class must clear on every path, including import failure.
+(async function reconcileAuth(){
   document.documentElement.classList.add("auth-hydrating");
+  try {
+    const snap = readSnap();
+    if (snap && snap.uid) renderSignedIn(snap);
+    else renderSignedOut();
 
-  const el = slotEl(); if (!el) { document.documentElement.classList.remove("auth-hydrating"); return; }
-
-  // If we have a snapshot, render it NOW (no flicker), then unlock interactivity
-  const snap = readSnap();
-  if (snap && (snap.displayName || snap.email) && snap.uid) {
-    renderSignedIn(snap);
+    if (!window.FIREBASE_CONFIG) return;
+    await ensureFirebase();
+    onAuth((user) => {
+      if (user) { writeSnap(user); renderSignedIn(user); }
+      else { clearSnap(); renderSignedOut(); }
+    });
+  } catch (e) {
+    console.error("auth init failed", e);
+  } finally {
     document.documentElement.classList.remove("auth-hydrating");
   }
 })();
 
-// 7) Reconcile with real Firebase state ASAP
-document.addEventListener("DOMContentLoaded", async () => {
-  // If Firebase config is missing, show SIGN IN and stop hydrating
-  if (!window.FIREBASE_CONFIG) {
-    if (!readSnap()) renderSignedOut();
-    document.documentElement.classList.remove("auth-hydrating");
-    return;
-  }
-
-  await ensureFirebase();
-  onAuth((user) => {
-    if (user) { writeSnap(user); renderSignedIn(user); }
-    else { clearSnap(); renderSignedOut(); }
-    // Whatever we showed is now final; reveal if still hidden
-    document.documentElement.classList.remove("auth-hydrating");
-  });
-});
-
-
-// ── 8) Profile storage: gems + saved rounds (localStorage, per-UID) ─────────────────
-(function () {
-  // Public helpers (attached to window)
-  window.currentUser = function () {
-    return (window._auth && window._auth.currentUser) || null;
-  };
-
-  function k(uid) { return `pfai_profile::${uid}`; }
-  function read(uid) {
-    try { return JSON.parse(localStorage.getItem(k(uid))) || { gems: 0, rounds: [] }; }
-    catch { return { gems: 0, rounds: [] }; }
-  }
-  function write(uid, data) {
-    try { localStorage.setItem(k(uid), JSON.stringify(data)); } catch {}
-  }
-
-  // Gems
-  window.getGemsForUser = function (uid) { return read(uid).gems || 0; };
-  window.addGemsToUser  = function (uid, n) {
-    const p = read(uid);
-    p.gems = (p.gems || 0) + (n || 0);
-    write(uid, p);
-    return p.gems;
-  };
-
-  // Rounds
-  window.getRoundsForUser = function (uid) { return read(uid).rounds || []; };
-  window.addRoundForUser  = function (uid, round) {
-    const p = read(uid);
-    const id = round.id || `r_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    const payload = { ...round, id };
-    // Avoid duplicates if already saved in this session/id
-    if (!(p.rounds || []).some(r => r.id === id)) p.rounds = [payload, ...(p.rounds || [])];
-    write(uid, p);
-    return id;
-  };
-  window.deleteRoundForUser = function (uid, id) {
-    const p = read(uid);
-    p.rounds = (p.rounds || []).filter(r => r.id !== id);
-    write(uid, p);
-  };
-})();
-
-
-
-
-
-// === PublicForumAI profile helpers (localStorage-based) ===
+// 6) Profile storage: gems, rounds, module progress (localStorage, per UID)
 (function(){
-  if (typeof window === 'undefined') return;
-  function _profileKey(uid){ return `pfai_profile::${uid}`; }
-  function _readProfile(uid){
+  function profileKey(uid){ return `pfai_profile::${uid}`; }
+  function readProfile(uid){
     try {
-      const raw = localStorage.getItem(_profileKey(uid));
+      const raw = localStorage.getItem(profileKey(uid));
       const p = raw ? JSON.parse(raw) : {};
       return Object.assign({ gems: 0, rounds: [], modulesEarned: {} }, p || {});
-    } catch(_) { return { gems: 0, rounds: [], modulesEarned: {} }; }
+    } catch { return { gems: 0, rounds: [], modulesEarned: {} }; }
   }
-  function _writeProfile(uid, p){
-    try { localStorage.setItem(_profileKey(uid), JSON.stringify(p)); } catch(_){}
+  function writeProfile(uid, p){
+    try { localStorage.setItem(profileKey(uid), JSON.stringify(p)); } catch {}
   }
-  window.getProfileForUser = function(uid){ return _readProfile(uid); };
-  window.setProfileForUser = function(uid, p){ _writeProfile(uid, p); };
+
+  window.currentUser = function(){
+    try { return (window._auth && window._auth.currentUser) || null; } catch { return null; }
+  };
+
+  window.getProfileForUser = function(uid){ return readProfile(uid); };
+  window.setProfileForUser = function(uid, p){ writeProfile(uid, p); };
+
+  window.getGemsForUser = function(uid){ return readProfile(uid).gems || 0; };
   window.addGemsToUser = function(uid, amount){
     if (!uid || !Number.isFinite(+amount) || +amount <= 0) return;
-    const p = _readProfile(uid);
-    p.gems = (p.gems||0) + (+amount);
-    _writeProfile(uid, p);
+    const p = readProfile(uid);
+    p.gems = (p.gems || 0) + (+amount);
+    writeProfile(uid, p);
   };
+
+  window.getRoundsForUser = function(uid){ return readProfile(uid).rounds || []; };
+  window.addRoundForUser = function(uid, round){
+    const p = readProfile(uid);
+    const id = round.id || `r_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    if (!(p.rounds || []).some(r => r.id === id)) p.rounds = [{ ...round, id }, ...(p.rounds || [])];
+    writeProfile(uid, p);
+    return id;
+  };
+  window.deleteRoundForUser = function(uid, id){
+    const p = readProfile(uid);
+    p.rounds = (p.rounds || []).filter(r => r.id !== id);
+    writeProfile(uid, p);
+  };
+
   window.hasEarnedModule = function(uid, moduleId){
     if (!uid || !moduleId) return false;
-    const p = _readProfile(uid);
-    const me = p.modulesEarned || {};
-    return !!me[moduleId];
+    return !!(readProfile(uid).modulesEarned || {})[moduleId];
   };
   window.markModuleEarned = function(uid, moduleId){
     if (!uid || !moduleId) return;
-    const p = _readProfile(uid);
+    const p = readProfile(uid);
     p.modulesEarned = p.modulesEarned || {};
     p.modulesEarned[moduleId] = true;
-    _writeProfile(uid, p);
+    writeProfile(uid, p);
   };
-  // lightweight current user accessor if auth.js has onAuth
-  window.currentUser = function(){ try { return (window._auth && window._auth.currentUser) || null; } catch(_){ return null; } };
 })();
