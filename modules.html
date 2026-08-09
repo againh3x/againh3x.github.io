@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PublicForumAI Learning App</title>
+  <title>Training Modules - PublicForumAI</title>
 <link rel="stylesheet" href="toolbar.css"/>
 <script>
 /* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
@@ -34,186 +34,257 @@
 </script>
   <style>
     /*
-      Simple single–page application that mirrors the structure of the
-      original Tkinter program.  The layout is split into a fixed
-      sidebar containing a list of modules and a main pane that
-      displays individual pages of each module.  A dark, modern
-      colour scheme inspired by PublicForumAI’s home page ties
-      everything together.
+      Training Modules layout.
 
-      Colours are defined as CSS variables at the top to make
-      adjustments easy.  Elements such as buttons and progress bars
-      respond to hover states and transitions for a polished feel.
+      One authoritative layout: the fixed toolbar (toolbar.css) sits on top,
+      its real height is mirrored into --toolbar-h by a small script, and
+      .app-container fills the rest of the viewport as a two-column grid.
+      The sidebar and #page-container scroll internally; the page itself
+      never scrolls.
     */
     :root {
-      --primary-color: #3498db;      /* vibrant blue */
-      --secondary-color: #9b59b6;    /* purple */
-      --accent-color: #f1c40f;       /* gold/yellow */
-      --background-dark: #01172d;    /* deep navy background */
-      --background-light: #0a235a;   /* lighter panel background */
-      --card-bg: #11254b;            /* card background */
-      --text-color: #e0f4ff;         /* off‑white text */
+      --primary-color: #3498db;
+      --secondary-color: #9b59b6;
+      --accent-color: #f1c40f;
+      --background-dark: #01172d;
+      --background-light: #0a235a;
+      --card-bg: #11254b;
+      --text-color: #e0f4ff;
       --shadow-color: rgba(0,0,0,0.3);
+      --toolbar-h: 64px; /* kept in sync with the real bar by script */
+      --pfai-accent: #6FCBFF;
+      --pfai-ok: #16a34a;
+      --pfai-ok-dark: #15803d;
     }
 
     html, body {
       margin: 0;
       padding: 0;
-      height: 110%;
-      font-family: 'Roboto', sans-serif;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: var(--text-color);
     }
 
     body {
-      background: linear-gradient(180deg,#75bfff,#0015a1,#5ab2ff,#0015a1,var(--background-dark));
-      display: flex;
-      flex-direction: column;
+      padding-top: var(--toolbar-h) !important;
+      background: linear-gradient(180deg, #0a0e27, var(--background-dark));
     }
 
-    /* Container for the entire app */
+    /* The toolbar may wrap to two rows on narrow screens; the layout follows
+       because --toolbar-h is measured, not assumed. */
+    @media (max-width: 900px) {
+      nav.toolbar { flex-wrap: wrap; height: auto; min-height: 64px; padding: 8px 14px; row-gap: 2px; }
+      nav.toolbar .nav-links { order: 3; width: 100%; justify-content: center; gap: 12px 18px; flex-wrap: wrap; font-size: 0.9rem; }
+    }
+    @media (max-width: 480px) {
+      nav.toolbar { padding: 6px 10px; }
+      nav.toolbar .logo-text { font-size: 1.1rem; }
+    }
+
+    /* App frame between the toolbar and the bottom of the viewport */
     .app-container {
-  min-height: 100vh;
-      display: flex;
-      flex: 1;
-      max-width: 1200px;
-      margin: 0 auto;
+      box-sizing: border-box;
+      height: calc(100vh - var(--toolbar-h));
+      height: calc(100dvh - var(--toolbar-h));
       width: 100%;
-      box-shadow: 0 0 20px var(--shadow-color);
-      border-radius: 10px;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
       overflow: hidden;
       background: rgba(255,255,255,0.05);
       backdrop-filter: blur(8px);
+      box-shadow: 0 0 20px var(--shadow-color);
     }
 
-    /* Sidebar with module list */
+    /* Hide the app until the head snapshot or the auth gate confirms a
+       signed-in user, so logged-out visitors never see a flash of content. */
+    html:not(.pfai-signed-in) .app-container { visibility: hidden; }
+
+    /* Sidebar */
     .sidebar {
       background: rgba(10,35,66,0.95);
-      width: 250px;
       padding: 20px;
       box-sizing: border-box;
       border-right: 1px solid rgba(125,211,252,0.2);
-    
-  max-height: 100vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     .sidebar h2 {
-      margin-top: 0;
-      margin-bottom: 20px;
+      margin: 0 0 12px;
       font-size: 1.5rem;
       color: var(--primary-color);
       text-shadow: 0 0 8px rgba(255,255,255,0.2);
     }
-    .module-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+    .gem-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(241,196,15,0.1);
+      border: 1px solid rgba(241,196,15,0.35);
+      color: var(--accent-color);
+      font-weight: 700;
     }
-    .module-item {
-      margin-bottom: 10px;
-    }
+    .module-list { list-style: none; padding: 0; margin: 0; counter-reset: pfai-mod; }
+    .module-item { margin-bottom: 10px; }
     .module-button {
       display: block;
       width: 100%;
-      padding: 12px 14px;
-      background: linear-gradient(145deg,#3B82F6,#2563EB);
-      border: 1px solid rgba(125,211,252,0.4);
-      border-radius: 8px;
-      color: var(--text-color);
+      position: relative;
+      padding: 12px 14px 12px 54px;
+      background: linear-gradient(145deg, #0d5db8, var(--pfai-accent));
+      border: 1px solid rgba(125,211,252,0.55);
+      border-radius: 10px;
+      color: #f8fbff;
       font-size: 1rem;
       text-align: left;
       cursor: pointer;
-      transition: all 0.2s ease;
-      text-decoration: none;
+      box-shadow: 0 6px 18px rgba(59,130,246,0.20);
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
     }
-    .module-button:hover,
+    .module-button::before {
+      counter-increment: pfai-mod;
+      content: counter(pfai-mod);
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      width: 30px; height: 30px; border-radius: 50%;
+      display: grid; place-items: center;
+      font-weight: 800;
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(125,211,252,0.7);
+      color: #e6f6ff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    }
+    .module-button:hover:not(:disabled),
     .module-button.active {
-      background: linear-gradient(145deg,#2563EB,#1747a2);
-      box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(49,166,255,0.30);
     }
-    .module-button .title {
-      font-weight: bold;
-      margin-bottom: 4px;
+    .module-button .title { font-weight: bold; }
+    .module-button.completed {
+      background: linear-gradient(145deg, var(--pfai-ok), var(--pfai-ok-dark));
+      border-color: rgba(34,197,94,0.6);
     }
-    .module-button .status {
-      font-size: 0.8rem;
+    .module-button.completed .title { color: #eaffea; }
+    .module-button.completed::after {
+      content: "\2713";
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      font-weight: 900; font-size: 14px;
+    }
+    .module-button.locked {
+      pointer-events: none;
+      background: linear-gradient(145deg, #334155, #0f172a);
+      border-color: rgba(148,163,184,0.35);
       opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .module-button.locked .title { color: #c7d2fe; }
+    .module-button.locked::after {
+      content: "\1F512";
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 14px;
     }
 
-    /* Main content area */
+    /* Content column: header + scrollable page area + status line + nav */
     .content {
-      flex: 1;
       display: flex;
       flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
       background: rgba(10,35,66,0.9);
-      padding: 20px;
+      padding: 14px 16px;
       box-sizing: border-box;
     }
     .content-header {
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       color: var(--primary-color);
       text-shadow: 0 0 10px rgba(125,211,252,0.3);
     }
     .page-container {
-      flex: 1;
+      flex: 1 1 auto;
+      min-height: 0;
       overflow-y: auto;
+      overflow-x: hidden;
       padding-right: 8px;
     }
+    #page-container h2 { color: var(--primary-color); font-size: 1.25rem; margin: 10px 0 8px; }
+    #page-container img { max-width: 100%; height: auto; }
+    #page-container pre { white-space: pre-wrap; word-break: break-word; max-width: 100%; }
+    #page-container table { width: 100%; }
     .card {
       background: var(--card-bg);
-      padding: 20px;
+      padding: 14px 16px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      margin-bottom: 20px;
+      margin: 0 0 14px;
     }
-    .card h3 {
-      margin-top: 0;
-      color: var(--primary-color);
-    }
-    .options-group {
-      margin-top: 10px;
-    }
-    .options-group label {
+    .card h3 { margin-top: 0; color: var(--primary-color); }
+    .options-group { margin-top: 10px; }
+    .options-group label { display: block; margin-bottom: 10px; cursor: pointer; }
+
+    /* Shared right/wrong treatment for quiz labels (matches the left-border
+       pattern used across the later modules). */
+    #page-container label.correct:not(.choice),
+    #page-container label.incorrect:not(.choice) {
       display: block;
-      margin-bottom: 10px;
-      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
     }
-    /* Navigation buttons at bottom of page */
-    .nav-controls {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
+    #page-container label.correct:not(.choice) { border-left: 6px solid #16a34a; }
+    #page-container label.incorrect:not(.choice) { border-left: 6px solid #dc2626; }
+
+    /* Inline status line, navigation, progress bar */
+    #pf-toast {
+      flex: 0 0 auto;
+      min-height: 1.4em;
+      margin: 6px 2px 0;
+      font-weight: 600;
+      font-size: 0.95rem;
+      opacity: 0;
+      transition: opacity .2s ease;
     }
+    #pf-toast.show { opacity: 1; }
+    #pf-toast.warn { color: #fca5a5; }
+    #pf-toast.ok { color: #6ee7b7; }
+    .nav-controls { flex: 0 0 auto; display: flex; justify-content: space-between; gap: 10px; margin-top: 6px; }
     .nav-button {
       padding: 10px 20px;
       border: none;
       border-radius: 6px;
       font-size: 1rem;
       cursor: pointer;
-      transition: background 0.2s ease;
-      color: white;
+      transition: background .2s ease;
+      color: #fff;
     }
-    .nav-button.back {
-      background: var(--secondary-color);
-    }
-    .nav-button.next {
+    .nav-button.back { background: var(--secondary-color); }
+    .nav-button.next { background: var(--primary-color); }
+    .nav-button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .nav-button.back:hover:not(:disabled) { background: #7f3fbf; }
+    .nav-button.next:hover:not(:disabled) { background: #1d4fa7; }
+    .primary-btn, .btn {
+      display: inline-block;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
       background: var(--primary-color);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .2s ease;
     }
-    .nav-button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .nav-button.back:hover:not(:disabled) {
-      background: #7f3fbf;
-    }
-    .nav-button.next:hover:not(:disabled) {
-      background: #1d4fa7;
-    }
-
-    /* Progress bar styling */
+    .primary-btn:hover, .btn:hover { background: #1d4fa7; }
     .progress-container {
+      flex: 0 0 auto;
       height: 8px;
       width: 100%;
       background: rgba(255,255,255,0.1);
@@ -221,14 +292,9 @@
       margin-top: 10px;
       overflow: hidden;
     }
-    .progress-bar {
-      height: 100%;
-      background: var(--accent-color);
-      width: 0;
-      transition: width 0.3s ease;
-    }
+    .progress-bar { height: 100%; background: var(--accent-color); width: 0; transition: width .3s ease; }
 
-    /* Form input styling */
+    /* Form inputs */
     .form-input, textarea {
       width: 100%;
       padding: 8px;
@@ -238,371 +304,37 @@
       color: var(--text-color);
       box-sizing: border-box;
       margin-top: 4px;
+      font-family: inherit;
     }
+    select.form-input option { color: #0b1a2b; }
 
+    /* Contrast guards for highlighted text */
+    mark {
+      background: rgba(0,0,0,0.35) !important;
+      color: #ffffff !important;
+      padding: 0.05em 0.25em;
+      border-radius: 0.25em;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+    }
+    .pill, .pill.claim, .pill.warrant, .pill.evidence, .pill.impact { color: #ffffff !important; }
+    .choice, .quiz label { color: #ffffff !important; }
+    *[style*="background: yellow"],
+    *[style*="background-color: yellow"],
+    *[style*="background: rgb(255,255,0)"],
+    *[style*="background-color: rgb(255,255,0)"],
+    *[style*="background: #ffff"],
+    *[style*="background-color: #ffff"] { color: #0b1a2b !important; }
 
-/* === Accessibility Contrast Fixes === */
-/* Make text inside highlights readable on dark UI */
-mark {
-  background: rgba(0,0,0,0.35) !important;
-  color: #ffffff !important;
-  padding: 0.05em 0.25em;
-  border-radius: 0.25em;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
-}
-
-/* Pills and quiz labels now live on dark cards, so set their text to white for contrast */
-.pill,
-.pill.claim,
-.pill.warrant,
-.pill.evidence,
-.pill.impact {
-  color: #ffffff !important;
-}
-
-/* Radio/checkbox label chips in quizzes and other choices */
-.choice,
-.quiz label {
-  color: #ffffff !important;
-}
-
-/* If any inline yellow highlights were used via inline style, force readable text */
-*[style*="background: yellow"],
-*[style*="background-color: yellow"],
-*[style*="background: rgb(255,255,0)"],
-*[style*="background-color: rgb(255,255,0)"],
-*[style*="background: #ffff"],
-*[style*="background-color: #ffff"] {
-  color: #0b1a2b !important;
-}
-</style>
-<style id="pfai-toolbar-and-tweaks">
-
-/* ===== App Tweaks ===== */
-/* Wider content area without touching original rules (override via cascade) */
-.app-container { max-width: 1400px !important; }
-
-/* Sidebar module buttons: nicer look + numbers (CSS counter, no JS changes) */
-.module-list { counter-reset: pfai-mod; }
-.module-item .module-button {
-  position: relative;
-  padding-left: 54px;                 /* room for number badge */
-  border-radius: 10px;
-  border: 1px solid rgba(125,211,252,0.55);
-  box-shadow: 0 6px 18px rgba(59,130,246,0.20);
-}
-.module-item .module-button::before {
-  counter-increment: pfai-mod;
-  content: counter(pfai-mod);
-  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-  width: 30px; height: 30px; border-radius: 50%;
-  display: grid; place-items: center;
-  font-weight: 800;
-  background: rgba(255,255,255,0.08);
-  border: 1.5px solid rgba(125,211,252,0.7);
-  color: #e6f6ff;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
-  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.1);
-}
-.module-item .module-button:hover,
-.module-item .module-button.active {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(59,130,246,0.30);
-}
-
-</style>
-<style>
-
-/* === PFAI Compact Spacing + Sidebar Styles (injected v3) === */
-:root{
-  --pfai-accent:#6FCBFF;
-  --pfai-accent-dark:#1D7FD1;
-  --pfai-ok:#16a34a;
-  --pfai-ok-dark:#15803d;
-}
-
-.app-container{ max-width: 1400px !important; margin-top: 4px !important; }
-
-#page-container{ 
-  max-height: calc(100vh - 160px) !important; 
-  overflow-y: auto !important; 
-  padding-right: 8px !important; 
-}
-.content{ padding: 10px 12px !important; }
-.content h2, .content h3{ margin: 6px 0 8px 0 !important; }
-.card{ padding: 12px 14px !important; margin: 8px 0 !important; }
-.nav-controls{ margin-top: 6px !important; }
-
-.module-item .module-button{
-  position: relative;
-  background: linear-gradient(145deg, #0d5db8, var(--pfai-accent)) !important;
-  border: 1px solid rgba(125,211,252,0.55) !important;
-  color: #f8fbff !important;
-  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
-}
-.module-item .module-button:hover,
-.module-item .module-button.active{
-  filter: brightness(1.06);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(49, 166, 255, 0.30) !important;
-}
-
-.module-item .module-button.completed{
-  background: linear-gradient(145deg, var(--pfai-ok), var(--pfai-ok-dark)) !important;
-  border-color: rgba(34,197,94,0.6) !important;
-}
-.module-item .module-button.completed::after{
-  content: "✓";
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-weight: 900;
-  font-size: 14px;
-}
-
-.module-item .module-button.locked{ pointer-events: none !important;
-  background: linear-gradient(145deg, #334155, #0f172a) !important;
-  border-color: rgba(148,163,184,0.35) !important;
-  opacity: 0.7 !important;
-  cursor: not-allowed !important;
-}
-.module-item .module-button.locked .status{ color: #93a2b8 !important; }
-
-.module-item .module-button .status{
-  font-weight: 700 !important;
-  padding: 2px 8px !important;
-  border-radius: 10px !important;
-  background: rgba(0,0,0,0.18) !important;
-}
-
-</style>
-<style>
-
-/* === Spacing fix: prevent toolbar overlap === */
-.app-container{ margin-top: 12px !important; }
-.sidebar{ margin-top: 8px !important; }
-
-</style>
-<style>
-
-/* Emphasize completed/locked text color */
-.module-item .module-button.completed .title,
-.module-item .module-button.completed .status{ color: #eaffea !important; }
-.module-item .module-button.locked .title,
-.module-item .module-button.locked .status{ color: #c7d2fe !important; }
-  /* === Fill viewport (between toolbar and gem bar) and keep sidebar/content equal height === */
-  :root {
-    --toolbar-h: 64px;   /* matches body padding-top you already set */
-    --gembar-h: 44px;    /* adjust if your gem bar is taller/shorter */
-  }
-
-  /* Make the whole app frame taller (and fixed in height) */
-  .app-container{
-    height: calc(100vh - var(--toolbar-h) - var(--gembar-h) - 24px) !important; /* the 24px accounts for your small top margin */
-    min-height: unset !important;
-    align-items: stretch !important; /* ensure children stretch */
-  }
-
-  /* Sidebar + content should be exactly the same height as the container */
-  .sidebar,
-  .content{
-    height: 100% !important;
-  }
-
-  /* Sidebar should scroll internally if it overflows, not the page */
-  .sidebar{
-    max-height: none !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Let the page area inside content take up remaining space and scroll */
-  #page-container{
-    flex: 1 1 auto !important;
-    min-height: 0 !important;         /* important for flexbox overflow */
-    max-height: none !important;       /* remove previous cap */
-    overflow-y: auto !important;
-    padding-right: 8px !important;
-  }
-
-  /* Optional: lock in gem bar height so the calc above stays accurate */
-  .gem-bar{
-    height: var(--gembar-h);
-    box-sizing: border-box;
-  }
-    /* === Exact-fit between fixed toolbar and gem bar === */
-  :root{
-    --toolbar-h: 64px; /* same as your body padding-top */
-    --gembar-h: 44px;  /* tweak to your actual gem bar height */
-  }
-
-  /* Make sure the content is offset by the toolbar height only */
-  body{ padding-top: var(--toolbar-h) !important; }
-
-  /* Remove the extra margins that push the app down and break the calc */
-  .app-container{ margin-top: 0 !important; }
-  .sidebar{ margin-top: 0 !important; }
-
-  /* Size the app frame to the remaining viewport height */
-  .app-container{
-    height: calc(100vh - var(--toolbar-h) - var(--gembar-h)) !important;  /* fallback */
-    height: calc(100dvh - var(--toolbar-h) - var(--gembar-h)) !important; /* precise on mobile */
-    min-height: 0 !important;
-    align-items: stretch !important;
-  }
-
-  /* Sidebar and content match heights; scroll internally when needed */
-  .sidebar, .content{ height: 100% !important; }
-  .sidebar{
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
-  #page-container{
-    flex: 1 1 auto !important;
-    min-height: 0 !important;  /* critical for flex overflow */
-    overflow-y: auto !important;
-    padding-right: 8px !important;
-  }
-
-  /* Lock in gem bar height so the math stays true */
-  .gem-bar{
-    height: var(--gembar-h);
-    box-sizing: border-box;
-  }
-    /* Use dynamic viewport & keep body padding inside the height */
-  :root { --toolbar-h: 64px; } /* your toolbar height */
-
-  html, body { height: auto !important; min-height: 100dvh !important; }
-  body { padding-top: var(--toolbar-h) !important; }
-
-  /* Fill the viewport below the toolbar (no gem bar subtraction) */
-  .app-container{
-    margin-top: 0 !important;
-    height: calc(100dvh - var(--toolbar-h)) !important;
-    min-height: 0 !important;
-    align-items: stretch !important;
-  }
-
-  /* Kill the earlier hard cap that fights our math */
-  #page-container{
-    max-height: none !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-    padding-right: 8px !important;
-  }
-
-  /* Keep sidebar/content equal height with internal scrolling */
-  .sidebar, .content { height: 100% !important; }
-  .sidebar { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
-
-  /* Nuke any earlier spacing nudges */
-  .app-container, .sidebar { margin-top: 0 !important; }
-</style>
-<style id="pfai-fixed-viewport">
-  :root { --toolbar-h: 64px; } /* will be auto-updated by the tiny script below */
-
-  /* Keep the page offset only for the fixed toolbar */
-  body { padding-top: var(--toolbar-h) !important; }
-
-  /* Lock the app frame to the visible viewport (minus toolbar), no growth with content */
-  .app-container{
-    height: calc(100dvh - var(--toolbar-h)) !important; /* dvh = correct on mobile */
-    min-height: 0 !important;
-    margin-top: 0 !important;
-    overflow: hidden !important;
-
-    /* Ensure sidebar/content are same height without flex surprises */
-    display: grid !important;
-    grid-template-columns: 250px 1fr !important;
-  }
-
-  /* Sidebar and content match heights and scroll internally */
-  .sidebar, .content{
-    height: 100% !important;
-    min-height: 0 !important;
-  }
-  .sidebar{
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Make the content a column: header + scrollable page + fixed nav/progress */
-  .content{
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-  }
-
-  /* Your page area MUST be the only thing that scrolls in the content pane */
-  #page-container, .page-container{
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    max-height: none !important;     /* kill earlier calc(100vh - 160px) cap */
-    overflow-y: auto !important;
-    padding-right: 8px !important;
-  }
-
-  /* Keep these out of the scroll area */
-  .nav-controls, .progress-container{
-    flex: 0 0 auto !important;
-  }
-</style>
-<style id="hard-height-fix">
-  :root { --toolbar-h: 64px; } /* updated by your tiny script later */
-
-  /* Stop the document from growing; we’ll scroll inside the panes instead */
-  html, body { height: 100dvh !important; overflow: hidden !important; }
-  body { padding-top: var(--toolbar-h) !important; }
-
-  /* Pin the app frame between the toolbar and the bottom of the viewport */
-  .app-container{
-    position: fixed !important;
-    top: var(--toolbar-h) !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    bottom: 0 !important;
-    height: auto !important;                /* top+bottom define height */
-    width: 100% !important;
-    max-width: 1400px !important;
-    margin: 0 !important;
-
-    display: grid !important;
-    grid-template-columns: 250px 1fr !important;
-    overflow: hidden !important;            /* children scroll internally */
-    min-height: 0 !important;               /* neutralize earlier min-height */
-  }
-
-  /* Sidebar & content always equal the container height */
-  .sidebar, .content { height: 100% !important; min-height: 0 !important; }
-
-  /* Sidebar scrolls if the 14 items overflow */
-  .sidebar {
-    max-height: none !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Content column: header + scrollable page area + fixed controls */
-  .content {
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-  }
-
-  /* Only this area scrolls in the content pane */
-  #page-container, .page-container {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow-y: auto !important;
-    padding-right: 8px !important;
-  }
-
-  /* Kill any earlier caps that forced the layout to grow */
-  #page-container { max-height: none !important; }
-</style>
+    /* Small screens: sidebar stacks above the content; both scroll
+       internally and nothing overflows the viewport sideways. */
+    @media (max-width: 768px) {
+      .app-container { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+      .sidebar { max-height: 32vh; border-right: none; border-bottom: 1px solid rgba(125,211,252,0.2); padding: 14px; }
+      .content { padding: 12px; }
+      .content-header { font-size: 1.3rem; }
+      .nav-button { padding: 10px 14px; }
+    }
+  </style>
 
 
 </head>
@@ -611,7 +343,7 @@ mark {
 <nav class="toolbar">
   <a class="logo" href="index.html">
     <img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
-    <span class="logo-text">PublicForumAI©</span>
+    <span class="logo-text">PublicForumAI</span>
   </a>
   <div class="nav-links">
     <a href="flower.html">AI Flow</a>
@@ -626,17 +358,35 @@ mark {
   </div>
 </nav>
 
+<script>
+/* Keep --toolbar-h in sync with the toolbar's real height (it wraps to two
+   rows on narrow screens), so the app frame below never overlaps it. */
+(function () {
+  var nav = document.querySelector('nav.toolbar');
+  if (!nav) return;
+  function setH() {
+    document.documentElement.style.setProperty('--toolbar-h', nav.offsetHeight + 'px');
+  }
+  if (window.ResizeObserver) new ResizeObserver(setH).observe(nav);
+  window.addEventListener('resize', setH);
+  setH();
+})();
+</script>
+
   <!-- Main container -->
   <div class="app-container">
     <!-- Sidebar listing modules -->
     <aside class="sidebar">
-      <h2>Learning Modules</h2>
+      <h2>Training Modules</h2>
+      <div class="gem-bar" id="gem-bar">💎 <span id="gem-count">0</span> gems</div>
       <ul id="module-list" class="module-list"></ul>
     </aside>
     <!-- Content area -->
     <main class="content">
       <div id="module-title" class="content-header">Select a module</div>
       <div id="page-container" class="page-container"></div>
+      <!-- Inline status line (replaces blocking alert dialogs) -->
+      <div id="pf-toast" role="status" aria-live="polite"></div>
       <!-- Navigation buttons and progress bar -->
       <div class="nav-controls">
         <button id="back-btn" class="nav-button back" disabled>Back</button>
@@ -704,19 +454,19 @@ For these reasons, we are proud to affirm.`;
 
   const m6SampleFlow = [
     ['Overview','Ban single-use plastic → stop dumping, protect oceans, lead globally'],
-    ['C1 — Claim','US ships scrap plastic abroad'],
-    ['C1 — Why','Treaties weak / mislabeled exports bypass rules'],
-    ['C1 — Result','Burning toxins → ~800k deaths/yr (children at risk)'],
-    ['C2 — Claim','Plastics → microplastics harm fish'],
-    ['C2 — Why','US top waste; ~7M tons leak to oceans'],
-    ['C2 — Result','Ecosystem collapse → food risk for ~3.1B'],
-    ['C3 — Claim','US leadership matters; we lag now'],
-    ['C3 — Why','Plastic = oil/gas; big emissions if unchecked'],
-    ['C3 — Result','Action lowers warming → fewer premature deaths']
+    ['C1: Claim','US ships scrap plastic abroad'],
+    ['C1: Why','Treaties weak / mislabeled exports bypass rules'],
+    ['C1: Result','Burning toxins → ~800k deaths/yr (children at risk)'],
+    ['C2: Claim','Plastics → microplastics harm fish'],
+    ['C2: Why','US top waste; ~7M tons leak to oceans'],
+    ['C2: Result','Ecosystem collapse → food risk for ~3.1B'],
+    ['C3: Claim','US leadership matters; we lag now'],
+    ['C3: Why','Plastic = oil/gas; big emissions if unchecked'],
+    ['C3: Result','Action lowers warming → fewer premature deaths']
   ];
   /*
     This script defines a simple JavaScript framework to manage
-    multi‑page learning modules.  Each module is represented as an
+    multi-page learning modules.  Each module is represented as an
     object with a unique id, display title, reward value, an array
     of page renderers, and a validation function to prevent moving
     forward prematurely.  When the user completes the last page of
@@ -728,6 +478,29 @@ For these reasons, we are proud to affirm.`;
     complete.  The gem bar at the bottom updates whenever gems
     change.
   */
+
+  // Inline, non-blocking status line near the nav controls. Used everywhere
+  // a blocking alert() used to be.
+  function pfToast(msg, kind) {
+    const el = document.getElementById('pf-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'show ' + (kind === 'ok' ? 'ok' : 'warn');
+    clearTimeout(pfToast._t);
+    pfToast._t = setTimeout(() => { el.classList.remove('show'); }, 3500);
+  }
+
+  // Clipboard helper with real success/failure feedback.
+  function pfCopy(text, okMsg) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => pfToast(okMsg || 'Copied to clipboard.', 'ok'),
+        () => pfToast('Copy failed. Select the text and copy it manually.')
+      );
+    } else {
+      pfToast('Copy is not available in this browser.');
+    }
+  }
 
   // Utility to safely get and set persistent state
   const AppState = {
@@ -763,10 +536,11 @@ For these reasons, we are proud to affirm.`;
     }
   };
 
-  // Update the gem bar at bottom
+  // Update the gem counter in the sidebar
   function updateGemBar() {
-    const state = AppState.get();
-    document.getElementById('gem-count').textContent = state.gems;
+    const el = document.getElementById('gem-count');
+    if (!el) return;
+    el.textContent = AppState.get().gems;
   }
 
   // Module definitions
@@ -781,7 +555,7 @@ For these reasons, we are proud to affirm.`;
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `
-            <h3>Welcome to Learn2Debate!</h3>
+            <h3>Welcome to the Training Modules!</h3>
             <p>We're excited to help you learn debate skills! This short survey will help us understand your experience level so we can provide the best learning experience for you.</p>
             <p><em>Click 'Next' to begin the survey.</em></p>
           `;
@@ -931,7 +705,7 @@ For these reasons, we are proud to affirm.`;
           card.innerHTML = `
             <h3>Thank You!</h3>
             <p>Thanks for completing our introduction survey!</p>
-            <p>You earned ${modules.find(m=>m.id==='m1').reward} gems to get started.</p>
+            <p>You'll earn ${modules.find(m=>m.id==='m1').reward} gems to get started when you press Finish.</p>
             <div style="font-size:48px;">💎</div>
           `;
           container.appendChild(card);
@@ -958,7 +732,7 @@ For these reasons, we are proud to affirm.`;
               <li>Creates a positive impression on judges</li>
               <li>Shows respect for your opponents and the activity</li>
               <li>Helps maintain focus on substantive arguments</li>
-              <li>Professional behavior can be a tie‑breaker in close rounds</li>
+              <li>Professional behavior can be a tie-breaker in close rounds</li>
             </ul>
           `;
           container.appendChild(card);
@@ -972,7 +746,7 @@ For these reasons, we are proud to affirm.`;
             <p>Key guidelines to remember:</p>
             <ul>
               <li>Stand when giving speeches and during your Crossfire turns</li>
-              <li>Face the judge when speaking—don’t lock eyes only on your opponent</li>
+              <li>Face the judge when speaking; don’t lock eyes only on your opponent</li>
               <li>Project your voice clearly so everyone can hear you</li>
               <li>Avoid filler words ("um", "like", "you know") as much as possible</li>
               <li>Dress business casual or formal for tournaments and rounds</li>
@@ -992,23 +766,23 @@ For these reasons, we are proud to affirm.`;
           card.innerHTML = `
             <h3>Dress Code & Professional Appearance</h3>
             <p>Appropriate Tournament Attire:</p>
-            <div class="columns" style="display:flex;justify-content:space-between;gap:20px;">
-              <div style="flex:1;">
+            <div class="columns" style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px;">
+              <div style="flex:1;min-width:220px;">
                 <h4 style="color:var(--primary-color);">Recommended</h4>
                 <ul>
                   <li>Suits or sport coats (optional)</li>
                   <li>Dress shirts / blouses</li>
                   <li>Dress slacks or skirts</li>
-                  <li>Closed‑toe dress shoes</li>
+                  <li>Closed-toe dress shoes</li>
                   <li>Conservative colors (navy, black, gray)</li>
                   <li>Business casual: chinos/khakis, collared shirt or blouse, optional blazer, neat flats/loafers</li>
                 </ul>
               </div>
-              <div style="flex:1;">
+              <div style="flex:1;min-width:220px;">
                 <h4 style="color:var(--secondary-color);">Avoid</h4>
                 <ul>
                   <li>Jeans or casual pants (especially ripped/torn)</li>
-                  <li>T‑shirts / graphic tees / crop tops</li>
+                  <li>T-shirts / graphic tees / crop tops</li>
                   <li>Sneakers or sandals</li>
                   <li>Revealing or overly tight clothing</li>
                   <li>Loud patterns or neon brights</li>
@@ -1022,10 +796,10 @@ For these reasons, we are proud to affirm.`;
           `;
           // options for scenario
           const options = [
-            'Jeans, sneakers, graphic tee — it\'s the weekend',
+            'Jeans, sneakers, graphic tee: it\'s the weekend',
             'Business casual (chinos/khakis, collared shirt/blouse, neat shoes), optional blazer',
             'Athletic shorts and a hoodie because it\'s comfortable',
-            'Neon T‑shirt to stand out'
+            'Neon T-shirt to stand out'
           ];
           const group = document.createElement('div');
           group.className = 'options-group';
@@ -1039,10 +813,10 @@ For these reasons, we are proud to affirm.`;
             input.value = opt;
             input.onchange = () => {
               if(opt.startsWith('Business casual')) {
-                feedback.textContent = 'Correct! Business casual is appropriate and professional for most high‑school PF tournaments.';
+                feedback.textContent = 'Correct! Business casual is appropriate and professional for most high-school PF tournaments.';
                 feedback.style.color = '#27ae60';
               } else {
-                feedback.textContent = 'Consider a professional look that’s comfortable: business‑casual works well. Avoid casual or flashy outfits.';
+                feedback.textContent = 'Consider a professional look that’s comfortable: business-casual works well. Avoid casual or flashy outfits.';
                 feedback.style.color = '#e74c3c';
               }
             };
@@ -1083,7 +857,7 @@ For these reasons, we are proud to affirm.`;
                 feedback.textContent = 'Correct! This keeps things professional and focused on arguments.';
                 feedback.style.color = '#27ae60';
               } else {
-                feedback.textContent = 'Aim to de‑escalate and steer back to substance. A polite redirect is best.';
+                feedback.textContent = 'Aim to de-escalate and steer back to substance. A polite redirect is best.';
                 feedback.style.color = '#e74c3c';
               }
             };
@@ -1172,7 +946,7 @@ For these reasons, we are proud to affirm.`;
           card.innerHTML = `
             <h3>Module Complete!</h3>
             <p>Congratulations! You’ve mastered Debate Etiquette & Professional Conduct.</p>
-            <p>You earned ${reward} gems!</p>
+            <p>You'll earn ${reward} gems when you press Finish.</p>
             <div style="font-size:60px;">💎</div>
           `;
           container.appendChild(card);
@@ -1329,7 +1103,7 @@ For these reasons, we are proud to affirm.`;
               <li>Side A cites a credible study claiming the sun is blue (wrong fact).</li>
               <li>Side B says the sun is yellow but provides no sources and never refutes A’s study.</li>
             </ul>
-            <p>Who wins? Side A—because they used evidence and Side B didn’t. In real debates, always bring sources and directly answer your opponent’s.</p>
+            <p>Who wins? Side A, because they used evidence and Side B didn’t. In real debates, always bring sources and directly answer your opponent’s.</p>
           `;
           container.appendChild(card);
         },
@@ -1341,7 +1115,7 @@ For these reasons, we are proud to affirm.`;
           card.innerHTML = `
             <h3>Module Complete!</h3>
             <p>Great work! You’ve finished this module.</p>
-            <p>You’ll earn ${reward} gems when you press Next.</p>
+            <p>You'll earn ${reward} gems when you press Finish.</p>
             <div style="font-size:60px;">💎</div>
           `;
           container.appendChild(card);
@@ -1381,13 +1155,13 @@ For these reasons, we are proud to affirm.`;
           card.className = 'card';
           card.innerHTML = `
             <h3>Introduction to Public Forum Debate</h3>
-            <p>Public Forum is a head‑to‑head team debate where two‑person teams argue a resolution about real‑world issues.</p>
+            <p>Public Forum is a head-to-head team debate where two-person teams argue a resolution about real-world issues.</p>
             <p>Key features:</p>
             <ul>
               <li>Teams receive the resolution ahead of time</li>
               <li>Requires research and preparation</li>
               <li>Cases are written in advance and read during the debate</li>
-              <li>Emphasises persuasive speaking and evidence‑based arguments</li>
+              <li>Emphasises persuasive speaking and evidence-based arguments</li>
             </ul>
           `;
           // quick check
@@ -1412,10 +1186,8 @@ For these reasons, we are proud to affirm.`;
             input.onchange = () => {
               m4State.page1 = opt;
               // colour selected text
-              quizWrap.querySelectorAll('label').forEach(l => {
-                l.style.color = '';
-              });
-              label.style.color = (opt === 'Cases are written in advance') ? 'green' : 'red';
+              quizWrap.querySelectorAll('label').forEach(l => l.classList.remove('correct','incorrect'));
+              label.classList.add((opt === 'Cases are written in advance') ? 'correct' : 'incorrect');
             };
             label.appendChild(input);
             label.insertAdjacentText('beforeend', ' ' + opt);
@@ -1436,11 +1208,11 @@ For these reasons, we are proud to affirm.`;
           `;
           const list = document.createElement('ul');
           [
-            'Case (4 min) — First Speaker',
-            'Rebuttal (4 min) — Second Speaker',
-            'Summary (3 min) — First Speaker',
-            'Grand Crossfire (3 min) — Both Speakers',
-            'Final Focus (2 min) — Second Speaker'
+            'Case (4 min): First Speaker',
+            'Rebuttal (4 min): Second Speaker',
+            'Summary (3 min): First Speaker',
+            'Grand Crossfire (3 min): Both Speakers',
+            'Final Focus (2 min): Second Speaker'
           ].forEach(t => {
             const li = document.createElement('li');
             li.textContent = t;
@@ -1453,13 +1225,13 @@ For these reasons, we are proud to affirm.`;
           pillWrap.style.flexWrap = 'wrap';
           const createPill = txt => {
             const pill = document.createElement('div');
-            pill.style.background = '#f0fdfa';
-            pill.style.border = '1px solid rgba(0,0,0,0.1)';
+            pill.style.background = 'rgba(255,255,255,0.08)';
+            pill.style.border = '1px solid rgba(125,211,252,0.4)';
             pill.style.borderRadius = '16px';
             pill.style.padding = '6px 10px';
             pill.style.marginRight = '8px';
             pill.style.marginBottom = '6px';
-            pill.style.color = '#0f172a';
+            pill.style.color = '#e0f4ff';
             pill.style.fontSize = '0.8rem';
             pill.textContent = txt;
             return pill;
@@ -1481,10 +1253,10 @@ For these reasons, we are proud to affirm.`;
           `;
           const exText = document.createElement('pre');
           exText.textContent = `"We affirm the resolution 'Social media does more harm than good.' Our first contention is that social media promotes unrealistic beauty standards that harm mental health."`;
-          exText.style.background = '#f7fafc';
-          exText.style.color = '#1f2937';
+          exText.style.background = 'rgba(10,35,66,0.85)';
+          exText.style.color = '#e0f4ff';
           exText.style.padding = '12px';
-          exText.style.border = '1px solid rgba(0,0,0,0.1)';
+          exText.style.border = '1px solid rgba(125,211,252,0.25)';
           exText.style.borderRadius = '4px';
           exText.style.whiteSpace = 'pre-wrap';
           card.appendChild(exText);
@@ -1509,8 +1281,8 @@ For these reasons, we are proud to affirm.`;
             input.value = opt;
             input.onchange = () => {
               m4State.page3 = opt;
-              quizWrap.querySelectorAll('label').forEach(l => l.style.color = '');
-              label.style.color = (opt === 'It presents a specific contention with a claim') ? 'green' : 'red';
+              quizWrap.querySelectorAll('label').forEach(l => l.classList.remove('correct','incorrect'));
+              label.classList.add((opt === 'It presents a specific contention with a claim') ? 'correct' : 'incorrect');
             };
             label.appendChild(input);
             label.insertAdjacentText('beforeend', ' ' + opt);
@@ -1551,7 +1323,7 @@ For these reasons, we are proud to affirm.`;
             <ul>
               <li>Our contention: Social media promotes unrealistic beauty standards</li>
               <li>Their response: It connects people globally</li>
-              <li>Our rebuttal: Connection comes at a mental‑health cost</li>
+              <li>Our rebuttal: Connection comes at a mental-health cost</li>
               <li>Their evidence: Study showing increased communication</li>
               <li>Our evidence: APA study linking social media to depression</li>
             </ul>
@@ -1603,8 +1375,8 @@ For these reasons, we are proud to affirm.`;
             input.value = opt;
             input.onchange = () => {
               m4State.page6 = opt;
-              quizWrap.querySelectorAll('label').forEach(l => l.style.color = '');
-              label.style.color = (opt === "Challenge the study's relevance due to its age") ? 'green' : 'red';
+              quizWrap.querySelectorAll('label').forEach(l => l.classList.remove('correct','incorrect'));
+              label.classList.add((opt === "Challenge the study's relevance due to its age") ? 'correct' : 'incorrect');
             };
             label.appendChild(input);
             label.insertAdjacentText('beforeend', ' ' + opt);
@@ -1629,9 +1401,9 @@ For these reasons, we are proud to affirm.`;
           q.style.fontWeight = 'bold';
           quizWrap.appendChild(q);
           const opts = [
-            'Introduce brand‑new arguments',
+            'Introduce brand-new arguments',
             'Select the most important voting issues and weigh clearly',
-            'Re‑read your entire case',
+            'Re-read your entire case',
             'Focus on speaking speed over clarity'
           ];
           opts.forEach(opt => {
@@ -1642,8 +1414,8 @@ For these reasons, we are proud to affirm.`;
             input.value = opt;
             input.onchange = () => {
               m4State.page7 = opt;
-              quizWrap.querySelectorAll('label').forEach(l => l.style.color = '');
-              label.style.color = (opt === 'Select the most important voting issues and weigh clearly') ? 'green' : 'red';
+              quizWrap.querySelectorAll('label').forEach(l => l.classList.remove('correct','incorrect'));
+              label.classList.add((opt === 'Select the most important voting issues and weigh clearly') ? 'correct' : 'incorrect');
             };
             label.appendChild(input);
             label.insertAdjacentText('beforeend', ' ' + opt);
@@ -1665,15 +1437,15 @@ For these reasons, we are proud to affirm.`;
           const ref = document.createElement('div');
           ['Case (4)', 'Rebuttal (4)', 'Summary (3)', 'Grand Crossfire (3)', 'Final Focus (2)'].forEach(item => {
             const pill = document.createElement('span');
-            pill.style.background = '#f0fdfa';
-            pill.style.border = '1px solid rgba(0,0,0,0.1)';
+            pill.style.background = 'rgba(255,255,255,0.08)';
+            pill.style.border = '1px solid rgba(125,211,252,0.4)';
             pill.style.borderRadius = '16px';
             pill.style.padding = '4px 8px';
             pill.style.marginRight = '6px';
             pill.style.marginBottom = '6px';
             pill.style.display = 'inline-block';
             pill.style.fontSize = '0.8rem';
-            pill.style.color = '#0f172a';
+            pill.style.color = '#e0f4ff';
             pill.textContent = item;
             ref.appendChild(pill);
           });
@@ -1682,14 +1454,26 @@ For these reasons, we are proud to affirm.`;
           form.style.marginTop = '12px';
           const base = ['Case', 'Rebuttal', 'Summary', 'Grand Crossfire', 'Final Focus'];
           m4State.speechOrder = m4State.speechOrder || ['', '', '', '', ''];
-          // shuffle options for dropdown values
-          const shuffled = base.slice().sort(() => Math.random() - 0.5);
+          // Shuffle the dropdown options once and keep that order in state, so
+          // navigating Back/Next does not reshuffle mid-exercise.
+          if (!m4State.speechOrderOptions) {
+            const opts = base.slice();
+            for (let i = opts.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            m4State.speechOrderOptions = opts;
+          }
+          const shuffled = m4State.speechOrderOptions;
           m4State.speechOrderCorrect = m4State.speechOrderCorrect || false;
-          // feedback label
+          // feedback label (restored across renders)
           const feedback = document.createElement('p');
           feedback.style.marginTop = '6px';
           feedback.style.fontWeight = 'bold';
-          feedback.style.color = '#065f46';
+          if (m4State.speechOrderCorrect) {
+            feedback.style.color = '#6ee7b7';
+            feedback.textContent = 'Correct! ✓';
+          }
           function buildSelect(idx) {
             const select = document.createElement('select');
             select.className = 'form-input';
@@ -1729,25 +1513,25 @@ For these reasons, we are proud to affirm.`;
           submit.onclick = () => {
             // ensure all selected
             if (m4State.speechOrder.some(v => !v)) {
-              feedback.style.color = 'red';
+              feedback.style.color = '#fca5a5';
               feedback.textContent = 'Fill all 5 slots.';
               return;
             }
             // check uniqueness
             const set = new Set(m4State.speechOrder);
             if (set.size !== 5) {
-              feedback.style.color = 'red';
+              feedback.style.color = '#fca5a5';
               feedback.textContent = 'Each speech can be used once.';
               return;
             }
             const correct = ['Case', 'Rebuttal', 'Summary', 'Grand Crossfire', 'Final Focus'];
             if (m4State.speechOrder.join(',') === correct.join(',')) {
-              feedback.style.color = 'green';
+              feedback.style.color = '#6ee7b7';
               feedback.textContent = 'Correct! ✓';
               m4State.speechOrderCorrect = true;
             } else {
-              feedback.style.color = 'red';
-              feedback.textContent = 'Not quite — try again.';
+              feedback.style.color = '#fca5a5';
+              feedback.textContent = 'Not quite, try again.';
               m4State.speechOrderCorrect = false;
             }
           };
@@ -1774,7 +1558,7 @@ For these reasons, we are proud to affirm.`;
           const opts = [
             'Plan responses to their rebuttal arguments',
             'Practice your delivery for the summary',
-            'Prepare questions for grand crossfire',
+            'Prepare questions for Grand Crossfire',
             'Take a break to clear your mind'
           ];
           opts.forEach(opt => {
@@ -1785,8 +1569,8 @@ For these reasons, we are proud to affirm.`;
             input.value = opt;
             input.onchange = () => {
               m4State.page9 = opt;
-              quizWrap.querySelectorAll('label').forEach(l => l.style.color = '');
-              label.style.color = (opt === 'Plan responses to their rebuttal arguments') ? 'green' : 'red';
+              quizWrap.querySelectorAll('label').forEach(l => l.classList.remove('correct','incorrect'));
+              label.classList.add((opt === 'Plan responses to their rebuttal arguments') ? 'correct' : 'incorrect');
             };
             label.appendChild(input);
             label.insertAdjacentText('beforeend', ' ' + opt);
@@ -1801,8 +1585,8 @@ For these reasons, we are proud to affirm.`;
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `
-            <h3>Flowing — Structured Notes</h3>
-            <p>Flowing is the way debaters track arguments across speeches so nothing gets dropped. You’ll learn the full, hands‑on method in Module 6.</p>
+            <h3>Flowing: Structured Notes</h3>
+            <p>Flowing is the way debaters track arguments across speeches so nothing gets dropped. You’ll learn the full, hands-on method in Module 6.</p>
           `;
           container.appendChild(card);
         },
@@ -1816,9 +1600,9 @@ For these reasons, we are proud to affirm.`;
             <p>Great debaters adapt style and content to different judge preferences.</p>
             <p>Judge Types:</p>
             <ul>
-              <li>Flow Judge: Technical, line‑by‑line</li>
-              <li>Lay Judge: Clear, persuasive, story‑driven</li>
-              <li>Parent Judge: Politeness, real‑world examples</li>
+              <li>Flow Judge: Technical, line-by-line</li>
+              <li>Lay Judge: Clear, persuasive, story-driven</li>
+              <li>Parent Judge: Politeness, real-world examples</li>
               <li>Tech Judge: Evidence comparison, specificity</li>
             </ul>
           `;
@@ -1830,7 +1614,7 @@ For these reasons, we are proud to affirm.`;
           quizWrap.appendChild(q);
           const opts = [
             'Use highly technical debate jargon',
-            'Focus on clear, real‑world examples',
+            'Focus on clear, real-world examples',
             'Speed through your arguments quickly',
             'Focus only on evidence comparison'
           ];
@@ -1842,8 +1626,8 @@ For these reasons, we are proud to affirm.`;
             input.value = opt;
             input.onchange = () => {
               m4State.page11 = opt;
-              quizWrap.querySelectorAll('label').forEach(l => l.style.color = '');
-              label.style.color = (opt === 'Focus on clear, real‑world examples') ? 'green' : 'red';
+              quizWrap.querySelectorAll('label').forEach(l => l.classList.remove('correct','incorrect'));
+              label.classList.add((opt === 'Focus on clear, real-world examples') ? 'correct' : 'incorrect');
             };
             label.appendChild(input);
             label.insertAdjacentText('beforeend', ' ' + opt);
@@ -1859,7 +1643,7 @@ For these reasons, we are proud to affirm.`;
           card.className = 'card';
           card.innerHTML = `
             <h3>Common Pitfalls to Avoid</h3>
-            <p>Even experienced debaters make these mistakes — avoid them!</p>
+            <p>Even experienced debaters make these mistakes. Avoid them!</p>
           `;
           const quizWrap = document.createElement('div');
           quizWrap.className = 'options-group';
@@ -1881,8 +1665,8 @@ For these reasons, we are proud to affirm.`;
             input.value = opt;
             input.onchange = () => {
               m4State.page12 = opt;
-              quizWrap.querySelectorAll('label').forEach(l => l.style.color = '');
-              label.style.color = (opt === 'Going for trivial points instead of winning issues') ? 'green' : 'red';
+              quizWrap.querySelectorAll('label').forEach(l => l.classList.remove('correct','incorrect'));
+              label.classList.add((opt === 'Going for trivial points instead of winning issues') ? 'correct' : 'incorrect');
             };
             label.appendChild(input);
             label.insertAdjacentText('beforeend', ' ' + opt);
@@ -1925,8 +1709,8 @@ For these reasons, we are proud to affirm.`;
                 m4State.finalAnswers = m4State.finalAnswers || {};
                 m4State.finalAnswers[item.key] = opt;
                 // color selected answer
-                block.querySelectorAll('label').forEach(l => l.style.color = '');
-                label.style.color = (opt === item.correct) ? 'green' : 'red';
+                block.querySelectorAll('label').forEach(l => l.classList.remove('correct','incorrect'));
+                label.classList.add((opt === item.correct) ? 'correct' : 'incorrect');
               };
               label.appendChild(input);
               label.insertAdjacentText('beforeend', ' ' + opt);
@@ -1951,7 +1735,7 @@ For these reasons, we are proud to affirm.`;
             <h3>Module Complete!</h3>
             <p>Congratulations! You've completed the Public Forum module.</p>
             <p>Final Quiz Score: ${score}/3</p>
-            <p>You've earned ${modules.find(m=>m.id==='m4').reward} gems!</p>
+            <p>You'll earn ${modules.find(m=>m.id==='m4').reward} gems when you press Finish.</p>
             <div style="font-size:48px;">💎</div>
           `;
           container.appendChild(card);
@@ -1965,7 +1749,7 @@ For these reasons, we are proud to affirm.`;
      *
      * This module covers crossfire strategy and practice.  It includes
      * multiple classification exercises and instant feedback.  Learners must
-     * achieve perfect scores on classification and best‑practice quizzes to
+     * achieve perfect scores on classification and best-practice quizzes to
      * move forward.
      */
     {
@@ -1984,8 +1768,8 @@ For these reasons, we are proud to affirm.`;
             <p>Why it matters: you get clarity, poke holes, and earn small “yes” answers that help you win.</p>
             <p>Timing:</p>
             <ul>
-              <li>Crossfire: 2 minutes — happens twice (first speakers after Case, second speakers after Rebuttal).</li>
-              <li>Grand Crossfire: 3 minutes — near the end, all four debaters participate together.</li>
+              <li>Crossfire: 2 minutes, happens twice (first speakers after Case, second speakers after Rebuttal).</li>
+              <li>Grand Crossfire: 3 minutes, near the end; all four debaters participate together.</li>
             </ul>
             <p>How it feels: fast but polite. Ask short, focused questions. Don’t give speeches; get answers.</p>
             <p>Order of Speeches:</p>
@@ -2018,9 +1802,9 @@ For these reasons, we are proud to affirm.`;
             input.value = idx;
             input.onchange = () => {
               m5State.page1 = idx;
-              quiz.querySelectorAll('label').forEach(l => l.style.color = '');
+              quiz.querySelectorAll('label').forEach(l => l.classList.remove('correct','incorrect'));
               // correct answer is index 0
-              label.style.color = (idx === 0) ? 'green' : 'red';
+              label.classList.add((idx === 0) ? 'correct' : 'incorrect');
             };
             label.appendChild(input);
             label.insertAdjacentText('beforeend', ' ' + opt);
@@ -2042,9 +1826,9 @@ For these reasons, we are proud to affirm.`;
             <ul>
               <li>Informative: “Which year does your evidence cover?”</li>
               <li>Trap: “Would you agree your impact needs three things to happen first?”</li>
-              <li>Informative: “Is your source peer‑reviewed or a blog?”</li>
+              <li>Informative: “Is your source peer-reviewed or a blog?”</li>
             </ul>
-            <p>Quick Check — mark each one Informative or Trap. All three must be correct to continue.</p>
+            <p>Quick Check: mark each one Informative or Trap. All three must be correct to continue.</p>
           `;
           // classification items
           const grid = document.createElement('div');
@@ -2057,7 +1841,7 @@ For these reasons, we are proud to affirm.`;
           const items = [
             { text: 'Which year does your evidence cover?', ok: 0 }, // Informative
             { text: 'Would you agree your impact needs three things to happen first?', ok: 1 }, // Trap
-            { text: 'Is your source peer‑reviewed or a blog?', ok: 0 } // Informative
+            { text: 'Is your source peer-reviewed or a blog?', ok: 0 } // Informative
           ];
           m5State.introItems = [];
           items.forEach((item, idx) => {
@@ -2108,7 +1892,7 @@ For these reasons, we are proud to affirm.`;
             });
             m5State.introCorrect = correct;
             status.textContent = `${correct}/3 correct`;
-            status.style.color = (correct === 3) ? '#065f46' : '';
+            status.style.color = (correct === 3) ? '#6ee7b7' : '';
           }
           card.appendChild(grid);
           card.appendChild(status);
@@ -2183,20 +1967,20 @@ For these reasons, we are proud to affirm.`;
             });
             m5State.classifyCorrect = correct;
             status.textContent = `${correct}/6 correct`;
-            status.style.color = (correct === 6) ? '#065f46' : '';
+            status.style.color = (correct === 6) ? '#6ee7b7' : '';
           }
           card.appendChild(grid);
           card.appendChild(status);
           container.appendChild(card);
         },
-        // Page 4: Listening & Responding (best follow‑up) — must be perfect
+        // Page 4: Listening & Responding (best follow-up) — must be perfect
         function renderM5P4(container) {
           container.innerHTML = '';
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `
             <h3>Listening & Responding</h3>
-            <p>Pick the best follow‑up (Green = best). All must be correct.</p>
+            <p>Pick the best follow-up (Green = best). All must be correct.</p>
           `;
           const qdata = [
             { prompt: 'They claim their study proves nationwide impact, but it’s from one city.', choices: ['Ask how one city generalizes to the whole country','Argue your impacts are bigger','Read your whole card again'], ok: 0 },
@@ -2223,7 +2007,7 @@ For these reasons, we are proud to affirm.`;
                 rb.style.background = '';
                 rb.style.color = '';
               });
-              // apply high‑contrast colouring
+              // apply high-contrast colouring
               if (val === item.ok) {
                 rbs[val].style.background = '#14532d';
               } else {
@@ -2255,7 +2039,7 @@ For these reasons, we are proud to affirm.`;
             });
             m5State.quizScore = correct;
             status.textContent = `${correct}/3 correct`;
-            status.style.color = (correct === 3) ? '#065f46' : '';
+            status.style.color = (correct === 3) ? '#6ee7b7' : '';
           }
           card.appendChild(status);
           container.appendChild(card);
@@ -2273,8 +2057,8 @@ For these reasons, we are proud to affirm.`;
           // original mapping was backwards because the button order assigns 0
           // to "Good" and 1 to "Bad".
           const items = [
-            { text: 'Ask multi‑part questions to eat up time.', ok: 1 },
-            { text: 'Politely cut off speeches: “Thanks — just to clarify…”', ok: 0 },
+            { text: 'Ask multi-part questions to eat up time.', ok: 1 },
+            { text: 'Politely cut off speeches: “Thanks, just to clarify…”', ok: 0 },
             { text: 'Argue instead of asking a question.', ok: 1 },
             { text: 'Repeat the question if they dodge it.', ok: 0 },
             { text: 'Use exact words: who, when, how many, which source?', ok: 0 },
@@ -2326,7 +2110,7 @@ For these reasons, we are proud to affirm.`;
             });
             m5State.goodBadScore = correct;
             status.textContent = `${correct}/6 correct`;
-            status.style.color = (correct === 6) ? '#065f46' : '';
+            status.style.color = (correct === 6) ? '#6ee7b7' : '';
           }
           card.appendChild(status);
           container.appendChild(card);
@@ -2338,13 +2122,13 @@ For these reasons, we are proud to affirm.`;
           card.className = 'card';
           card.innerHTML = `
             <h3>Crossfire Playbook</h3>
-            <p>Congratulations on mastering the classification exercises! Here are a few additional tips to keep in mind during crossfire:</p>
+            <p>Congratulations on mastering the classification exercises! Here are a few additional tips to keep in mind during Crossfire:</p>
             <ul>
               <li>Always listen carefully so you can ask precise, relevant questions.</li>
               <li>Keep your questions short and focused on exposing weaknesses in their case.</li>
               <li>If your opponent dodges, politely repeat the question and push for a clear answer.</li>
-              <li>Avoid being combative — respect earns points with judges.</li>
-              <li>Use your prep time to plan which arguments you’ll press in crossfire.</li>
+              <li>Avoid being combative; respect earns points with judges.</li>
+              <li>Use your prep time to plan which arguments you’ll press in Crossfire.</li>
             </ul>
             <p>When you’re ready, click Finish to complete this module and earn your gems.</p>
           `;
@@ -2358,7 +2142,7 @@ For these reasons, we are proud to affirm.`;
           card.innerHTML = `
             <h3>Module Complete!</h3>
             <p>Great job completing the Crossfire module!</p>
-            <p>You've earned ${modules.find(m=>m.id==='m5').reward} gems!</p>
+            <p>You'll earn ${modules.find(m=>m.id==='m5').reward} gems when you press Finish.</p>
             <div style="font-size:48px;">💎</div>
           `;
           container.appendChild(card);
@@ -2372,8 +2156,8 @@ For these reasons, we are proud to affirm.`;
      *
      * This module teaches how to flow (take structured notes).  It includes
      * an introduction, a practice table where learners enter notes, the full
-     * affirmative script, a sample flow answer key, a multiple‑choice quiz
-     * on flowing best‑practices, and a completion page.  Progress is gated
+     * affirmative script, a sample flow answer key, a multiple-choice quiz
+     * on flowing best-practices, and a completion page.  Progress is gated
      * on the number of notes filled in the practice table and achieving a
      * perfect score on the quiz.
      */
@@ -2401,13 +2185,13 @@ For these reasons, we are proud to affirm.`;
           card.className = 'card';
           card.innerHTML = `
             <h3>Practice: Take Notes</h3>
-            <p>Below is a table of parts (Overview, C1 Claim, etc.). In the right column, type short notes for each part of the example case. Fill at least four cells with non‑empty notes to continue.</p>
+            <p>Below is a table of parts (Overview, C1 Claim, etc.). In the right column, type short notes for each part of the example case. Fill at least four cells with non-empty notes to continue.</p>
           `;
           // create table
           const table = document.createElement('table');
           table.style.width = '100%';
           table.style.borderCollapse = 'collapse';
-          const parts = ['Overview','C1 — Claim','C1 — Why','C1 — Result','C2 — Claim','C2 — Why','C2 — Result','C3 — Claim','C3 — Why','C3 — Result'];
+          const parts = ['Overview','C1: Claim','C1: Why','C1: Result','C2: Claim','C2: Why','C2: Result','C3: Claim','C3: Why','C3: Result'];
           m6State.practiceRows = m6State.practiceRows || parts.map(() => '');
           parts.forEach((part, idx) => {
             const row = document.createElement('tr');
@@ -2438,7 +2222,7 @@ For these reasons, we are proud to affirm.`;
           /*
             Provide quick access to the full affirmative script while taking notes.
             Users previously had to navigate to the next page to see the reference case,
-            which made it impossible to write notes side‑by‑side.  Add a toggle
+            which made it impossible to write notes side-by-side.  Add a toggle
             that reveals the full script on demand.  The script will be hidden by
             default and can be shown or hidden via a button.  The content area
             scrolls independently so it doesn’t overwhelm the table.
@@ -2519,7 +2303,7 @@ For these reasons, we are proud to affirm.`;
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `
-            <h3>Flowing Check‑in</h3>
+            <h3>Flowing Check-in</h3>
             <p>Answer these questions about flowing. All must be correct to finish.</p>
           `;
           const qdata = [
@@ -2581,7 +2365,7 @@ For these reasons, we are proud to affirm.`;
             });
             m6State.quizCorrect = correct;
             status.textContent = `${correct}/6 correct`;
-            status.style.color = (correct === 6) ? '#065f46' : '';
+            status.style.color = (correct === 6) ? '#6ee7b7' : '';
           }
           card.appendChild(status);
           container.appendChild(card);
@@ -2594,7 +2378,7 @@ For these reasons, we are proud to affirm.`;
           card.innerHTML = `
             <h3>Module Complete!</h3>
             <p>Great job completing the Flowing module!</p>
-            <p>You've earned ${modules.find(m=>m.id==='m6').reward} gems!</p>
+            <p>You'll earn ${modules.find(m=>m.id==='m6').reward} gems when you press Finish.</p>
             <div style="font-size:48px;">💎</div>
           `;
           container.appendChild(card);
@@ -2629,7 +2413,7 @@ For these reasons, we are proud to affirm.`;
           ];
           steps.forEach((step, idx) => {
             const li = document.createElement('li');
-            li.innerHTML = `<strong>${step.t}</strong> — ${step.s}`;
+            li.innerHTML = `<strong>${step.t}</strong>: ${step.s}`;
             list.appendChild(li);
           });
           card.appendChild(list);
@@ -2640,10 +2424,8 @@ For these reasons, we are proud to affirm.`;
           copyBtn.className = 'primary-btn';
           copyBtn.textContent = 'Copy Steps';
           copyBtn.onclick = () => {
-            const txt = steps.map((step, i) => `${i+1}. ${step.t} — ${step.s}`).join('\n');
-            navigator.clipboard.writeText('Prep Steps:\n' + txt).then(() => {
-              alert('Steps copied to clipboard.');
-            });
+            const txt = steps.map((step, i) => `${i+1}. ${step.t}: ${step.s}`).join('\n');
+            pfCopy('Prep Steps:\n' + txt, 'Steps copied to clipboard.');
           };
           btnRow.appendChild(copyBtn);
           card.appendChild(btnRow);
@@ -2657,7 +2439,7 @@ For these reasons, we are proud to affirm.`;
           card.innerHTML = `
             <h3>How to Build a Case</h3>
             <p>Sample Resolution:</p>
-            <p style="font-style:italic;">The United States federal government should ban single‑use plastics.</p>
+            <p style="font-style:italic;">The United States federal government should ban single-use plastics.</p>
             <p>Every strong contention has these key parts:</p>
           `;
           const partsList = document.createElement('ul');
@@ -2671,19 +2453,21 @@ For these reasons, we are proud to affirm.`;
           ];
           parts.forEach(p => {
             const li = document.createElement('li');
-            li.innerHTML = `<strong>${p.t}</strong> — ${p.s}`;
+            li.innerHTML = `<strong>${p.t}</strong>: ${p.s}`;
             partsList.appendChild(li);
           });
           card.appendChild(partsList);
-          card.innerHTML += `<p>You’re not writing a case here — just learn the pattern.</p>`;
+          const note = document.createElement('p');
+          note.textContent = 'You’re not writing a case here; just learn the pattern.';
+          card.appendChild(note);
           container.appendChild(card);
         },
-        // Page 3: Example Case (Pre‑Highlighted)
+        // Page 3: Example Case (Pre-Highlighted)
         function renderM7P3(container) {
           container.innerHTML = '';
           const card = document.createElement('div');
           card.className = 'card';
-          card.innerHTML = '<h3>Example Case (Pre‑Highlighted)</h3>';
+          card.innerHTML = '<h3>Example Case (Pre-Highlighted)</h3>';
           const legend = document.createElement('div');
           legend.style.marginBottom = '8px';
           function chip(txt, color) {
@@ -2718,7 +2502,7 @@ For these reasons, we are proud to affirm.`;
             <p><span data-role="evidence">Mike 22 says, “Leaders are doing a horrible job at stopping climate change. Pollution keeps going up, and things are getting worse.”</span></p>
             <p><span data-role="warrant">It’s important because many countries follow what the US does.</span></p>
             <p><span data-role="evidence">Smith 21 explains, “When the US withdrew from the Paris Agreement, other countries questioned the reason to continue reducing emissions. However, when the US committed to cutting emissions by 45%, trust was restored, and nations such as Canada, Japan, and China set stronger targets.”</span></p>
-            <p><span data-role="evidence">But the US is not doing well with plastic pollution. Williams 21 says, “On a per‑person basis, the US produces more plastic waste than China. The US is behind in regulating plastic pollution.”</span></p>
+            <p><span data-role="evidence">But the US is not doing well with plastic pollution. Williams 21 says, “On a per-person basis, the US produces more plastic waste than China. The US is behind in regulating plastic pollution.”</span></p>
             <p><span data-role="warrant">This matters because dealing with plastic pollution helps reduce emissions.</span></p>
             <p><span data-role="evidence">Altintepe says, “Over 95% of plastic is produced using fossil fuels,” and Howl 19 shows, “Producing plastic is responsible for roughly 20% of greenhouse gas emissions.”</span></p>
             <p><span data-role="evidence">That’s why Miller 22 says, “Plastic contributes significantly to pollution that drives climate change, making it more difficult to limit global warming to below 1.0 degrees Celsius.”</span></p>
@@ -2744,24 +2528,16 @@ For these reasons, we are proud to affirm.`;
           card.appendChild(scroll);
           container.appendChild(card);
         },
-        // Page 4: Removed page
-        function renderM7P4(container) {
-          // Automatically skip this placeholder page to streamline navigation.
-          // Trigger the next button immediately so users don’t see an empty page.
-          setTimeout(() => {
-            try {
-              if (typeof nextBtn !== 'undefined' && nextBtn) nextBtn.click();
-            } catch(e) {}
-          }, 0);
-        },
-        // Page 5: Blockfile — What & Why
+        // (A placeholder page that auto-clicked Next used to live here; it made
+        // Back navigation impossible past this point, so it was removed.)
+        // Page 4: Blockfile: What & Why
         function renderM7P5(container) {
           container.innerHTML = '';
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `
-            <h3>Blockfile — What & Why</h3>
-            <p>A blockfile is your pre‑written toolkit of responses.</p>
+            <h3>Blockfile: What & Why</h3>
+            <p>A blockfile is your pre-written toolkit of responses.</p>
           `;
           const list = document.createElement('ul');
           list.style.paddingLeft = '20px';
@@ -2778,19 +2554,19 @@ For these reasons, we are proud to affirm.`;
           card.appendChild(list);
           container.appendChild(card);
         },
-        // Page 6: Blockfile — Example Structure
+        // Page 6: Blockfile: Example Structure
         function renderM7P6(container) {
           container.innerHTML = '';
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `
-            <h3>Blockfile — Example Structure</h3>
+            <h3>Blockfile: Example Structure</h3>
             <p>Expand items to see how a blockfile can be organized.</p>
           `;
           const details = document.createElement('details');
           details.open = true;
           const summary = document.createElement('summary');
-          summary.textContent = 'PF — Single‑use Plastics';
+          summary.textContent = 'PF: Single-use Plastics';
           details.appendChild(summary);
           const aff = document.createElement('details');
           aff.open = true;
@@ -2798,8 +2574,8 @@ For these reasons, we are proud to affirm.`;
           affSummary.textContent = 'AFF Blocks';
           aff.appendChild(affSummary);
           [
-            {title:'C1: Marine Harm — alt causes', notes:'Fish death not from bags; study shows runoff bigger driver'},
-            {title:'C2: Emissions — marginal effect', notes:'Ban shifts small %; show better policy'}
+            {title:'C1: Marine Harm (alt causes)', notes:'Fish death not from bags; study shows runoff bigger driver'},
+            {title:'C2: Emissions (marginal effect)', notes:'Ban shifts small %; show better policy'}
           ].forEach(item => {
             const d = document.createElement('details');
             const s = document.createElement('summary');
@@ -2818,8 +2594,8 @@ For these reasons, we are proud to affirm.`;
           negSummary.textContent = 'NEG Blocks';
           neg.appendChild(negSummary);
           [
-            {title:'C1: Jobs — transition', notes:'Evidence: bans raise costs; job loss in packaging sector'},
-            {title:'C2: Hygiene — reuse risk', notes:'Meta shows bacteria in reusable bags'}
+            {title:'C1: Jobs (transition)', notes:'Evidence: bans raise costs; job loss in packaging sector'},
+            {title:'C2: Hygiene (reuse risk)', notes:'Meta shows bacteria in reusable bags'}
           ].forEach(item => {
             const d = document.createElement('details');
             const s = document.createElement('summary');
@@ -2881,12 +2657,12 @@ For these reasons, we are proud to affirm.`;
           card.appendChild(chkDiv);
           container.appendChild(card);
         },
-        // Page 8: Build a Block (Guided — Optional)
+        // Page 8: Build a Block (Guided, Optional)
         function renderM7P8(container) {
           container.innerHTML = '';
           const card = document.createElement('div');
           card.className = 'card';
-          card.innerHTML = '<h3>Build a Block (Guided — Optional)</h3><p>Optional practice. You can skip this page without filling anything out.</p>';
+          card.innerHTML = '<h3>Build a Block (Guided, Optional)</h3><p>Optional practice. You can skip this page without filling anything out.</p>';
           function makeField(label,key) {
             const wrapper = document.createElement('div');
             wrapper.style.marginBottom = '10px';
@@ -2931,9 +2707,7 @@ For these reasons, we are proud to affirm.`;
               `Warrant:\n${(m7State.blockWarrant||'').trim()}\n\n` +
               `Evidence:\n${(m7State.blockEvidence||'').trim()}\n\n` +
               `Impact:\n${(m7State.blockImpact||'').trim()}\n`;
-            navigator.clipboard.writeText(full).then(() => {
-              alert('Copied block to clipboard.');
-            });
+            pfCopy(full, 'Copied block to clipboard.');
           };
           card.appendChild(copyBtn);
           container.appendChild(card);
@@ -2943,16 +2717,18 @@ For these reasons, we are proud to affirm.`;
           container.innerHTML = '';
           const card = document.createElement('div');
           card.className = 'card';
-          card.innerHTML = '<h3>Block Structure — Example (Clear & Visual)</h3>';
+          card.innerHTML = '<h3>Block Structure: Example (Clear & Visual)</h3>';
           const section = document.createElement('div');
           function addSection(icon,title,bullets) {
             const blk = document.createElement('div');
             blk.style.marginBottom = '12px';
             const heading = document.createElement('p');
             heading.innerHTML = `<strong>${icon} ${title}</strong>`;
-            heading.style.background = '#eef6ff';
+            heading.style.background = 'rgba(52,152,219,0.18)';
             heading.style.border = '1px solid var(--primary-color)';
-            heading.style.padding = '6px';
+            heading.style.borderRadius = '6px';
+            heading.style.padding = '6px 10px';
+            heading.style.color = '#e0f4ff';
             blk.appendChild(heading);
             const body = document.createElement('ul');
             body.style.paddingLeft = '20px';
@@ -2965,15 +2741,17 @@ For these reasons, we are proud to affirm.`;
             section.appendChild(blk);
           }
           addSection('🧱','What is a Block?',[
-            'A short, pre‑written response to a specific claim you expect.',
+            'A short, pre-written response to a specific claim you expect.',
             'Kept in a “blockfile” so you can grab it fast during Rebuttal/Crossfire.',
             'Each block has the same shape: Claim → Warrant → Evidence → Impact (→ Weigh if needed).'
           ]);
           const skel = document.createElement('pre');
           skel.textContent = 'Block skeleton:\n[Claim]\n[Warrant]\n[Evidence]\n[Impact]';
-          skel.style.background = '#f9fafb';
+          skel.style.background = 'rgba(10,35,66,0.85)';
+          skel.style.color = '#e0f4ff';
           skel.style.padding = '8px';
-          skel.style.border = '1px solid rgba(0,0,0,0.1)';
+          skel.style.borderRadius = '6px';
+          skel.style.border = '1px solid rgba(125,211,252,0.25)';
           section.appendChild(skel);
           card.appendChild(section);
           container.appendChild(card);
@@ -2986,7 +2764,7 @@ For these reasons, we are proud to affirm.`;
           card.innerHTML = `
             <h3>Module Complete!</h3>
             <p>Great job completing the Prep for a Debate Round module!</p>
-            <p>You've earned ${modules.find(m=>m.id==='m7').reward} gems!</p>
+            <p>You'll earn ${modules.find(m=>m.id==='m7').reward} gems when you press Finish.</p>
             <div style="font-size:48px;">💎</div>
           `;
           container.appendChild(card);
@@ -3035,7 +2813,9 @@ For these reasons, we are proud to affirm.`;
       const isFirst = idx === 0;
       const prevComplete = isFirst ? true : AppState.isModuleComplete(modules[idx - 1].id);
       const unlocked = isFirst || prevComplete || isComplete;
-      try{ if (typeof AppState!=="undefined") AppState.setModuleUnlocked(mod.id, unlocked); }catch(_){} // Apply the appropriate state classes
+      // Unlocked state is derived in memory on every rebuild; persisting it
+      // per module caused a storage write per row per repaint.
+      // Apply the appropriate state classes
       if (isComplete) {
         btn.classList.add('completed');
       } else if (!unlocked) {
@@ -3143,34 +2923,34 @@ For these reasons, we are proud to affirm.`;
     if (currentModule.id === 'm1') {
       if (pageIndex === 1) {
         if (!m1State.experience) {
-          alert('Please select your experience level to continue.');
+          pfToast('Please select your experience level to continue.');
           return false;
         }
       } else if (pageIndex === 2) {
         if (!m1State.school) {
-          alert('Please select if you debate through school.');
+          pfToast('Please select if you debate through school.');
           return false;
         }
         if (m1State.school === 'Yes') {
           const nameInput = document.getElementById('m1_school_name');
           const val = nameInput ? nameInput.value.trim() : '';
           if (!val) {
-            alert('Please enter your school name.');
+            pfToast('Please enter your school name.');
             return false;
           }
           m1State.school_name = val;
         }
       } else if (pageIndex === 3) {
         if (!m1State.goal) {
-          alert('Please select a goal to continue.');
+          pfToast('Please select a goal to continue.');
           return false;
         }
       } else if (pageIndex === 4) {
         if (!m1State.discovery) {
-          alert('Please select how you found us.');
+          pfToast('Please select how you found us.');
           return false;
         }
-        // Save responses at page4 (0‑based index 4 is the discovery page before thank you)
+        // Save responses at page4 (0-based index 4 is the discovery page before thank you)
         // We store responses to the module data in localStorage
         const state = AppState.get();
         state.modules['m1'] = state.modules['m1'] || {};
@@ -3188,17 +2968,17 @@ For these reasons, we are proud to affirm.`;
     if (currentModule.id === 'm3') {
       if (pageIndex === 1) { // choose topic
         if (!m3State.topic) {
-          alert('Please select a topic to continue.');
+          pfToast('Please select a topic to continue.');
           return false;
         }
       } else if (pageIndex === 2) { // choose side
         if (!m3State.side) {
-          alert('Please select whether you agree or disagree.');
+          pfToast('Please select whether you agree or disagree.');
           return false;
         }
       } else if (pageIndex === 3) { // argument text
         if (!m3State.reason || m3State.reason.length < 25) {
-          alert('Please write at least 25 characters.');
+          pfToast('Please write at least 25 characters.');
           return false;
         }
       }
@@ -3220,52 +3000,52 @@ For these reasons, we are proud to affirm.`;
       // P1 quick check
       if (pageIndex === 0) {
         if (m4State.page1 !== 'Cases are written in advance') {
-          alert("Choose the correct answer to continue.");
+          pfToast("Choose the correct answer to continue.");
           return false;
         }
       } else if (pageIndex === 2) {
         if (m4State.page3 !== 'It presents a specific contention with a claim') {
-          alert('Choose the correct answer to continue.');
+          pfToast('Choose the correct answer to continue.');
           return false;
         }
       } else if (pageIndex === 3) {
         if (!m4State.rebuttal || m4State.rebuttal.length === 0) {
-          alert('Write a brief rebuttal before continuing.');
+          pfToast('Write a brief rebuttal before continuing.');
           return false;
         }
       } else if (pageIndex === 4) {
         if (!m4State.summary || m4State.summary.length === 0) {
-          alert('Write a brief summary before continuing.');
+          pfToast('Write a brief summary before continuing.');
           return false;
         }
       } else if (pageIndex === 5) {
         if (m4State.page6 !== "Challenge the study's relevance due to its age") {
-          alert('Choose the correct answer to continue.');
+          pfToast('Choose the correct answer to continue.');
           return false;
         }
       } else if (pageIndex === 6) {
         if (m4State.page7 !== 'Select the most important voting issues and weigh clearly') {
-          alert('Choose the correct answer to continue.');
+          pfToast('Choose the correct answer to continue.');
           return false;
         }
       } else if (pageIndex === 7) {
         if (!m4State.speechOrderCorrect) {
-          alert('Arrange the speeches in the correct order to continue.');
+          pfToast('Arrange the speeches in the correct order to continue.');
           return false;
         }
       } else if (pageIndex === 8) {
         if (m4State.page9 !== 'Plan responses to their rebuttal arguments') {
-          alert('Choose the correct answer to continue.');
+          pfToast('Choose the correct answer to continue.');
           return false;
         }
       } else if (pageIndex === 10) {
-        if (m4State.page11 !== 'Focus on clear, real‑world examples') {
-          alert('Choose the correct answer to continue.');
+        if (m4State.page11 !== 'Focus on clear, real-world examples') {
+          pfToast('Choose the correct answer to continue.');
           return false;
         }
       } else if (pageIndex === 11) {
         if (m4State.page12 !== 'Going for trivial points instead of winning issues') {
-          alert('Choose the correct answer to continue.');
+          pfToast('Choose the correct answer to continue.');
           return false;
         }
       } else if (pageIndex === 12) {
@@ -3273,7 +3053,7 @@ For these reasons, we are proud to affirm.`;
         const answers = m4State.finalAnswers || {};
         const ok = answers.q1 === '3 minutes' && answers.q2 === 'A single debater doing both speeches' && answers.q3 === '3 minutes';
         if (!ok) {
-          alert('Answer all review questions correctly to continue.');
+          pfToast('Answer all review questions correctly to continue.');
           return false;
         }
       }
@@ -3283,27 +3063,28 @@ For these reasons, we are proud to affirm.`;
     // The original build let learners click through the scenario pages without making a choice.
     // To reinforce active engagement, require a response on each scenario page.
     if (currentModule.id === 'm2') {
-      // Page order: 0 = guidelines, 1 = crossfire guidelines, 2 = attire scenario,
-      // 3 = crossfire conduct scenario, 4 = judge interaction scenario, 5 = final review.
+      // Page order: 0 = intro, 1 = etiquette guidelines, 2 = attire scenario,
+      // 3 = Crossfire conduct scenario, 4 = judge interaction scenario,
+      // 5 = final review, 6 = completion.
       if (pageIndex === 2) {
         // Attire scenario – ensure the learner picks an outfit option
         const checked = document.querySelector('input[name="m2_attire"]:checked');
         if (!checked) {
-          alert('Please select an attire option before continuing.');
+          pfToast('Please select an attire option before continuing.');
           return false;
         }
       } else if (pageIndex === 3) {
         // Crossfire conduct scenario – ensure the learner chooses a response
         const checked = document.querySelector('input[name="m2_crossfire"]:checked');
         if (!checked) {
-          alert('Please select how you would respond in crossfire before continuing.');
+          pfToast('Please select how you would respond in Crossfire before continuing.');
           return false;
         }
       } else if (pageIndex === 4) {
         // Judge interaction scenario – ensure the learner chooses a professional response
         const checked = document.querySelector('input[name="m2_judge"]:checked');
         if (!checked) {
-          alert('Please select what you would do after the judge votes against you before continuing.');
+          pfToast('Please select what you would do after the judge votes against you before continuing.');
           return false;
         }
       }
@@ -3313,27 +3094,27 @@ For these reasons, we are proud to affirm.`;
       // page indices: 0..6
       if (pageIndex === 0) {
         if (m5State.page1 !== 0) {
-          alert('Select the correct team for the first question.');
+          pfToast('Select the correct team for the first question.');
           return false;
         }
       } else if (pageIndex === 1) {
         if (m5State.introCorrect !== 3) {
-          alert('Mark all introductory questions correctly to continue.');
+          pfToast('Mark all introductory questions correctly to continue.');
           return false;
         }
       } else if (pageIndex === 2) {
         if (m5State.classifyCorrect !== 6) {
-          alert('Classify all questions correctly to continue.');
+          pfToast('Classify all questions correctly to continue.');
           return false;
         }
       } else if (pageIndex === 3) {
         if (m5State.quizScore !== 3) {
-          alert('Answer all listening questions correctly to continue.');
+          pfToast('Answer all listening questions correctly to continue.');
           return false;
         }
       } else if (pageIndex === 4) {
         if (m5State.goodBadScore !== 6) {
-          alert('Mark all tactics as Good or Bad correctly to continue.');
+          pfToast('Mark all tactics as Good or Bad correctly to continue.');
           return false;
         }
       }
@@ -3350,12 +3131,12 @@ For these reasons, we are proud to affirm.`;
           if (r && r.trim().length > 0 && r.trim().toLowerCase() !== 'write here') count++;
         });
         if (count < 4) {
-          alert('Please fill at least four rows of notes before continuing.');
+          pfToast('Please fill at least four rows of notes before continuing.');
           return false;
         }
       } else if (pageIndex === 4) {
         if (m6State.quizCorrect !== 6) {
-          alert('Answer all flow questions correctly to continue.');
+          pfToast('Answer all flow questions correctly to continue.');
           return false;
         }
       }
@@ -3363,12 +3144,12 @@ For these reasons, we are proud to affirm.`;
     }
     // Module 7 validation
     if (currentModule.id === 'm7') {
-      // page indices: 0..9
-      if (pageIndex === 6) {
+      // page indices: 0..8 (video + notes page is index 5)
+      if (pageIndex === 5) {
         const notes = m7State.notes || '';
         const lines = notes.split('\n').filter(l => l.trim().length > 0);
         if (!m7State.videoWatched || lines.length < 2) {
-          alert('Please watch the video and write at least two lines of notes.');
+          pfToast('Please watch the video and write at least two lines of notes.');
           return false;
         }
       }
@@ -3542,15 +3323,15 @@ const m8Module={ id:'m8', title:'Case Writing', reward:25, state:{ q1:null, q2:n
     <p><strong>Every strong contention has these key parts:</strong></p>
     <ul><li>1. Uniqueness</li><li>2. Claim</li><li>3. Warrant + Evidence</li><li>4. Impact</li></ul>
     <div class="section"><h4>Example Skeleton:</h4><pre>[Uniqueness]\n[Claim]\n[Warrant]\n[Evidence]\n[Impact]</pre></div>`; container.appendChild(card); },
-  function(container){ container.innerHTML=''; const card=makeCard(); const img=document.createElement('img'); img.src='images/CaseWriting.png'; img.alt='Example Case Structure'; img.style.maxWidth='100%'; img.style.border='1px solid rgba(0,0,0,0.08)'; img.style.borderRadius='10px'; img.onerror=function(){ card.innerHTML=`
+  function(container){ container.innerHTML=''; const card=makeCard(); const img=document.createElement('img'); img.src='images/CaseWriting.png'; img.alt='Example Case Structure'; img.style.maxWidth='100%'; img.style.border='1px solid rgba(125,211,252,0.35)'; img.style.borderRadius='10px'; img.onerror=function(){ card.innerHTML=`
       <h3>Case Example & How it’s Formatted</h3>
-      <p style="color:#b91c1c;font-weight:700;">Could not load images/CaseWriting.png</p>
+      <p style="color:#fca5a5;font-weight:700;">Could not load images/CaseWriting.png</p>
       <p>Make sure the file exists at:<br><code>images/CaseWriting.png</code></p>`; };
-    const h=document.createElement('h3'); h.textContent='Case Example & How it’s Formatted'; const cap=document.createElement('div'); cap.textContent='Figure: Example Case Structure'; cap.style.color='#6b7280'; cap.style.fontStyle='italic'; cap.style.marginTop='6px';
+    const h=document.createElement('h3'); h.textContent='Case Example & How it’s Formatted'; const cap=document.createElement('div'); cap.textContent='Figure: Example Case Structure'; cap.style.color='#9fb3c8'; cap.style.fontStyle='italic'; cap.style.marginTop='6px';
     card.appendChild(h); card.appendChild(img); card.appendChild(cap); container.appendChild(card); },
   function(container){ container.innerHTML=''; const card=makeCard(); card.innerHTML=`
     <h3>Example Contention</h3>
-    <p><em>A case contains contentions (arguments), usually 2–3. Below is an example of one contention with made‑up evidence — not for real use.</em></p>
+    <p><em>A case contains contentions (arguments), usually 2–3. Below is an example of one contention with made-up evidence, not for real use.</em></p>
     <textarea class="form-input" style="min-height:320px;">Contention 1: Climate Change\n\nGovernments around the world are not doing enough to fight climate change.\n\nMike 22 says, “Leaders are doing a horrible job at stopping climate change. Pollution keeps going up, and things are getting worse.”\n\nIt’s important because many countries follow what the US does.\n\nSmith 21 explains, “When the US withdrew from the Paris Agreement, other countries questioned the reason to continue reducing emissions. However, when the US committed to cutting emissions by 45%, trust was restored, and nations such as Canada, Japan, and China set stronger targets.”\n\nBut the US is not doing well with plastic pollution. Williams 21 says, “On a per-person basis, the US produces more plastic waste than China. The US is behind in regulating plastic pollution.”\n\nThis matters because dealing with plastic pollution helps reduce emissions.\n\nAltintepe says, “Over 95% of plastic is produced using fossil fuels,” and Howl 19 shows, “Producing plastic is responsible for roughly 20% of greenhouse gas emissions.”\n\nThat’s why Miller 22 says, “Plastic contributes significantly to pollution that drives climate change, making it more difficult to limit global warming to below 1.0 degrees Celsius.”\n\nImpact: Lives. Gonzalez 23 reports, “For every 0.1 °C the planet warms, about 100 million lives could be lost.”</textarea>`; container.appendChild(card); },
   function(container){ container.innerHTML=''; const card=makeCard(); card.innerHTML=`
     <h3>Explaining the Parts</h3>
@@ -3571,7 +3352,7 @@ const m8Module={ id:'m8', title:'Case Writing', reward:25, state:{ q1:null, q2:n
       .replace(/Gonzalez 23 reports.*?$/gm,'<mark class="impact">$&</mark>');
     const legend=document.createElement('div'); legend.className='section'; legend.innerHTML='<strong>Legend:</strong> <span class="pill claim">Claim</span> <span class="pill warrant">Warrant</span> <span class="pill evidence">Evidence</span> <span class="pill impact">Impact</span>';
     const pre=document.createElement('pre'); pre.innerHTML=html; pre.style.whiteSpace='pre-wrap'; pre.style.lineHeight='1.55';
-    const h=document.createElement('h3'); h.textContent='Example Contention — Highlighted';
+    const h=document.createElement('h3'); h.textContent='Example Contention: Highlighted';
     card.appendChild(h); card.appendChild(legend); card.appendChild(pre); container.appendChild(card); },
   function(container){ container.innerHTML=''; const card=makeCard(); card.innerHTML=`
     <h3>AI Casewriter</h3>
@@ -3586,7 +3367,7 @@ const m8Module={ id:'m8', title:'Case Writing', reward:25, state:{ q1:null, q2:n
     const card=makeCard();
     // Show reward amount so learners know how many gems they earned.
     const reward = (typeof m8Module !== 'undefined' && m8Module.reward) ? m8Module.reward : 25;
-    card.innerHTML=`<h3>Module Complete!</h3><p>Congratulations! You\'ve learned how to write effective debate cases.</p><p>You\'ve earned ${reward} gems!</p>`;
+    card.innerHTML=`<h3>Module Complete!</h3><p>Congratulations! You\'ve learned how to write effective debate cases.</p><p>You\'ll earn ${reward} gems when you press Finish.</p>`;
     const gemIcon=document.createElement('div');
     gemIcon.textContent='💎';
     gemIcon.style.fontSize='48px';
@@ -3600,12 +3381,12 @@ const m9Module={ id:'m9', title:'Rebuttal', reward:25,
   state:{ p1:null, signpostSelections:[null,null,null,null], p3:null, toolkitAnswers:[], weighChecks:[0,0,0,0,0] },
   pages:[
     function(container){ const st=m9Module.state; container.innerHTML=''; const card=makeCard(); card.innerHTML=`
-      <h3>Rebuttals — What & When</h3>
+      <h3>Rebuttals: What & When</h3>
       <p>Rebuttals are where you respond to your opponent’s arguments.</p>
       <div class="section"><h4>Timing</h4>
         <ul>
-          <li>1st Rebuttal — 4:00 (first speaker responds to their case)</li>
-          <li>2nd Rebuttal — 4:00 (second speaker frontlines + rebuts)</li>
+          <li>1st Rebuttal: 4:00 (first speaker responds to their case)</li>
+          <li>2nd Rebuttal: 4:00 (second speaker frontlines + rebuts)</li>
         </ul>
       </div>
       <div class="section"><strong>Quick Check (must be correct to continue):</strong><br/>How long is 2nd Rebuttal?</div>`;
@@ -3643,7 +3424,7 @@ const m9Module={ id:'m9', title:'Rebuttal', reward:25,
       <p>Frontlining means defending your case against their attacks <em>before</em> you go to rebut their case (in 2nd Rebuttal).</p>
       <div class="section"><strong>Quick Check (must be correct):</strong> What is frontlining?</div>`;
       const group=document.createElement('div'); const opts=[
-        'Defending your case against their attacks before rebutting theirs','Reviewing your partner’s speech after the round','Reading new evidence in crossfire'];
+        'Defending your case against their attacks before rebutting theirs','Reviewing your partner’s speech after the round','Reading new evidence in Crossfire'];
       const correct=opts[0];
       opts.forEach((o)=>{ const lab=labelChoice(o,'m9_p3',o,st.p3,(val,el)=>{ st.p3=val; [...group.children].forEach(ch=>ch.classList.remove('correct','incorrect')); el.classList.add(val===correct?'correct':'incorrect'); }); group.appendChild(lab); });
       card.appendChild(group); container.appendChild(card); },
@@ -3662,19 +3443,19 @@ const m9Module={ id:'m9', title:'Rebuttal', reward:25,
           <ul><li>“On their Contention 1 about emissions…”</li><li>“Next, on their second point about costs…”</li><li>“Finally, on their third claim regarding hygiene…”</li></ul>
         </div>
       </div>`; container.appendChild(card);
-      const btn=document.getElementById('copyRoadmap'); if(btn) btn.onclick=()=>navigator.clipboard.writeText('For my off-time roadmap, I will: 1) Frontline our case, 2) Rebut their case, 3) Weigh if time allows.'); },
-    function(container){ const st=m9Module.state; container.innerHTML=''; const card=makeCard(); card.innerHTML='<h3>Rebuttal Toolkit — Pick the Best Response</h3><p>For each opponent claim, choose the strongest reply type.</p>';
+      const btn=document.getElementById('copyRoadmap'); if(btn) btn.onclick=()=>pfCopy('For my off-time roadmap, I will: 1) Frontline our case, 2) Rebut their case, 3) Weigh if time allows.', 'Roadmap line copied.'); },
+    function(container){ const st=m9Module.state; container.innerHTML=''; const card=makeCard(); card.innerHTML='<h3>Rebuttal Toolkit: Pick the Best Response</h3><p>For each opponent claim, choose the strongest reply type.</p>';
       const status=document.createElement('div'); status.style.fontWeight='700'; status.style.margin='6px 0 8px 12px'; card.appendChild(status);
       const data=[["Opponent: \u201cBanning plastics kills jobs immediately.\u201d", ["Evidence: \u2018Study shows net job growth in alternatives within 6 months.\u2019", "Logic: \u2018Jobs don\u2019t matter.\u2019", "Evidence: \u2018My friend lost a job once.\u2019"], 0], ["Opponent: \u201cEmissions barely change.\u201d", ["Logic: \u2018Your mechanism misses upstream production.\u2019", "Evidence: \u2018Meta-analysis finds 10\u201320% reductions where bans passed.\u2019", "Logic: \u2018We disagree.\u2019"], 1], ["Opponent: \u201cHygiene collapses without plastic.\u201d", ["Evidence: \u2018CDC notes reusables safe with washing; outbreaks not linked to bans.\u2019", "Logic: \u2018That\u2019s silly.\u2019", "Evidence: \u2018Some blogs say bags are dirty.\u2019"], 0]]; if(!st.toolkitAnswers.length) st.toolkitAnswers=Array(data.length).fill(-1);
       function recompute(){ let ok=0; data.forEach((d,i)=>{ if(st.toolkitAnswers[i]===d[2]) ok++; }); status.textContent= ok + '/' + data.length + ' correct'; }
-      data.forEach((d,i)=>{ const box=document.createElement('div'); box.style.margin='8px 12px'; box.style.padding='8px'; box.style.border='1px solid rgba(0,0,0,0.1)'; box.style.borderRadius='10px';
+      data.forEach((d,i)=>{ const box=document.createElement('div'); box.style.margin='8px 12px'; box.style.padding='8px'; box.style.border='1px solid rgba(255,255,255,0.15)'; box.style.borderRadius='10px';
         const prompt=document.createElement('div'); prompt.style.fontWeight='700'; prompt.textContent=(i+1)+'. '+d[0]; box.appendChild(prompt);
         const grp=document.createElement('div');
         d[1].forEach((choice,j)=>{ const lab=labelChoice(choice,'m9_mcq_'+i,j, (st.toolkitAnswers[i]===j? j : null), (val,el)=>{ st.toolkitAnswers[i]=j; [...grp.children].forEach(ch=>ch.classList.remove('correct','incorrect')); el.classList.add(j===d[2]?'correct':'incorrect'); recompute(); }); grp.appendChild(lab); });
         box.appendChild(grp); card.appendChild(box); });
       recompute(); container.appendChild(card); },
     function(container){ const st=m9Module.state; container.innerHTML=''; const card=makeCard(); card.innerHTML=`
-      <h3>Weighing — Make the Judge Care</h3>
+      <h3>Weighing: Make the Judge Care</h3>
       <p>Use weighing to tell the judge why your impacts matter more.</p>
       <div class="section"><div class="pill">Magnitude (how big)</div><div class="pill">Timeframe (how soon)</div><div class="pill">Probability (how likely)</div><div class="pill">Reversibility (can they fix it?)</div></div>
       <div class="section"><strong>Select all lines that are valid weighing:</strong></div>`;
@@ -3689,9 +3470,9 @@ const m9Module={ id:'m9', title:'Rebuttal', reward:25,
       const ta=document.createElement('textarea'); ta.className='form-input'; ta.style.minHeight='120px';
       const counter=document.createElement('div'); counter.textContent='0 chars'; counter.style.fontSize='12px'; counter.style.marginTop='4px';
       ta.addEventListener('input',()=>{ counter.textContent=(ta.value||'').length+' chars'; });
-      const btn=document.createElement('button'); btn.className='button'; btn.textContent='Copy to clipboard'; btn.onclick=()=>navigator.clipboard.writeText(ta.value||'');
+      const btn=document.createElement('button'); btn.className='button'; btn.textContent='Copy to clipboard'; btn.onclick=()=>pfCopy(ta.value||'', 'Frontline copied.');
       card.appendChild(h); card.appendChild(p); card.appendChild(ta); card.appendChild(counter); card.appendChild(btn); container.appendChild(card); },
-    function(container){ container.innerHTML=''; const card=makeCard(); card.innerHTML='<h3>Module Complete!</h3><p>Great job completing Rebuttal!</p>'; container.appendChild(card); }
+    function(container){ container.innerHTML=''; const card=makeCard(); card.innerHTML='<h3>Module Complete!</h3><p>Great job completing Rebuttal!</p><p>You\'ll earn 25 gems when you press Finish.</p><div style="font-size:48px;text-align:center;">💎</div>'; container.appendChild(card); }
 ]}
 
 if (!modules.find(m=>m.id==='m8')) modules.push(m8Module);
@@ -3701,13 +3482,13 @@ if (!modules.find(m=>m.id==='m9')) modules.push(m9Module);
   const _orig=window.validateCurrentPage;
   window.validateCurrentPage=function(){
     if(!currentModule) return true;
-    if(currentModule.id==='m8'){ if(pageIndex===0){ if(m8Module.state.q1!=='2–3'||m8Module.state.q2!=='Clearly and confidently read your case'){ alert('Answer both quick checks correctly to continue.'); return false; } } return true; }
+    if(currentModule.id==='m8'){ if(pageIndex===0){ if(m8Module.state.q1!=='2–3'||m8Module.state.q2!=='Clearly and confidently read your case'){ pfToast('Answer both quick checks correctly to continue.'); return false; } } return true; }
     if(currentModule.id==='m9'){ 
-      if(pageIndex===0){ if(m9Module.state.p1!=='4:00'){ alert('Pick 4:00 for 2nd Rebuttal.'); return false; } }
-      else if(pageIndex===1){ const items=[["On their Contention 2 about emissions\u2026", 1], ["Also, they said some stuff about the environment\u2026", 0], ["Next, on their third point about costs\u2026", 1], ["They\u2019re wrong, here\u2019s why\u2026", 0]]; let ok=0; items.forEach((it,i)=>{ if(m9Module.state.signpostSelections[i]===it[1]) ok++; }); if(ok!==items.length){ alert('Mark all signposting items correctly to continue.'); return false; } }
-      else if(pageIndex===2){ if(m9Module.state.p3!=='Defending your case against their attacks before rebutting theirs'){ alert('Answer the frontlining quick check correctly.'); return false; } }
-      else if(pageIndex===4){ const data=[["Opponent: \u201cBanning plastics kills jobs immediately.\u201d", ["Evidence: \u2018Study shows net job growth in alternatives within 6 months.\u2019", "Logic: \u2018Jobs don\u2019t matter.\u2019", "Evidence: \u2018My friend lost a job once.\u2019"], 0], ["Opponent: \u201cEmissions barely change.\u201d", ["Logic: \u2018Your mechanism misses upstream production.\u2019", "Evidence: \u2018Meta-analysis finds 10\u201320% reductions where bans passed.\u2019", "Logic: \u2018We disagree.\u2019"], 1], ["Opponent: \u201cHygiene collapses without plastic.\u201d", ["Evidence: \u2018CDC notes reusables safe with washing; outbreaks not linked to bans.\u2019", "Logic: \u2018That\u2019s silly.\u2019", "Evidence: \u2018Some blogs say bags are dirty.\u2019"], 0]]; let ok=0; data.forEach((d,i)=>{ if(m9Module.state.toolkitAnswers[i]===d[2]) ok++; }); if(ok!==data.length){ alert('Answer all toolkit questions correctly to continue.'); return false; } }
-      else if(pageIndex===5){ const lines=[["Our impact is larger in magnitude and happens sooner than theirs.", 1], ["Their argument is dumb.", 0], ["Ours is more probable and less reversible.", 1], ["We disagree; move on.", 0], ["Even if they\u2019re right, our harm outweighs on lives saved.", 1]]; let ok=0,total=0; for(let i=0;i<lines.length;i++){ if(lines[i][1]===1){ total++; if(m9Module.state.weighChecks[i]===1) ok++; } else { if(m9Module.state.weighChecks[i]===1){ alert('Only select the valid weighing lines.'); return false; } } } if(ok!==total){ alert('Select all valid weighing lines to continue.'); return false; } }
+      if(pageIndex===0){ if(m9Module.state.p1!=='4:00'){ pfToast('Pick 4:00 for 2nd Rebuttal.'); return false; } }
+      else if(pageIndex===1){ const items=[["On their Contention 2 about emissions\u2026", 1], ["Also, they said some stuff about the environment\u2026", 0], ["Next, on their third point about costs\u2026", 1], ["They\u2019re wrong, here\u2019s why\u2026", 0]]; let ok=0; items.forEach((it,i)=>{ if(m9Module.state.signpostSelections[i]===it[1]) ok++; }); if(ok!==items.length){ pfToast('Mark all signposting items correctly to continue.'); return false; } }
+      else if(pageIndex===2){ if(m9Module.state.p3!=='Defending your case against their attacks before rebutting theirs'){ pfToast('Answer the frontlining quick check correctly.'); return false; } }
+      else if(pageIndex===4){ const data=[["Opponent: \u201cBanning plastics kills jobs immediately.\u201d", ["Evidence: \u2018Study shows net job growth in alternatives within 6 months.\u2019", "Logic: \u2018Jobs don\u2019t matter.\u2019", "Evidence: \u2018My friend lost a job once.\u2019"], 0], ["Opponent: \u201cEmissions barely change.\u201d", ["Logic: \u2018Your mechanism misses upstream production.\u2019", "Evidence: \u2018Meta-analysis finds 10\u201320% reductions where bans passed.\u2019", "Logic: \u2018We disagree.\u2019"], 1], ["Opponent: \u201cHygiene collapses without plastic.\u201d", ["Evidence: \u2018CDC notes reusables safe with washing; outbreaks not linked to bans.\u2019", "Logic: \u2018That\u2019s silly.\u2019", "Evidence: \u2018Some blogs say bags are dirty.\u2019"], 0]]; let ok=0; data.forEach((d,i)=>{ if(m9Module.state.toolkitAnswers[i]===d[2]) ok++; }); if(ok!==data.length){ pfToast('Answer all toolkit questions correctly to continue.'); return false; } }
+      else if(pageIndex===5){ const lines=[["Our impact is larger in magnitude and happens sooner than theirs.", 1], ["Their argument is dumb.", 0], ["Ours is more probable and less reversible.", 1], ["We disagree; move on.", 0], ["Even if they\u2019re right, our harm outweighs on lives saved.", 1]]; let ok=0,total=0; for(let i=0;i<lines.length;i++){ if(lines[i][1]===1){ total++; if(m9Module.state.weighChecks[i]===1) ok++; } else { if(m9Module.state.weighChecks[i]===1){ pfToast('Only select the valid weighing lines.'); return false; } } } if(ok!==total){ pfToast('Select all valid weighing lines to continue.'); return false; } }
       return true; 
     }
     return _orig();
@@ -3717,45 +3498,7 @@ if (!modules.find(m=>m.id==='m9')) modules.push(m9Module);
 })();
 </script>
 
-<!-- Custom UI tweaks: hide status labels, add lock/check icons, and make navigation sticky -->
-<style id="custom-module-ui">
-  /* Hide the status text completely */
-  .module-item .module-button .status {
-    display: none !important;
-  }
-  /* Display a lock icon on locked modules */
-  .module-item .module-button.locked::after {
-    content: "🔒";
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-weight: 900;
-    font-size: 14px;
-  }
-  /* Ensure the content area fills the viewport minus header/footer so navigation remains visible */
-  .content {
-    display: flex;
-    flex-direction: column;
-    /* Adjust this value if the header or footer height changes */
-    height: calc(100vh - 200px);
-    overflow: hidden;
-  }
-  #page-container {
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 8px;
-    padding-bottom: 20px;
-  }
-  /* Keep navigation controls and progress bar pinned to the bottom of the content area */
-  .nav-controls,
-  .progress-container {
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
-    background: rgba(10,35,66,0.9);
-  }
-</style>
+<!-- Layout, lock icons, and status styling are consolidated in the head stylesheet. -->
 
 <!-- Gating logic now implemented directly in buildModuleList; standalone gating script removed -->
 
@@ -3783,8 +3526,23 @@ function bad(el){
 }
 function copyBtn(getText, label='Copy') {
   const b = document.createElement('button'); b.className='primary-btn'; b.textContent=label;
-  b.onclick = () => navigator.clipboard.writeText(typeof getText==='function'?getText():getText||'');
+  b.onclick = () => pfCopy(typeof getText==='function'?getText():getText||'', 'Copied to clipboard.');
   return b;
+}
+// Shared right/wrong treatment for checkbox review labels: coloured left
+// border on a dark background instead of pastel fills under light text.
+function checkMark(lab, state){
+  if (state === 'right') { lab.style.borderLeft='6px solid #16a34a'; lab.style.background='rgba(255,255,255,0.05)'; }
+  else if (state === 'wrong') { lab.style.borderLeft='6px solid #dc2626'; lab.style.background='rgba(255,255,255,0.05)'; }
+  else { lab.style.borderLeft=''; lab.style.background=''; }
+}
+// Dark pill used by modules 10-12 (matches the shared pill look).
+function lensPill(t){
+  const s=document.createElement('span'); s.textContent=t;
+  s.style.margin='4px'; s.style.padding='4px 10px'; s.style.borderRadius='999px';
+  s.style.display='inline-block'; s.style.border='1px solid rgba(125,211,252,0.4)';
+  s.style.background='rgba(255,255,255,0.08)'; s.style.color='#e0f4ff';
+  return s;
 }
 
 // ------------------------- Module 10 -------------------------
@@ -3797,8 +3555,9 @@ const module10 = {
 
 function m10_p1(container){
   container.innerHTML='';
-  const h = document.createElement('h2'); h.textContent = 'Page 1: Advanced Rebuttal — Definitions/Responses'; container.appendChild(h);
-  const p = document.createElement('p'); p.textContent = 'Learn advanced techniques for responding to arguments.'; container.appendChild(p);
+  const card = pfCard('Advanced Rebuttal: Definitions & Responses');
+  const p = document.createElement('p'); p.textContent = 'Learn advanced techniques for responding to arguments.'; card.appendChild(p);
+  container.appendChild(card);
 }
 function m10_img(container, idx){
   container.innerHTML = '';
@@ -3816,8 +3575,8 @@ function m10_img(container, idx){
   const img = document.createElement('img');
   img.alt = `Rebuttal ${idx}`;
   img.style.maxWidth = '100%';
-  img.style.border = '1px solid rgba(0,0,0,0.08)'; // match Module 8
-  img.style.borderRadius = '10px';                 // match Module 8
+  img.style.border = '1px solid rgba(125,211,252,0.35)'; // match Module 8
+  img.style.borderRadius = '10px';                       // match Module 8
 
   // === Do it the Module 8 way: set src first ===
   img.src = src;
@@ -3826,7 +3585,7 @@ function m10_img(container, idx){
   img.onerror = function(){
     card.innerHTML = `
       <h3>Rebuttal ${idx}</h3>
-      <p style="color:#b91c1c;font-weight:700;">Could not load ${src}</p>
+      <p style="color:#fca5a5;font-weight:700;">Could not load ${src}</p>
       <p>Make sure the file exists at:<br><code>${src}</code></p>`;
   };
 
@@ -3834,7 +3593,7 @@ function m10_img(container, idx){
 
   const cap = document.createElement('div');
   cap.textContent = `Figure: Rebuttal ${idx}`;
-  cap.style.color = '#6b7280';
+  cap.style.color = '#9fb3c8';
   cap.style.fontStyle = 'italic';
   cap.style.marginTop = '6px';
   card.appendChild(cap);
@@ -3846,8 +3605,11 @@ function m10_p11(container){
   container.innerHTML='';
   const card = pfCard('Module Complete!');
   const p = document.createElement('p');
-  p.textContent = "Congratulations! You've mastered advanced rebuttal strategies.\n\nYou've earned 50 gems!";
+  p.textContent = "Congratulations! You've mastered advanced rebuttal strategies.";
   card.appendChild(p);
+  const p2 = document.createElement('p');
+  p2.textContent = "You'll earn 50 gems when you press Finish.";
+  card.appendChild(p2);
   const gem = document.createElement('div'); gem.textContent='💎'; gem.style.fontSize='40px'; card.appendChild(gem);
   container.appendChild(card);
 }
@@ -3866,7 +3628,7 @@ const m11 = { p1:false, p2:false, p3:false, p4:false, p5:[], p6ok:false };
 
 function m11_p1(container){
   container.innerHTML='';
-  const h = document.createElement('h2'); h.textContent='Summary — Purpose'; container.appendChild(h);
+  const h = document.createElement('h2'); h.textContent='Summary: Purpose'; container.appendChild(h);
   const card = pfCard();
   const desc = "Summary is where you narrow the round. "
              + "Collapse = pick your only strongest contention and only argue that going forward. "
@@ -3906,12 +3668,12 @@ function m11_p2(container){
                      lab.appendChild(inp); lab.append(' '+t); rbs[i]=lab; card.appendChild(lab); });
   container.appendChild(card);
 
-  const pills = pfCard(); ['Collapse','Extend','Frontline','Weigh'].forEach(t=>{ const s=document.createElement('span'); s.textContent=t; s.style.margin='4px'; s.style.padding='4px 10px'; s.style.border='1px solid rgba(0,0,0,.1)'; s.style.borderRadius='999px'; s.style.display='inline-block'; s.style.background='#eef6ff'; pills.appendChild(s); }); container.appendChild(pills);
+  const pills = pfCard(); ['Collapse','Extend','Frontline','Weigh'].forEach(t=>pills.appendChild(lensPill(t))); container.appendChild(pills);
 }
 
 function m11_p3(container){
   container.innerHTML='';
-  const h=document.createElement('h2'); h.textContent='Collapsing — What Do You Keep?'; container.appendChild(h);
+  const h=document.createElement('h2'); h.textContent='Collapsing: What Do You Keep?'; container.appendChild(h);
   const card=pfCard();
   const scenario = "Scenario: You ran three contentions (Emissions, Economy, Hygiene). They barely answered Emissions; they put lots of defense on Hygiene; Economy trades off with Emissions. Which principles guide what you collapse on?";
   const p=document.createElement('p'); p.textContent=scenario; card.appendChild(p);
@@ -3923,19 +3685,19 @@ function m11_p3(container){
     ["Choose the contention that lets you weigh most clearly.",1],
   ];
   const rows=[];
-  items.forEach(([txt,ok])=>{ const lab=document.createElement('label'); lab.style.display='block'; lab.style.padding='6px 8px';
+  items.forEach(([txt,ok])=>{ const lab=document.createElement('label'); lab.style.display='block'; lab.style.padding='6px 8px'; lab.style.borderRadius='8px'; lab.style.margin='4px 0';
     const cb=document.createElement('input'); cb.type='checkbox';
-    cb.onchange=()=>{ lab.style.background = cb.checked ? (ok?'#d1fae5':'#fee2e2') : ''; };
+    cb.onchange=()=>{ checkMark(lab, cb.checked ? (ok?'right':'wrong') : ''); };
     lab.appendChild(cb); lab.append(' '+txt); card.appendChild(lab); rows.push([lab,cb,ok]); });
   const btn=document.createElement('button'); btn.className='primary-btn'; btn.textContent='Evaluate choices';
-  btn.onclick=()=>{ let allOK=true; rows.forEach(([lab,cb,ok])=>{ const pick=cb.checked; const right=(pick&&ok)||(!pick&&!ok); lab.style.background=right?'#d1fae5':'#fee2e2'; if(!right) allOK=false; }); m11.p3=allOK; if(allOK) alert('Nice! Smart collapse choices.'); };
+  btn.onclick=()=>{ let allOK=true; rows.forEach(([lab,cb,ok])=>{ const pick=cb.checked; const right=(pick&&ok)||(!pick&&!ok); checkMark(lab, right?'right':'wrong'); if(!right) allOK=false; }); m11.p3=allOK; if(allOK) pfToast('Nice! Smart collapse choices.', 'ok'); else pfToast('Not quite. Adjust your picks and evaluate again.'); };
   card.appendChild(btn);
   container.appendChild(card);
 }
 
 function m11_p4(container){
   container.innerHTML='';
-  const h=document.createElement('h2'); h.textContent='Weighing — Spot the Good Lines'; container.appendChild(h);
+  const h=document.createElement('h2'); h.textContent='Weighing: Spot the Good Lines'; container.appendChild(h);
   const card=pfCard(); const lead=document.createElement('p'); lead.textContent='Select all lines that actually compare impacts (not just assert disagreement).'; card.appendChild(lead);
   const lines=[
     ["Our impact is larger in magnitude and happens years sooner.",1],
@@ -3945,15 +3707,15 @@ function m11_p4(container){
     ["Ours is less reversible and affects more people directly.",1],
   ];
   const rows=[];
-  lines.forEach(([txt,ok])=>{ const lab=document.createElement('label'); lab.style.display='block'; lab.style.padding='6px 8px';
+  lines.forEach(([txt,ok])=>{ const lab=document.createElement('label'); lab.style.display='block'; lab.style.padding='6px 8px'; lab.style.borderRadius='8px'; lab.style.margin='4px 0';
     const cb=document.createElement('input'); cb.type='checkbox';
-    cb.onchange=()=>{ lab.style.background = cb.checked ? (ok?'#d1fae5':'#fee2e2') : ''; };
+    cb.onchange=()=>{ checkMark(lab, cb.checked ? (ok?'right':'wrong') : ''); };
     lab.appendChild(cb); lab.append(' '+txt); card.appendChild(lab); rows.push([lab,cb,ok]); });
   const btn=document.createElement('button'); btn.className='primary-btn'; btn.textContent='Evaluate';
-  btn.onclick=()=>{ let perfect=true; rows.forEach(([lab,cb,ok])=>{ const pick=cb.checked; const good=(pick&&ok)||(!pick&&!ok); lab.style.background=good?'#d1fae5':'#fee2e2'; if(!good) perfect=false; }); m11.p4=perfect; if(perfect) alert('Great! Those are solid weighing lines.'); };
+  btn.onclick=()=>{ let perfect=true; rows.forEach(([lab,cb,ok])=>{ const pick=cb.checked; const good=(pick&&ok)||(!pick&&!ok); checkMark(lab, good?'right':'wrong'); if(!good) perfect=false; }); m11.p4=perfect; if(perfect) pfToast('Great! Those are solid weighing lines.', 'ok'); else pfToast('Not quite. Adjust your picks and evaluate again.'); };
   card.appendChild(btn);
   container.appendChild(card);
-  const pills = pfCard(); ['Magnitude','Timeframe','Probability','Reversibility'].forEach(t=>{ const s=document.createElement('span'); s.textContent=t; s.style.margin='4px'; s.style.padding='4px 10px'; s.style.border='1px solid rgba(0,0,0,.1)'; s.style.borderRadius='999px'; s.style.display='inline-block'; s.style.background='#eef6ff'; pills.appendChild(s); }); container.appendChild(pills);
+  const pills = pfCard(); ['Magnitude','Timeframe','Probability','Reversibility'].forEach(t=>pills.appendChild(lensPill(t))); container.appendChild(pills);
 }
 
 function m11_p5(container){
@@ -3983,10 +3745,10 @@ function m11_p5(container){
 
 function m11_p6(container){
   container.innerHTML='';
-  const h=document.createElement('h2'); h.textContent='Weighing Practice — Full Round Context'; container.appendChild(h);
+  const h=document.createElement('h2'); h.textContent='Weighing Practice: Full Round Context'; container.appendChild(h);
   // Compressed but faithful: includes plastics resolution, PRO/CON bullets, 4 MCQs, and a write/evaluate box.
   const ctx=pfCard('Resolution (context): The U.S. should ban single-use plastics.');
-  const grid=document.createElement('div'); grid.style.display='grid'; grid.style.gridTemplateColumns='1fr 1fr'; grid.style.gap='12px';
+  const grid=document.createElement('div'); grid.style.display='grid'; grid.style.gridTemplateColumns='repeat(auto-fit, minmax(240px, 1fr))'; grid.style.gap='12px';
   const left=pfCard('PRO (ban)'); const right=pfCard('CON (no ban)');
   ['Marine life: fewer entanglements/ingestion.','Public health: lower microplastic exposure.','Climate: modest emissions reduction (plastic from fossil fuels).','Impact example: prevents ~10,000 premature deaths over 10 years (pollution exposure).'].forEach(s=>{ const p=document.createElement('p'); p.textContent='• '+s; left.appendChild(p); });
   ['Jobs: ~120,000 workers disrupted short-term in packaging sectors.','Costs: higher prices for small businesses and consumers.','Hygiene: reusable alternatives can carry bacteria if not washed.','Impact example: regional job losses for 1–2 years (income shocks).'].forEach(s=>{ const p=document.createElement('p'); p.textContent='• '+s; right.appendChild(p); });
@@ -4007,7 +3769,7 @@ function m11_p6(container){
   const write=pfCard(); const ta=document.createElement('textarea'); ta.rows=4; ta.style.width='100%'; write.appendChild(ta);
   const fb=document.createElement('p'); fb.style.fontWeight='700'; write.appendChild(fb);
   const btn=document.createElement('button'); btn.className='primary-btn'; btn.textContent='Evaluate';
-  btn.onclick=()=>{ const t=(ta.value||'').toLowerCase(); const lenses = ['magnitude','timeframe','probability','reversibility']; const used=lenses.filter(w=>t.includes(w)).length>=2; const both=(/\\bwe\\b/.test(t) && (/(they|their|opponent)/.test(t))); if(used && both && t.replace(/\\s+/g,'').length>=20){ fb.textContent='Looks good!'; fb.style.color='#0a7d40'; m11.p6ok=true; } else { fb.textContent='Needs both sides + ≥2 lenses + length.'; fb.style.color='#b91c1c'; m11.p6ok=false; } };
+  btn.onclick=()=>{ const t=(ta.value||'').toLowerCase(); const lenses = ['magnitude','timeframe','probability','reversibility']; const used=lenses.filter(w=>t.includes(w)).length>=2; const both=(/\bwe\b/.test(t) && (/(they|their|opponent)/.test(t))); if(used && both && t.replace(/\s+/g,'').length>=20){ fb.textContent='Looks good!'; fb.style.color='#6ee7b7'; m11.p6ok=true; } else { fb.textContent='Mention both sides, use at least 2 lenses, and write a bit more.'; fb.style.color='#fca5a5'; m11.p6ok=false; } };
   write.appendChild(btn); container.appendChild(write);
 }
 
@@ -4015,15 +3777,15 @@ function m11_p7(container){
   container.innerHTML='';
   const h=document.createElement('h2'); h.textContent='Roadmap & Signposting'; container.appendChild(h);
   const card=pfCard('Say your roadmap off-time. Keep signposting short and in their order.');
-  const pre=document.createElement('pre'); pre.textContent="Roadmap: (1) Frontline their best hit on our C1, (2) Extend C1 with claim → warrant → impact, (3) Weigh — scope + timeframe favor us."; card.appendChild(pre);
+  const pre=document.createElement('pre'); pre.textContent="Roadmap: (1) Frontline their best hit on our C1, (2) Extend C1 with claim → warrant → impact, (3) Weigh: scope + timeframe favor us."; card.appendChild(pre);
   card.appendChild(copyBtn(()=>pre.textContent,'Copy roadmap line'));
-  const ex=pfCard('Signposting examples:'); ['On their Hygiene point…','Back to our Economy impact…','Weighing — magnitude & timeframe…'].forEach(s=>{ const p=document.createElement('p'); p.textContent='• '+s; ex.appendChild(p); }); container.appendChild(card); container.appendChild(ex);
+  const ex=pfCard('Signposting examples:'); ['On their Hygiene point…','Back to our Economy impact…','Weighing: magnitude & timeframe…'].forEach(s=>{ const p=document.createElement('p'); p.textContent='• '+s; ex.appendChild(p); }); container.appendChild(card); container.appendChild(ex);
 }
 
 function m11_p8(container){
   container.innerHTML='';
   const h=document.createElement('h2'); h.textContent='Module Complete!'; container.appendChild(h);
-  const card=pfCard(); const p=document.createElement('p'); p.innerHTML='Great work! You practiced collapsing to one contention, extending, frontlining, and clear weighing.<br><br>You’ve earned 20 gems.'; card.appendChild(p); const gem=document.createElement('div'); gem.textContent='💎'; gem.style.fontSize='48px'; card.appendChild(gem); container.appendChild(card);
+  const card=pfCard(); const p=document.createElement('p'); p.innerHTML='Great work! You practiced collapsing to one contention, extending, frontlining, and clear weighing.<br><br>You\'ll earn 20 gems when you press Finish.'; card.appendChild(p); const gem=document.createElement('div'); gem.textContent='💎'; gem.style.fontSize='48px'; card.appendChild(gem); container.appendChild(card);
 }
 module11.pages = [m11_p1,m11_p2,m11_p3,m11_p4,m11_p5,m11_p6,m11_p7,m11_p8];
 
@@ -4040,12 +3802,12 @@ function m12_p1(container){
   container.innerHTML='';
   const h=document.createElement('h2'); h.textContent='Weighing Mechanisms'; container.appendChild(h);
   const card=pfCard(); const p=document.createElement('p'); p.textContent='Weighing = comparing impacts so the judge can decide who wins.'; card.appendChild(p);
-  const pills=pfCard(); ['Magnitude','Scope','Probability','Timeframe','Link-in','Prerequisite'].forEach(t=>{ const s=document.createElement('span'); s.textContent=t; s.style.margin='4px'; s.style.padding='4px 10px'; s.style.border='1px solid rgba(0,0,0,.1)'; s.style.borderRadius='999px'; s.style.display='inline-block'; s.style.background='#eef6ff'; pills.appendChild(s); }); container.appendChild(card); container.appendChild(pills);
+  const pills=pfCard(); ['Magnitude','Scope','Probability','Timeframe','Link-in','Prerequisite'].forEach(t=>pills.appendChild(lensPill(t))); container.appendChild(card); container.appendChild(pills);
 }
 function m12_mcq(container, title, prompt, options, correctIndex, storeKey){
   const h=document.createElement('h2'); h.textContent=title; container.appendChild(h);
   const card=pfCard(); if(prompt){ const p=document.createElement('p'); p.textContent=prompt; card.appendChild(p); }
-  const labs=[]; function pick(i){ labs.forEach(l=>l.style.background=''); if(i===correctIndex){ good(labs[i]); window.m12[storeKey]=i; } else { bad(labs[i]); window.m12[storeKey]=-1; } }
+  const labs=[]; function pick(i){ labs.forEach(l=>l.style.background=''); if(i===correctIndex){ good(labs[i]); m12[storeKey]=i; } else { bad(labs[i]); m12[storeKey]=-1; } }
   options.forEach((t,i)=>{ const lab=document.createElement('label'); lab.style.display='block'; lab.style.padding='4px 8px'; const r=document.createElement('input'); r.type='radio'; r.name=title; r.onchange=()=>pick(i); lab.appendChild(r); lab.append(' '+t); labs[i]=lab; card.appendChild(lab); });
   container.appendChild(card);
 }
@@ -4057,7 +3819,7 @@ function m12_p5(c){ m12_mcq(c,'Timeframe','Scenario: A) immediate but small; B) 
 function m12_p6(container){
   container.innerHTML='';
   const h=document.createElement('h2'); h.textContent='Link-in'; container.appendChild(h);
-  const card=pfCard(); const p=document.createElement('p'); p.textContent='Link-in — your argument also triggers their impact, flipping it to your side.'; card.appendChild(p);
+  const card=pfCard(); const p=document.createElement('p'); p.textContent='Link-in: your argument also triggers their impact, flipping it to your side.'; card.appendChild(p);
   const quiz=pfCard('Which statement is a link-in?');
   const lines=['“Our impact is bigger.”','“Their claimed benefit requires our policy to happen first, so it flows to us.”','“We disagree with their study.”'];
   const labs=[]; lines.forEach((t,i)=>{ const lab=document.createElement('label'); lab.style.display='block'; lab.style.padding='4px 8px'; const r=document.createElement('input'); r.type='radio'; r.name='m12p6'; r.onchange=()=>{ labs.forEach(l=>l.style.background=''); if(i===1){ good(lab); m12.p6=1; } else { bad(lab); m12.p6=-1; } }; lab.appendChild(r); lab.append(' '+t); labs[i]=lab; quiz.appendChild(lab); });
@@ -4067,7 +3829,7 @@ function m12_p6(container){
 function m12_p7(container){
   container.innerHTML='';
   const h=document.createElement('h2'); h.textContent='Prerequisite'; container.appendChild(h);
-  const card=pfCard(); const p=document.createElement('p'); p.textContent='Prerequisite — your impact must occur first for theirs to occur; prioritize the prerequisite.'; card.appendChild(p);
+  const card=pfCard(); const p=document.createElement('p'); p.textContent='Prerequisite: your impact must occur first for theirs to occur; prioritize the prerequisite.'; card.appendChild(p);
   const quiz=pfCard('Which shows a prerequisite?');
   const lines=['“We might be more likely.”','“Their scenario is less likely.”','“Clean water access must come before economic growth, so fix water first.”'];
   const labs=[]; lines.forEach((t,i)=>{ const lab=document.createElement('label'); lab.style.display='block'; lab.style.padding='4px 8px'; const r=document.createElement('input'); r.type='radio'; r.name='m12p7'; r.onchange=()=>{ labs.forEach(l=>l.style.background=''); if(i===2){ good(lab); m12.p7=2; } else { bad(lab); m12.p7=-1; } }; lab.appendChild(r); lab.append(' '+t); labs[i]=lab; quiz.appendChild(lab); });
@@ -4076,7 +3838,7 @@ function m12_p7(container){
 
 function m12_p8(container){
   container.innerHTML='';
-  const h=document.createElement('h2'); h.textContent='Weighing Mechanisms — Review'; container.appendChild(h);
+  const h=document.createElement('h2'); h.textContent='Weighing Mechanisms: Review'; container.appendChild(h);
   const card=pfCard(); const lead=document.createElement('p'); lead.textContent='Select all statements that correctly define each mechanism.'; card.appendChild(lead);
   const lines=[
     ["Magnitude = how severe the impact is.",1],
@@ -4087,19 +3849,19 @@ function m12_p8(container){
     ["Prerequisite = their impact must happen before yours.",0],
   ];
   const rows=[];
-  lines.forEach(([txt,ok])=>{ const lab=document.createElement('label'); lab.style.display='block'; lab.style.padding='6px 8px';
+  lines.forEach(([txt,ok])=>{ const lab=document.createElement('label'); lab.style.display='block'; lab.style.padding='6px 8px'; lab.style.borderRadius='8px'; lab.style.margin='4px 0';
     const cb=document.createElement('input'); cb.type='checkbox';
-    cb.onchange=()=>{ lab.style.background = cb.checked ? (ok?'#d1fae5':'#fee2e2') : ''; };
+    cb.onchange=()=>{ checkMark(lab, cb.checked ? (ok?'right':'wrong') : ''); };
     lab.appendChild(cb); lab.append(' '+txt); card.appendChild(lab); rows.push([lab,cb,ok]); });
   const btn=document.createElement('button'); btn.className='primary-btn'; btn.textContent='Evaluate';
-  btn.onclick=()=>{ let allOK=true; rows.forEach(([lab,cb,ok])=>{ const pick=cb.checked; const right=(pick&&ok)||(!pick&&!ok); lab.style.background=right?'#d1fae5':'#fee2e2'; if(!right) allOK=false; }); m12.p8ok = allOK; if(allOK) alert('Great! Perfect review.'); };
+  btn.onclick=()=>{ let allOK=true; rows.forEach(([lab,cb,ok])=>{ const pick=cb.checked; const right=(pick&&ok)||(!pick&&!ok); checkMark(lab, right?'right':'wrong'); if(!right) allOK=false; }); m12.p8ok = allOK; if(allOK) pfToast('Great! Perfect review.', 'ok'); else pfToast('Not quite. Adjust your picks and evaluate again.'); };
   card.appendChild(btn);
   container.appendChild(card);
 }
 
 function m12_p9(container){
   container.innerHTML='';
-  const h=document.createElement('h2'); h.textContent='Weighing Drill 1 — Write It'; container.appendChild(h);
+  const h=document.createElement('h2'); h.textContent='Weighing Drill 1: Write It'; container.appendChild(h);
   const card=pfCard();
   const prompt="Explain how you outweigh on scope and WHY it matters.\n\nYour Impact: Preventing natural disasters → displacement, deaths, starvation (millions)\nOpponents’ Impact: Increasing green tech investment → 11.3% more innovation; distant mitigation of climate harms";
   const p=document.createElement('p'); p.style.whiteSpace='pre-wrap'; p.textContent=prompt; card.appendChild(p);
@@ -4110,7 +3872,7 @@ function m12_p9(container){
 }
 function m12_p10(container){
   container.innerHTML='';
-  const h=document.createElement('h2'); h.textContent='Drill 1 — Example Analysis'; container.appendChild(h);
+  const h=document.createElement('h2'); h.textContent='Drill 1: Example Analysis'; container.appendChild(h);
   const card=pfCard();
   const content="The first impact has larger scope and shorter timeframe: natural disasters affect and kill millions now. Even if tech investment helps later, immediacy and scale make preventing disasters more urgent.";
   const p=document.createElement('p'); p.textContent=content; card.appendChild(p);
@@ -4121,7 +3883,7 @@ function m12_p10(container){
 }
 function m12_p11(container){
   container.innerHTML='';
-  const h=document.createElement('h2'); h.textContent='Weighing Drill 2 — Write It'; container.appendChild(h);
+  const h=document.createElement('h2'); h.textContent='Weighing Drill 2: Write It'; container.appendChild(h);
   const card=pfCard();
   const prompt="Explain how you outweigh and WHY it matters.\n\nYour Impact: Decreasing emissions → eliminate 6B lbs CO₂; ~7M die each year from air pollution\nOpponents’ Impact: Recession → global spillover; 100M into poverty";
   const p=document.createElement('p'); p.style.whiteSpace='pre-wrap'; p.textContent=prompt; card.appendChild(p);
@@ -4132,7 +3894,7 @@ function m12_p11(container){
 }
 function m12_p12(container){
   container.innerHTML='';
-  const h=document.createElement('h2'); h.textContent='Drill 2 — Example Analysis'; container.appendChild(h);
+  const h=document.createElement('h2'); h.textContent='Drill 2: Example Analysis'; container.appendChild(h);
   const card=pfCard();
   const answer="Reducing air pollution emphasizes magnitude and probability: it directly saves millions of lives every year and is ongoing. Economic shocks can be severe, but recovery is possible and the path from poverty to deaths is indirect.";
   const p=document.createElement('p'); p.textContent=answer; card.appendChild(p);
@@ -4143,7 +3905,7 @@ function m12_p12(container){
 function m12_p13(container){
   container.innerHTML='';
   const h=document.createElement('h2'); h.textContent='Module Complete!'; container.appendChild(h);
-  const card=pfCard(); const p=document.createElement('p'); p.innerHTML='Nice work! You practiced all six weighing lenses and wrote clear, judge-friendly comparisons.<br><br>You’ve earned 40 gems.'; card.appendChild(p); const gem=document.createElement('div'); gem.textContent='💎'; gem.style.fontSize='48px'; card.appendChild(gem); container.appendChild(card);
+  const card=pfCard(); const p=document.createElement('p'); p.innerHTML='Nice work! You practiced all six weighing lenses and wrote clear, judge-friendly comparisons.<br><br>You\'ll earn 40 gems when you press Finish.'; card.appendChild(p); const gem=document.createElement('div'); gem.textContent='💎'; gem.style.fontSize='48px'; card.appendChild(gem); container.appendChild(card);
 }
 module12.pages = [m12_p1,m12_p2,m12_p3,m12_p4,m12_p5,m12_p6,m12_p7,m12_p8,m12_p9,m12_p10,m12_p11,m12_p12,m12_p13];
 
@@ -4160,26 +3922,26 @@ if (typeof modules !== 'undefined' && Array.isArray(modules)) {
   const base = (typeof validateCurrentPage==='function') ? validateCurrentPage : () => true;
   window.validateCurrentPage = function(){
     if (!base()) return false;
-    if (!window.currentModule) return true;
+    if (!currentModule) return true;
     const id = currentModule.id;
-    const p = window.pageIndex;
+    const p = pageIndex;
 
     if (id==='m11'){
-      if (p===0 && !m11.p1) { alert('Pick the main goal of Summary correctly.'); return false; }
-      if (p===1 && !m11.p2) { alert('Pick the correct default order.'); return false; }
-      if (p===2 && !m11.p3) { alert('Click “Evaluate choices” and get them all right.'); return false; }
-      if (p===3 && !m11.p4) { alert('Click “Evaluate” and select all and only the good lines.'); return false; }
-      if (p===4 && (!m11.p5.length || m11.p5.some(v=>v!==true))) { alert('Label each weighing type correctly.'); return false; }
-      if (p===5 && !m11.p6ok) { alert('Write your line and click Evaluate (needs ≥2 lenses, both sides).'); return false; }
+      if (p===0 && !m11.p1) { pfToast('Pick the main goal of Summary correctly.'); return false; }
+      if (p===1 && !m11.p2) { pfToast('Pick the correct default order.'); return false; }
+      if (p===2 && !m11.p3) { pfToast('Click “Evaluate choices” and get them all right.'); return false; }
+      if (p===3 && !m11.p4) { pfToast('Click “Evaluate” and select all and only the good lines.'); return false; }
+      if (p===4 && (!m11.p5.length || m11.p5.some(v=>v!==true))) { pfToast('Label each weighing type correctly.'); return false; }
+      if (p===5 && !m11.p6ok) { pfToast('Write your line and click Evaluate (needs ≥2 lenses, both sides).'); return false; }
     }
     if (id==='m12'){
-      if (p===1 && m12.p2!==0) { alert('Magnitude: choose correctly.'); return false; }
-      if (p===2 && m12.p3!==1) { alert('Scope: choose correctly.'); return false; }
-      if (p===3 && m12.p4!==0) { alert('Probability: choose correctly.'); return false; }
-      if (p===4 && m12.p5!==0) { alert('Timeframe: choose correctly.'); return false; }
-      if (p===5 && m12.p6!==1) { alert('Pick the link-in statement.'); return false; }
-      if (p===6 && m12.p7!==2) { alert('Pick the prerequisite statement.'); return false; }
-      if (p===7 && !m12.p8ok) { alert('Click Evaluate and get the review all correct.'); return false; }
+      if (p===1 && m12.p2!==0) { pfToast('Magnitude: choose correctly.'); return false; }
+      if (p===2 && m12.p3!==1) { pfToast('Scope: choose correctly.'); return false; }
+      if (p===3 && m12.p4!==0) { pfToast('Probability: choose correctly.'); return false; }
+      if (p===4 && m12.p5!==0) { pfToast('Timeframe: choose correctly.'); return false; }
+      if (p===5 && m12.p6!==1) { pfToast('Pick the link-in statement.'); return false; }
+      if (p===6 && m12.p7!==2) { pfToast('Pick the prerequisite statement.'); return false; }
+      if (p===7 && !m12.p8ok) { pfToast('Click Evaluate and get the review all correct.'); return false; }
     }
     return true;
   };
@@ -4194,24 +3956,17 @@ function _mk(tag, text){ const el=document.createElement(tag); if(text!=null){ e
 function _h2(t){ return _mk('h2', t); }
 function _h3(t){ return _mk('h3', t); }
 function _p(t){ return _mk('p', t); }
-function _card(){ const d=document.createElement('div'); d.className='card';
-  // Use a dark translucent background and light text to ensure readability.  The original
-  // white cards caused white text to disappear.  This palette matches the overall
-  // dark theme of the app and keeps content legible.
-  d.style.background='rgba(10,35,66,0.85)';
-  d.style.color='#e0f4ff';
-  d.style.borderRadius='12px';
-  d.style.padding='12px';
-  d.style.margin='10px 0';
-  return d; }
-function _pill(t){ const s=document.createElement('span'); s.textContent=t; s.style.display='inline-block'; s.style.padding='6px 10px'; s.style.margin='4px'; s.style.borderRadius='999px'; s.style.border='1px solid rgba(0,0,0,.1)'; s.style.background='#eef6ff'; s.style.color='#1d4ed8'; return s; }
-function _choice(parent, text, onpick){ const lab=document.createElement('label'); lab.textContent=text; lab.style.display='block'; lab.style.padding='6px 8px'; lab.style.cursor='pointer'; lab.style.border='1px solid rgba(0,0,0,.08)'; lab.style.borderRadius='8px'; lab.style.margin='6px 0'; lab.onmouseenter=()=>lab.style.background='rgba(0,0,0,0.04)'; lab.onmouseleave=()=>lab.style.background=''; lab.onclick=()=>onpick(lab); parent.appendChild(lab); return lab; }
+function _card(){ const d=document.createElement('div'); d.className='card'; return d; }
+function _pill(t){ const s=document.createElement('span'); s.textContent=t; s.style.display='inline-block'; s.style.padding='6px 10px'; s.style.margin='4px'; s.style.borderRadius='999px'; s.style.border='1px solid rgba(125,211,252,0.4)'; s.style.background='rgba(255,255,255,0.08)'; s.style.color='#e0f4ff'; return s; }
+function _choice(parent, text, onpick){ const lab=document.createElement('label'); lab.textContent=text; lab.style.display='block'; lab.style.padding='6px 8px'; lab.style.cursor='pointer'; lab.style.border='1px solid rgba(255,255,255,0.2)'; lab.style.borderRadius='8px'; lab.style.margin='6px 0'; lab.onmouseenter=()=>{ if(!lab.dataset.marked) lab.style.background='rgba(255,255,255,0.06)'; }; lab.onmouseleave=()=>{ if(!lab.dataset.marked) lab.style.background=''; }; lab.onclick=()=>onpick(lab); parent.appendChild(lab); return lab; }
 function _mark(lab, ok, status){
   // Clear background on sibling choices
   Array.from(lab.parentElement.children).forEach(n=>{
     n.style.background='';
     n.style.color='';
+    if (n.dataset) delete n.dataset.marked;
   });
+  lab.dataset.marked = '1';
   // Apply dark green/red backgrounds and light text to the selected label
   lab.style.background = ok ? '#14532d' : '#7f1d1d';
   lab.style.color = '#e0f4ff';
@@ -4246,31 +4001,31 @@ function m13_p1(c){ c.innerHTML=''; const card=_card(); card.appendChild(_h2('Wh
 function m13_p2(c){ c.innerHTML=''; c.appendChild(_h2('Structure & Collapse (Practice)'));
   const note=_card(); const i=_p("Note: You usually decide what to collapse on during Summary. This page gives you extra practice choosing the right contention."); i.style.fontStyle='italic'; note.appendChild(i); c.appendChild(note);
   const chips=_card(); ['Collapse →','Frontline →','Weigh →','Clear ask'].forEach(t=>chips.appendChild(_pill(t))); c.appendChild(chips);
-  const scen=_card(); scen.appendChild(_p("Scenario: You won clean concessions...hospital infections dropping by 30,000 lives with your policy. You also have a smaller economy argument that was contested.")); c.appendChild(scen);
+  const scen=_card(); scen.appendChild(_p("Scenario: You won a clean concession: your opponents never answered your evidence that hospital infections drop under your policy, preventing about 30,000 deaths a year. You also have a smaller economy argument that was contested.")); c.appendChild(scen);
   const quiz=_card(); quiz.appendChild(_h3('Which is the best collapse choice? (practice)')); const status=_p('Select an option…'); status.style.fontWeight='600'; quiz.appendChild(status);
   ["Collapse on the hospital infections lives argument.", "Try to cover both arguments equally.", "Abandon the life-saving point for economy."].forEach((t,i)=>{ _choice(quiz, t, (lab)=>{ m13State.p2=i; _mark(lab, i===0, status); }); });
   c.appendChild(quiz);
 }
 
-function m13_p3(c){ c.innerHTML=''; c.appendChild(_h2('Weighing — Snap Quiz')); const card=_card(); card.appendChild(_p("Pick the strongest weighing line for the hospital infections scenario.")); const status=_p('Select an option…'); status.style.fontWeight='600'; card.appendChild(status);
+function m13_p3(c){ c.innerHTML=''; c.appendChild(_h2('Weighing: Snap Quiz')); const card=_card(); card.appendChild(_p("Pick the strongest weighing line for the hospital infections scenario.")); const status=_p('Select an option…'); status.style.fontWeight='600'; card.appendChild(status);
   ["Weigh magnitude vaguely: \u2018Ours is bigger.\u2019", "Lives are immediate and irreversible, so preventing 30,000 deaths outweighs their contested economy claim.", "Weigh scope by restating our case without numbers."].forEach((t,i)=>{ _choice(card, t, (lab)=>{ m13State.p3=i; _mark(lab, i===1, status); }); });
   c.appendChild(card);
 }
 
 function m13_p4(c){ c.innerHTML=''; c.appendChild(_h2('Example Final Focus (Annotated)'));
   const legend=_card(); ['Collapse','Frontline','Weigh','Ask'].forEach(t=>legend.appendChild(_pill(t))); c.appendChild(legend);
-  const pre=_card(); pre.appendChild(_pre("Collapse:\\nWe collapse to hospital infections: our policy prevents ~30,000 deaths each year.\\n\\nFrontline:\\nThey said the evidence is old, but we a...DC report and they never responded\u2014so the reduction stands.\\n\\nWeigh:\\nLives are immediate and irreversible. Even ...enting tens of thousands of deaths matters more and sooner.\\n\\nAsk:\\nThat means you s...at saves lives now. We win on the clearest impact and timeframe.")); c.appendChild(pre);
+  const pre=_card(); pre.appendChild(_pre("Collapse:\nWe collapse to hospital infections: our policy prevents ~30,000 deaths each year.\n\nFrontline:\nThey said the evidence is old, but we also read a 2023 CDC report and they never responded, so the reduction stands.\n\nWeigh:\nLives are immediate and irreversible. Even if their economy point is true, preventing tens of thousands of deaths matters more and sooner.\n\nAsk:\nThat means you should vote for the side that saves lives now. We win on the clearest impact and timeframe.")); c.appendChild(pre);
 }
 
-function m13_p5(c){ c.innerHTML=''; c.appendChild(_h2('Lightning Scenario — Collapse & Weigh'));
-  const ctx=_card(); ctx.appendChild(_h3('Context:')); ctx.appendChild(_pre("Ban on single-use plastics:\\n\u2022 Pro: reduces pollution-related deaths (peer-reviewed sources, unrefuted)\\n\u2022 Con: costs jobs and raises prices (disputed; no clear numbers)")); c.appendChild(ctx);
+function m13_p5(c){ c.innerHTML=''; c.appendChild(_h2('Lightning Scenario: Collapse & Weigh'));
+  const ctx=_card(); ctx.appendChild(_h3('Context:')); ctx.appendChild(_pre("Ban on single-use plastics:\n\u2022 Pro: reduces pollution-related deaths (peer-reviewed sources, unrefuted)\n\u2022 Con: costs jobs and raises prices (disputed; no clear numbers)")); c.appendChild(ctx);
   const qa=_card(); qa.appendChild(_h3('A) What should you collapse on? (practice)')); const sa=_p('Select an option…'); sa.style.fontWeight='600'; qa.appendChild(sa);
   ["Pro\u2019s life-saving impact (pollution deaths prevented).", "Both equally to keep options open.", "Con\u2019s jobs/costs despite weaker proof."].forEach((t,i)=>{ _choice(qa, t, (lab)=>{ m13State.p5a=i; _mark(lab, i===0, sa); }); }); c.appendChild(qa);
   const qb=_card(); qb.appendChild(_h3('B) Which primary lens fits best for the Final Focus?')); const sb=_p('Select an option…'); sb.style.fontWeight='600'; qb.appendChild(sb);
   ["Scope (how many people) only.", "Probability (likelihood) only.", "Timeframe + magnitude: preventing deaths now outweighs uncertain economic effects."].forEach((t,i)=>{ _choice(qb, t, (lab)=>{ m13State.p5b=i; _mark(lab, i===2, sb); }); }); c.appendChild(qb);
 }
 
-function m13_p6(c){ c.innerHTML=''; c.appendChild(_h2('Module Complete!')); const done=_card(); done.appendChild(_p('Nice work! You practiced collapsing, frontlining, weighing, and a clear Final Focus.')); done.appendChild(_p('You’ve earned ' + m13.reward + ' gems.')); c.appendChild(done); const gem=_mk('div','💎'); gem.style.fontSize='48px'; gem.style.textAlign='center'; c.appendChild(gem); }
+function m13_p6(c){ c.innerHTML=''; c.appendChild(_h2('Module Complete!')); const done=_card(); done.appendChild(_p('Nice work! You practiced collapsing, frontlining, weighing, and a clear Final Focus.')); done.appendChild(_p("You'll earn " + m13.reward + ' gems when you press Finish.')); c.appendChild(done); const gem=_mk('div','💎'); gem.style.fontSize='48px'; gem.style.textAlign='center'; c.appendChild(gem); }
 
 const m13 = { id:'m13', title:'Final Focus', reward:10, pages:[m13_p1,m13_p2,m13_p3,m13_p4,m13_p5,m13_p6] };
 
@@ -4278,7 +4033,7 @@ const m13 = { id:'m13', title:'Final Focus', reward:10, pages:[m13_p1,m13_p2,m13
 // ===== Module 14 — Judges & Adaptation =====
 const m14State = { p3:-1, p4:-1, p5:-1, p6:-1, p8:-1 };
 
-function m14_p1(c){ c.innerHTML=''; c.appendChild(_h2('Judges & Paradigms — Why They Matter'));
+function m14_p1(c){ c.innerHTML=''; c.appendChild(_h2('Judges & Paradigms: Why They Matter'));
   const a=_card(); a.appendChild(_p('Judges decide the round, and they evaluate differently. A “paradigm” is how a judge explains what they value and how they’ll decide.')); c.appendChild(a);
   const b=_card(); b.appendChild(_h3('In this module you’ll learn to:')); const ul=document.createElement('ul'); ul.style.marginLeft='1rem';
   ["Spot the 4 common PF judge types.", "Adapt your speaking and weighing to each paradigm.", "Run quick checks to keep your speeches judge-friendly."].forEach(t=>{ const li=document.createElement('li'); li.textContent=t; ul.appendChild(li); });
@@ -4297,7 +4052,7 @@ function m14_p2(c){ c.innerHTML=''; c.appendChild(_h2('Judge Types at a Glance')
       bar.style.marginBottom='6px';
       // Use dark text on the light bar so it remains legible against the pale background
       bar.style.color='#0b1a2b';
-      bar.textContent = title + ' — Experience: ' + stars + ' ' + tag;
+      bar.textContent = title + ' · Experience: ' + stars + ' ' + tag;
       wrap.appendChild(bar);
       points.forEach(pt=>wrap.appendChild(_p('• '+pt)));
       grid.appendChild(wrap);
@@ -4337,60 +4092,82 @@ function m14_p7(c){ c.innerHTML=''; c.appendChild(_h2('Adaptation Lab'));
   const lab=_card(); lab.appendChild(_p('Pick a judge type to see “Do more / Avoid” and a sample ask.')); c.appendChild(lab);
   const sel=document.createElement('select'); ['Lay','Flay','Flow','Tech'].forEach(x=>{ const o=document.createElement('option'); o.value=x; o.textContent=x; sel.appendChild(o); });
   c.appendChild(sel);
-  const row=_mk('div'); row.style.display='grid'; row.style.gridTemplateColumns='1fr 1fr'; row.style.gap='12px';
+  const row=_mk('div'); row.style.display='grid'; row.style.gridTemplateColumns='repeat(auto-fit, minmax(240px, 1fr))'; row.style.gap='12px';
   const left=_card(); left.appendChild(_h3('✅ Do more of')); const doBox=_p(''); doBox.style.whiteSpace='pre-wrap'; left.appendChild(doBox);
   const right=_card(); right.appendChild(_h3('🚫 Avoid')); const avoidBox=_p(''); avoidBox.style.whiteSpace='pre-wrap'; right.appendChild(avoidBox);
   c.appendChild(row); row.appendChild(left); row.appendChild(right);
   const phrase=_card(); phrase.appendChild(_h3('Sample Final Focus ask for this judge:')); const ask=_p(''); ask.style.whiteSpace='pre-wrap'; phrase.appendChild(ask); c.appendChild(phrase);
   const bank={"Lay": {"do": "Short sentences \u2022 Real-life examples \u2022 Slow down on stats\nWeigh in plain words (bigger, sooner, more certain).", "avoid": "Jargon without definitions \u2022 Speeding \u2022 Skipping the \u2018why it matters\u2019.", "ask": "\u201cJudge, our plan saves lives right now and that matters most. Please vote Pro.\u201d"}, "Flay": {"do": "Clear signposting \u2022 Solid extensions \u2022 Comparative weighing\nKeep it persuasive without losing structure.", "avoid": "Over-spreading \u2022 Vibes without warrants \u2022 Disorganized rebuttal.", "ask": "\u201cPrefer our clean extensions and weighing: lives now outweigh small, uncertain costs.\u201d"}, "Flow": {"do": "Line-by-line \u2022 Extend claim + warrant + impact \u2022 Impact calculus (mag/time/prob).", "avoid": "New arguments late \u2022 No links \u2022 Hand-wavy weighing.", "ask": "\u201cOn their C2, extend Smith \u201923; magnitude + timeframe win\u2014vote Pro on the flow.\u201d"}, "Tech": {"do": "Perfect extensions \u2022 Theory awareness \u2022 Clear voters \u2022 Explicit calculus.", "avoid": "Truth-only claims \u2022 Dropped links \u2022 Messy collapsing.", "ask": "\u201cOur voters: 1) Lives\u2014extended through FF with warranted link; 2) Timeframe\u2014immediacy. Ballot Pro.\u201d"}}; function refresh(){ const d=bank[sel.value]; doBox.textContent=d.do; avoidBox.textContent=d.avoid; ask.textContent=d.ask; } sel.addEventListener('change', refresh); refresh();
 }
-function m14_p8(c){ c.innerHTML=''; c.appendChild(_h2('Lightning Scenario — Pick the Adaptation'));
-  const ctx=_card(); ctx.appendChild(_p('Context: Judge is **Lay** (Experience: ★☆☆☆☆ — Least). Topic: ban single-use plastics.')); ctx.appendChild(_p('Your best uncontested point: prevents pollution-related deaths now.')); ctx.appendChild(_p('Their best point: potential job losses (disputed, no clear numbers).')); c.appendChild(ctx);
+function m14_p8(c){ c.innerHTML=''; c.appendChild(_h2('Lightning Scenario: Pick the Adaptation'));
+  const ctx=_card(); ctx.appendChild(_p('Context: Judge is Lay (Experience: ★☆☆☆☆, least experienced). Topic: ban single-use plastics.')); ctx.appendChild(_p('Your best uncontested point: prevents pollution-related deaths now.')); ctx.appendChild(_p('Their best point: potential job losses (disputed, no clear numbers).')); c.appendChild(ctx);
   const quiz=_card(); quiz.appendChild(_h3('What’s the best Final Focus adaptation for THIS judge?')); const status=_p('Select an option…'); status.style.fontWeight='600'; quiz.appendChild(status);
   ["Plain, persuasive ask: \u201cOur plan saves lives now\u2014please prefer that over uncertain job claims.\u201d", "Fast, jargon-heavy line-by-line with theory shells.", "Minimal explanation\u2014just restate your card names."].forEach((t,i)=>{ _choice(quiz, t, (lab)=>{ m14State.p8=i; _mark(lab, i===0, status); }); });
   c.appendChild(quiz);
 }
 function m14_p9(c){ c.innerHTML=''; c.appendChild(_h2('Wrap-Up & Quick Cheats')); const card=_card(); card.appendChild(_p('Remember: match your speed, structure, and weighing to the judge. Keep extensions clean and voters explicit.')); c.appendChild(card); }
-function m14_p10(c){ c.innerHTML=''; c.appendChild(_h2('Module Complete!')); const card=_card(); card.appendChild(_p('You’ve earned ' + m14.reward + ' gems.')); c.appendChild(card); const gem=_mk('div','💎'); gem.style.fontSize='48px'; gem.style.textAlign='center'; c.appendChild(gem); }
+function m14_p10(c){ c.innerHTML=''; c.appendChild(_h2('Module Complete!')); const card=_card(); card.appendChild(_p('Great job! You can now spot judge types and adapt your speeches to each one.')); card.appendChild(_p("You'll earn " + m14.reward + ' gems when you press Finish.')); c.appendChild(card); const gem=_mk('div','💎'); gem.style.fontSize='48px'; gem.style.textAlign='center'; c.appendChild(gem); }
 const m14 = { id:'m14', title:'Judges & Adaptation', reward:25, pages:[m14_p1,m14_p2,m14_p3,m14_p4,m14_p5,m14_p6,m14_p7,m14_p8,m14_p9,m14_p10] };
 
 
 // ===== Module 15 — Public Forum AI =====
-const m15State = { curr:0, best:0, complete:false, bank: [{"q": "PublicForumAI.com helps beginners learn Public Forum debate.", "a": true, "e": "Yes\u2014PFAI is beginner-friendly with step-by-step modules."}, {"q": "PublicForumAI.com only offers resources for expert-level debaters.", "a": false, "e": "No\u2014content spans middle school to high school and beginners."}, {"q": "The website includes example cases and block files.", "a": true, "e": "Correct\u2014examples and templates help you prep faster."}] };
+// Jump to another page of the current module (used by the m15 quiz flow).
+function goTo(n){ pageIndex = n; renderPage(); }
+const m15State = { curr:0, streak:0, best:0, complete:false, bank: [{"q": "PublicForumAI.com helps beginners learn Public Forum debate.", "a": true, "e": "Yes\u2014PFAI is beginner-friendly with step-by-step modules."}, {"q": "PublicForumAI.com only offers resources for expert-level debaters.", "a": false, "e": "No\u2014content spans middle school to high school and beginners."}, {"q": "The website includes example cases and block files.", "a": true, "e": "Correct\u2014examples and templates help you prep faster."}] };
 
 function m15_p1(c){ c.innerHTML=''; c.appendChild(_h2('Welcome to Public Forum AI'));
   const head=_card(); head.appendChild(_p('Quick module: learn what PublicForumAI.com offers and check your knowledge with a fast True/False quiz.')); c.appendChild(head);
   const what=_card(); what.appendChild(_h3('You’ll do:')); const ul=document.createElement('ul'); ul.style.marginLeft='1rem';
   ['Answer a randomized True/False quiz.','See instant feedback with quick explanations.','Try to build your best streak.'].forEach(t=>{ const li=document.createElement('li'); li.textContent=t; ul.appendChild(li); });
   what.appendChild(ul);
-  const begin=document.createElement('button'); begin.className='btn'; begin.textContent='Begin Quiz'; begin.onclick=()=>{ m15State.curr=0; m15State.complete=false; m15State.bank.sort(()=>Math.random()-0.5); goTo(1); };
+  const begin=document.createElement('button'); begin.className='btn'; begin.textContent='Begin Quiz'; begin.onclick=()=>{ m15State.curr=0; m15State.streak=0; m15State.complete=false; m15State.bank.sort(()=>Math.random()-0.5); goTo(1); };
   what.appendChild(begin); c.appendChild(what);
   const link=_mk('a','Visit PublicForumAI.com'); link.href='https://publicforumai.com'; link.target='_blank'; const wrap=_mk('div'); wrap.style.textAlign='center'; wrap.appendChild(link); c.appendChild(wrap);
 }
 
 function m15_p2(c){ c.innerHTML=''; c.appendChild(_h2('True / False Quiz'));
+  if (m15State.curr >= m15State.bank.length) {
+    const done=_card();
+    done.appendChild(_p('Quiz complete! Best streak: ' + m15State.best + ' of ' + m15State.bank.length + '.'));
+    done.appendChild(_p('Press Next to explore the features, or go back to the intro to retake the quiz.'));
+    c.appendChild(done);
+    return;
+  }
   const top=_card(); const total=m15State.bank.length; top.appendChild(_mk('div','Question ' + (m15State.curr+1) + ' of ' + total));
-  const meta=_mk('div'); meta.style.display='flex'; meta.style.gap='16px'; meta.appendChild(_mk('div','Streak: ' + m15State.curr)); meta.appendChild(_mk('div','Best: ' + m15State.best)); top.appendChild(meta); c.appendChild(top);
+  const meta=_mk('div'); meta.style.display='flex'; meta.style.gap='16px'; meta.appendChild(_mk('div','Streak: ' + m15State.streak)); meta.appendChild(_mk('div','Best: ' + m15State.best)); top.appendChild(meta); c.appendChild(top);
   const q=m15State.bank[m15State.curr]; const qc=_card(); const qt=_p(q.q); qt.style.fontSize='18px'; qt.style.fontWeight='600'; qc.appendChild(qt);
   const explain=_p(''); explain.style.minHeight='24px'; qc.appendChild(explain);
   const row=_mk('div'); row.style.display='flex'; row.style.gap='12px';
-  function answer(val){ if (val===q.a){ explain.textContent='✔ Correct — ' + q.e; explain.style.color='#15803d'; m15State.curr++; if(m15State.curr>m15State.best) m15State.best=m15State.curr; if(m15State.curr<total) setTimeout(()=>goTo(1),600); else { m15State.complete=true; alert('Great! You completed the quiz. Explore features next!'); goTo(2); } } else { explain.textContent='✖ Incorrect — ' + q.e; explain.style.color='#b91c1c'; setTimeout(()=>{ m15State.curr=0; m15State.bank.sort(()=>Math.random()-0.5); alert('Restarting: the quiz will begin from question 1.'); goTo(1); },700); } }
-  const bt=_mk('button','True'); bt.className='btn'; bt.onclick=()=>answer(true); const bf=_mk('button','False'); bf.className='btn'; bf.onclick=()=>answer(false);
+  const bt=_mk('button','True'); bt.className='btn'; const bf=_mk('button','False'); bf.className='btn';
+  function answer(val){
+    bt.disabled=true; bf.disabled=true;
+    if (val===q.a){
+      explain.textContent='✔ Correct: ' + q.e; explain.style.color='#6ee7b7';
+      m15State.streak++; if(m15State.streak>m15State.best) m15State.best=m15State.streak;
+    } else {
+      explain.textContent='✖ Not quite: ' + q.e; explain.style.color='#fca5a5';
+      m15State.streak=0;
+    }
+    m15State.curr++;
+    if (m15State.curr<total) { setTimeout(()=>goTo(1), 1200); }
+    else { m15State.complete=true; pfToast('Quiz complete! Explore the features next.', 'ok'); setTimeout(()=>goTo(2), 1200); }
+  }
+  bt.onclick=()=>answer(true); bf.onclick=()=>answer(false);
   row.appendChild(bt); row.appendChild(bf); qc.appendChild(row); c.appendChild(qc);
 }
 
-function m15_p3(c){ c.innerHTML=''; c.appendChild(_h2('Feature Explorer — Public Forum AI'));
+function m15_p3(c){ c.innerHTML=''; c.appendChild(_h2('Feature Explorer: Public Forum AI'));
   if(!m15State.complete){ const guard=_card(); guard.appendChild(_p('Finish the quiz first to unlock this page.')); c.appendChild(guard); return; }
-  function feature(title, bullets, accent){ const wrap=_card(); const bar=_mk('div',title); bar.style.background=accent; bar.style.border='1px solid rgba(0,0,0,.1)'; bar.style.padding='6px 10px'; bar.style.fontWeight='700'; wrap.appendChild(bar); bullets.forEach(t=>wrap.appendChild(_p('• '+t))); c.appendChild(wrap); }
+  function feature(title, bullets, accent){ const wrap=_card(); const bar=_mk('div',title); bar.style.background=accent; bar.style.border='1px solid rgba(0,0,0,.1)'; bar.style.borderRadius='6px'; bar.style.padding='6px 10px'; bar.style.fontWeight='700'; bar.style.color='#0b1a2b'; wrap.appendChild(bar); bullets.forEach(t=>wrap.appendChild(_p('• '+t))); c.appendChild(wrap); }
   feature('AI Practice Round',['Simulates a real PF round for middle & high school levels','Practice pacing, clarity, and responses in a safe sandbox','Great for first-time competitors to reduce nerves'],'#eef6ff');
   feature('AI Casewriter',['Turn your idea into a draft with claim → warrant → evidence → impact','Refine clarity and organization quickly','Export or copy blocks for your prep docs'],'#fef3c7');
   feature('AI Flow',['Keep clean notes of arguments and responses','See where extensions are missing','Helps you prepare Summary + Final Focus'],'#e9ffe7');
   const act=_card(); act.appendChild(_h3('Open PublicForumAI.com in your browser:')); const btn=_mk('a','Go to PublicForumAI.com'); btn.href='https://publicforumai.com'; btn.target='_blank'; btn.className='btn'; act.appendChild(btn); c.appendChild(act);
 }
 
-function m15_p4(c){ c.innerHTML=''; c.appendChild(_h2('Module Complete!')); const card=_card(); card.appendChild(_p('Best streak: ' + m15State.best + ' / ' + m15State.bank.length + '\nYou explored what PFAI offers and cleared the quiz—nice work!')); card.appendChild(_p('You’ve earned ' + m15.reward + ' gems.')); c.appendChild(card); const gem=_mk('div','💎'); gem.style.fontSize='48px'; gem.style.textAlign='center'; c.appendChild(gem); }
+function m15_p4(c){ c.innerHTML=''; c.appendChild(_h2('Module Complete!')); const card=_card(); card.appendChild(_p('Best streak: ' + m15State.best + ' / ' + m15State.bank.length)); card.appendChild(_p('You explored what PublicForumAI offers and cleared the quiz. Nice work!')); card.appendChild(_p("You'll earn " + m15.reward + ' gems when you press Finish.')); c.appendChild(card); const gem=_mk('div','💎'); gem.style.fontSize='48px'; gem.style.textAlign='center'; c.appendChild(gem); }
 
-const m15 = { id:'m15', title:'Module 15 — Public Forum AI', reward:30, pages:[m15_p1,m15_p2,m15_p3,m15_p4] };
+const m15 = { id:'m15', title:'Public Forum AI', reward:30, pages:[m15_p1,m15_p2,m15_p3,m15_p4] };
 
 
 // === Gating for modules 13–15 ===
@@ -4398,29 +4175,30 @@ const m15 = { id:'m15', title:'Module 15 — Public Forum AI', reward:30, pages:
   const base = (typeof validateCurrentPage==='function') ? validateCurrentPage : function(){ return true; };
   window.validateCurrentPage = function(){
     if (!base()) return false;
-    if (!window.currentModule) return true;
+    if (!currentModule) return true;
     const id = currentModule.id;
-    const p = window.pageIndex;
+    const p = pageIndex;
     if (id==='m13'){
-      if (p===1 && m13State.p2!==0) { alert('Choose the best collapse choice to continue.'); return false; }
-      if (p===2 && m13State.p3!==1) { alert('Pick the strongest weighing line to continue.'); return false; }
-      if (p===4 && (m13State.p5a!==0 || m13State.p5b!==2)) { alert('Answer both A and B correctly to continue.'); return false; }
+      if (p===1 && m13State.p2!==0) { pfToast('Choose the best collapse choice to continue.'); return false; }
+      if (p===2 && m13State.p3!==1) { pfToast('Pick the strongest weighing line to continue.'); return false; }
+      if (p===4 && (m13State.p5a!==0 || m13State.p5b!==2)) { pfToast('Answer both A and B correctly to continue.'); return false; }
     }
     if (id==='m14'){
-      if (p===2 && m14State.p3!==0) { alert('Choose the correct option to continue.'); return false; }
-      if (p===3 && m14State.p4!==2) { alert('Choose the correct option to continue.'); return false; }
-      if (p===4 && m14State.p5!==1) { alert('Choose the correct option to continue.'); return false; }
-      if (p===5 && m14State.p6!==2) { alert('Choose the correct option to continue.'); return false; }
-      if (p===7 && m14State.p8!==0) { alert('Choose the correct option to continue.'); return false; }
+      if (p===2 && m14State.p3!==0) { pfToast('Choose the correct option to continue.'); return false; }
+      if (p===3 && m14State.p4!==2) { pfToast('Choose the correct option to continue.'); return false; }
+      if (p===4 && m14State.p5!==1) { pfToast('Choose the correct option to continue.'); return false; }
+      if (p===5 && m14State.p6!==2) { pfToast('Choose the correct option to continue.'); return false; }
+      if (p===7 && m14State.p8!==0) { pfToast('Choose the correct option to continue.'); return false; }
     }
     if (id==='m15'){
-      if (p===2 && !m15State.complete) { alert('Finish the quiz first to continue.'); return false; }
+      if (p===1 && !m15State.complete) { pfToast('Finish the quiz to continue.'); return false; }
+      if (p===2 && !m15State.complete) { pfToast('Finish the quiz first to continue.'); return false; }
     }
     return true;
   };
 })();
 
-    <!-- removed: old standalone Module 2 gating now folded into the main validateCurrentPage definition -->
+// (Old standalone Module 2 gating was folded into the main validateCurrentPage definition.)
 
 // Register modules and refresh sidebar
 if (typeof modules !== 'undefined' && Array.isArray(modules)) {
@@ -4428,7 +4206,7 @@ if (typeof modules !== 'undefined' && Array.isArray(modules)) {
     const idx = modules.findIndex(m => m.id === id);
     if (idx !== -1) modules.splice(idx,1);
   });
-  modules.push(m13, m14);
+  modules.push(m13, m14, m15);
   if (typeof buildModuleList === 'function') buildModuleList();
 }
 </script>
@@ -4529,16 +4307,15 @@ if (typeof modules !== 'undefined' && Array.isArray(modules)) {
         this.save(st);
       };
     }
-    const _origAddGems = AppState.addGems ? AppState.addGems.bind(AppState) : null;
+    // Fully replace addGems: one read-modify-write through get()/save(), which
+    // already routes to the signed-in profile (save() also mirrors state.gems
+    // into the profile's gems field). Chaining the original addGems or calling
+    // addGemsToUser here would award the same gems two or three times.
     AppState.addGems = function(amount){
       const st = this.get();
       st.gems = (st.gems||0) + (+amount||0);
       this.save(st);
-      try{
-        const u = (typeof currentUser==='function') ? currentUser() : null;
-        if (u && typeof addGemsToUser === 'function') addGemsToUser(u.uid, +amount||0);
-      }catch(_){}
-      if (_origAddGems) try{ _origAddGems(amount); }catch(_){}
+      try{ updateGemBar(); }catch(_){}
     };
   }
 })();
@@ -4602,6 +4379,9 @@ if (typeof modules !== 'undefined' && Array.isArray(modules)) {
   if (window.pfGate && typeof pfGate.isSignedInVerified === 'function') {
     pfGate.isSignedInVerified().then(function(ok){
       if (!ok) { goLogin(); return; }
+      // Reveal the app frame (it is hidden by CSS until a signed-in user is
+      // confirmed, so logged-out visitors never see a flash of content).
+      document.documentElement.classList.add('pfai-signed-in');
       restorePosition();
       // Keep gating if the user signs out in another tab.
       try{ if (typeof onAuth === 'function') onAuth(function(u){ if(!u) goLogin(); }); }catch(e){}
