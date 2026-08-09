@@ -120,6 +120,10 @@
   //   opts.label     label to restore on that button after the countdown
   //   opts.retry429  throw a silent rate_limited error (scope user) so the
   //                  caller can wait retryAfter seconds and retry itself
+  //   opts.quiet     skip the generic server-error toast. For background work
+  //                  the user did not ask for, where the page already has a
+  //                  local copy of whatever failed to send. Auth, verification
+  //                  and rate-limit toasts still fire: those need answering.
   async function pfFetch(path, body, opts) {
     opts = opts || {};
     var headers = {};
@@ -138,7 +142,7 @@
     try {
       response = await fetch(apiBase() + path, { method: opts.method || "POST", headers: headers, body: fetchBody });
     } catch (e) {
-      pfToast("Connection problem. Check your internet and try again.", { kind: "error" });
+      if (!opts.quiet) pfToast("Connection problem. Check your internet and try again.", { kind: "error" });
       throw PfApiError("network", 0);
     }
 
@@ -177,7 +181,7 @@
       throw PfApiError("rate_limited", 429, { retryAfter: retryAfter, scope: scope });
     }
 
-    pfToast("Something went wrong on our end. Please try again.", { kind: "error" });
+    if (!opts.quiet) pfToast("Something went wrong on our end. Please try again.", { kind: "error" });
     throw PfApiError("http_error", response.status);
   }
 
