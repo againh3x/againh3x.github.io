@@ -9,8 +9,11 @@
   </script>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Profile | PF Debate AI</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <title>Profile | PublicForumAI</title>
+  <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+  <link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+  <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+  <link href="/site.webmanifest" rel="manifest"/>
 
 <link rel="stylesheet" href="toolbar.css"/>
 <script>
@@ -56,7 +59,7 @@
       color: #EAFBFF;
     }
 
-    .page-col { width: 95%; max-width: 1400px; }
+    .page-col { width: 95%; max-width: 1400px; margin-top: 18px; }
 
     .container {
       display: flex;
@@ -89,13 +92,13 @@
       padding: 20px;
       color:#EAFBFF;
     }
-    .profile-header { display:flex; align-items:center; gap:18px; }
+    .profile-header { display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
     .avatar {
       width: 84px; height: 84px; border-radius: 50%;
       border: 3px solid #00f3ff; box-shadow: 0 0 10px rgba(0,243,255,0.35);
       object-fit: cover; background:#e8f6ff;
     }
-    .username { margin: 0; font-size: 1.6rem; color:#EAFBFF; }
+    .username { margin: 0; font-size: 1.6rem; color:#EAFBFF; overflow-wrap:anywhere; }
     .handle { color:#7fcdff; font-weight:700; }
 
     .badges { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
@@ -193,6 +196,24 @@
       background: rgba(0,0,0,.3); border:1px solid rgba(0,255,255,.25);
       border-radius:999px; padding:5px 12px; font-size:.85rem; color:#7df9ff; font-weight:700;
     }
+
+    .open-btn:focus-visible, .ghost-btn:focus-visible, .text-input:focus-visible,
+    .banner a:focus-visible, .warn a:focus-visible {
+      outline: 2px solid #7df9ff; outline-offset: 2px;
+    }
+
+    /* toolbar.css has no breakpoints yet; keep this page usable on phones. */
+    @media (max-width: 720px) {
+      nav.toolbar { padding: 0 16px; }
+      nav.toolbar .nav-links { display: none; }
+      nav.toolbar .logo-text { font-size: 1.1rem; }
+      nav.toolbar #authSlot .user-name { max-width: 90px; }
+    }
+    @media (max-width: 600px) {
+      body { padding: 12px; }
+      .page-col { width: 100%; margin-top: 12px; }
+      .container { padding: 18px; }
+    }
   </style>
 </head>
 
@@ -201,7 +222,7 @@
   <nav class="toolbar">
     <a class="logo" href="index.html">
       <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
-      <span class="logo-text">PublicForumAI©</span>
+      <span class="logo-text">PublicForumAI</span>
     </a>
     <div class="nav-links">
       <a href="flower.html">AI Flow</a>
@@ -224,7 +245,7 @@
       <div class="profile-left">
         <div class="profile-card">
           <div class="profile-header">
-            <img id="avatar" class="avatar" src="" alt="avatar"/>
+            <img id="avatar" class="avatar" alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='52'%20height='52'%3E%3Crect%20width='52'%20height='52'%20rx='26'%20fill='%23123a5e'/%3E%3C/svg%3E"/>
             <div>
               <h2 class="username"><span id="displayName">Your Name</span> <span class="handle" id="handle">@username</span></h2>
               <div class="badges">
@@ -577,8 +598,9 @@
       const verified = !!user.emailVerified || isGoogle;
       const isLegacy = /@pf\.local$/i.test(user.email || '');
 
+      // Keep the neutral placeholder if there is no photo and no initials helper.
       $('avatar').src = user.photoURL ||
-        (window.pfaiInitialsAvatar ? window.pfaiInitialsAvatar(name) : '');
+        (window.pfaiInitialsAvatar ? window.pfaiInitialsAvatar(name) : $('avatar').src);
       $('displayName').textContent = name;
       $('handle').textContent = '@' + name;
       $('email').textContent = user.email || 'None';

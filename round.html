@@ -9,8 +9,11 @@
   </script>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Saved Debate | PF Debate AI</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <title>Saved Debate | PublicForumAI</title>
+  <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+  <link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+  <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+  <link href="/site.webmanifest" rel="manifest"/>
 
 <link rel="stylesheet" href="toolbar.css"/>
 <script>
@@ -54,7 +57,7 @@
     .page {
       width: 95%;
       max-width: 1400px;
-      margin: 0 auto;
+      margin: 18px auto 0;
       background: linear-gradient(180deg, rgba(10,14,39,0.88), rgba(26,31,75,0.88));
       border: 1px solid rgba(0, 243, 255, 0.20);
       border-radius: 16px;
@@ -66,9 +69,10 @@
     /* ===== Header / meta ===== */
     .round-header {
       display:flex; justify-content:space-between; align-items:flex-start; gap:16px;
+      flex-wrap:wrap;
       border-bottom:1px solid rgba(0,255,255,.18); padding-bottom:14px; margin-bottom:18px;
     }
-    .topic { font-size:1.4rem; font-weight:800; color:#CFEAFF; margin:0; }
+    .topic { font-size:1.4rem; font-weight:800; color:#CFEAFF; margin:0; overflow-wrap:anywhere; }
     .meta  { color:#9CCAF1; font-size:.95rem; }
     .backlink {
       text-decoration:none; color:#A3DCFF; border:1px solid rgba(163,220,255,.35);
@@ -78,6 +82,7 @@
     .backlink:hover {
       box-shadow: 0 0 10px rgba(163,220,255,.25), inset 0 0 8px rgba(163,220,255,.18);
     }
+    .backlink:focus-visible { outline: 2px solid #7df9ff; outline-offset: 2px; }
 
     /* ===== Two-column grid with paired rows (keeps speeches aligned) ===== */
     .grid {
@@ -130,6 +135,18 @@
       overflow:auto;
       flex: 1 1 auto; /* stretch inside card */
     }
+
+    /* toolbar.css has no breakpoints yet; keep this page usable on phones. */
+    @media (max-width: 720px) {
+      nav.toolbar { padding: 0 16px; }
+      nav.toolbar .nav-links { display: none; }
+      nav.toolbar .logo-text { font-size: 1.1rem; }
+      nav.toolbar #authSlot .user-name { max-width: 90px; }
+    }
+    @media (max-width: 600px) {
+      body { padding: 0 12px 20px; }
+      .page { width: 100%; margin-top: 12px; padding: 16px; }
+    }
   </style>
 </head>
 <body>
@@ -137,7 +154,7 @@
   <nav class="toolbar">
     <a class="logo" href="index.html">
       <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
-      <span class="logo-text">PublicForumAI©</span>
+      <span class="logo-text">PublicForumAI</span>
     </a>
     <div class="nav-links">
       <a href="flower.html">AI Flow</a>
@@ -248,7 +265,11 @@
       return (typeof window.pfSanitize === 'function') ? window.pfSanitize(s) : localSanitize(s);
     }
 
-    function showPageMessage(msg){
+    // Error states replace the "Loading topic" heading so the page never
+    // looks stuck mid-load.
+    function showPageMessage(title, msg){
+      document.getElementById('roundTopic').textContent = title;
+      document.getElementById('roundMeta').textContent = '';
       var p = document.createElement('p');
       p.style.marginTop = '12px';
       p.textContent = msg;
@@ -266,7 +287,7 @@
       const judge = (meta.judgeType || 'tech').toUpperCase();
 
       document.getElementById('roundTopic').textContent = topic;
-      document.title = topic + ' | Saved Debate';
+      document.title = topic + ' | PublicForumAI';
       document.getElementById('roundMeta').textContent =
         [when, (side + turn).trim(), judge + ' judge'].filter(Boolean).join(' • ');
 
@@ -314,7 +335,7 @@
 
         const id = getParam('id');
         if (!id) {
-          showPageMessage('No round selected. Open one from your profile.');
+          showPageMessage('No debate selected', 'Open a saved debate from your profile page.');
           return;
         }
 
@@ -333,7 +354,7 @@
         }
 
         if (!round) {
-          showPageMessage('Round not found.');
+          showPageMessage('Debate not found', 'This debate may have been deleted, or the link is wrong. Your saved debates are listed on your profile page.');
           return;
         }
         renderRound(round);
