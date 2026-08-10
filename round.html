@@ -10,20 +10,26 @@
 if (self !== top) { document.documentElement.style.display = 'none'; try { top.location = self.location; } catch (e) {} }
 </script>
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-ERE3HL6LKB');
-  </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Saved Debate | PublicForumAI</title>
-  <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
-  <link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
-  <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
-  <link href="/site.webmanifest" rel="manifest"/>
-
+<!-- Google tag (gtag.js) -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
+</script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Saved Round | PublicForumAI</title>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <link rel="stylesheet" href="toolbar.css"/>
+<link rel="stylesheet" href="pf-theme.css"/>
 <script>
 /* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
 (function () {
@@ -39,12 +45,18 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     painted = true;
     obs.disconnect();
     var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
-    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
-    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
-    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
-      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
-    slot.querySelector('.user-avatar-initials').textContent = initials;
-    slot.querySelector('.user-name').textContent = '@' + name;
+    var initials = name.slice(0, 2).toUpperCase() || '?';
+    var premium = snap.plan === 'premium';
+    var planLabel = premium ? 'Premium' : 'Free plan';
+    slot.innerHTML = '<div class="user-menu-wrap">' +
+      '<button class="pf-avatar-btn' + (premium ? ' premium' : '') + '" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span class="pf-avatar-initials"></span>' +
+      (premium ? '<span class="pf-avatar-star">★</span>' : '') +
+      '</button></div>';
+    slot.querySelector('.pf-avatar-initials').textContent = initials;
+    slot.querySelector('.pf-avatar-btn').title = name + ' · ' + planLabel;
+    var myRounds = document.querySelectorAll('a[data-nav="myrounds"]');
+    for (var i = 0; i < myRounds.length; i++) myRounds[i].setAttribute('href', 'rounds.html');
   }
   var obs = new MutationObserver(paint);
   obs.observe(document.documentElement, { childList: true, subtree: true });
@@ -52,188 +64,479 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 })();
 </script>
 
-  <style>
-    /* ===== Page background + container ===== */
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(180deg, #8ac8ff, #185da1, #08316a, #011529);
-      color: #EAFBFF;
-      min-height: 100vh;
-      padding: 0 20px 30px;
-    }
-    .page {
-      width: 95%;
-      max-width: 1400px;
-      margin: 18px auto 0;
-      background: linear-gradient(180deg, rgba(10,14,39,0.88), rgba(26,31,75,0.88));
-      border: 1px solid rgba(0, 243, 255, 0.20);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
-      backdrop-filter: blur(6px);
-      padding: 24px;
-    }
+<style>
+  /* Saved round viewer. Values from Saved Round.dc.html; tokens from pf-theme.
+     Color code: blue means the user, red means the AI, never Aff/Neg. */
+  [hidden] { display: none !important; }
 
-    /* ===== Header / meta ===== */
-    .round-header {
-      display:flex; justify-content:space-between; align-items:flex-start; gap:16px;
-      flex-wrap:wrap;
-      border-bottom:1px solid rgba(0,255,255,.18); padding-bottom:14px; margin-bottom:18px;
-    }
-    .topic { font-size:1.4rem; font-weight:800; color:#CFEAFF; margin:0; overflow-wrap:anywhere; }
-    .meta  { color:#9CCAF1; font-size:.95rem; }
-    .backlink {
-      text-decoration:none; color:#A3DCFF; border:1px solid rgba(163,220,255,.35);
-      padding:6px 10px; border-radius:10px; font-weight:700;
-      transition: box-shadow .2s ease;
-    }
-    .backlink:hover {
-      box-shadow: 0 0 10px rgba(163,220,255,.25), inset 0 0 8px rgba(163,220,255,.18);
-    }
-    .backlink:focus-visible { outline: 2px solid #7df9ff; outline-offset: 2px; }
+  .round-wrap {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 32px 80px;
+    box-sizing: border-box;
+    flex: 1;
+  }
+  .round-back { font-size: 13.5px; text-decoration: none; }
+  .pf-page a.round-back { color: var(--pf-text-muted); }
+  .pf-page a.round-back:hover { color: var(--pf-accent); }
 
-    /* ===== Two-column grid with paired rows (keeps speeches aligned) ===== */
-    .grid {
-      display:grid;
-      grid-template-columns: 1fr 1fr;  /* Aff | Neg */
-      gap: 18px;
-      align-items: stretch;
-    }
-    @media (max-width: 1000px) {
-      .grid { grid-template-columns: 1fr; }
-    }
+  .round-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin: 20px 0 26px;
+  }
+  .round-head-info { flex: 1 1 460px; min-width: 0; }
+  .round-eyebrow {
+    font-family: var(--pf-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pf-accent);
+  }
+  .round-topic {
+    margin: 12px 0 0;
+    font-family: var(--pf-font-serif);
+    font-size: 28px;
+    line-height: 1.35;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+    color: var(--pf-text);
+  }
+  .round-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-size: 13.5px;
+    color: var(--pf-text-muted);
+  }
+  .round-actions { display: flex; gap: 10px; flex: none; flex-wrap: wrap; }
+  .round-btn-quiet {
+    height: 40px;
+    padding: 0 18px;
+    background: var(--pf-surface);
+    border: 1px solid var(--pf-border);
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--pf-text);
+    font-family: var(--pf-font);
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+  }
+  .round-btn-quiet:hover { border-color: var(--pf-text); }
+  .round-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 18px;
+    background: var(--pf-blue);
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .pf-page a.round-btn-primary { color: #FFFFFF; }
+  .round-btn-primary:hover { background: var(--pf-blue-hover); }
 
-    /* ===== Large side headers (Aff left / Neg right) ===== */
-    .side-header {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(0,255,255,0.20);
-      border-radius: 12px;
-      padding: 14px 16px;
-      display:flex; align-items:center; justify-content:center;
-      grid-column: span 1;
-    }
-    .side-title {
-      margin:0;
-      font-weight:900;
-      font-size:1.25rem;
-      letter-spacing:.3px;
-      background: linear-gradient(135deg, #a8e6ff, #7fcdff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-transform: uppercase;
-    }
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+    gap: 20px;
+    align-items: start;
+  }
+  .flow-col { min-width: 0; }
+  .flow-col-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 2px 12px;
+  }
+  .flow-col-dot {
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex: none;
+  }
+  .flow-col-dot.is-you { background: var(--pf-selected-border); }
+  .flow-col-dot.is-ai { background: var(--pf-ai-bright); }
+  .flow-col-head h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--pf-text);
+  }
+  .flow-col-sub { font-size: 13px; color: var(--pf-text-muted); }
+  .flow-cells { display: flex; flex-direction: column; gap: 14px; }
 
-    /* ===== Cards ===== */
-    .card {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(0,255,255,0.20);
-      border-radius: 12px;
-      padding: 14px;
-      display:flex; flex-direction:column; /* helps fill equal heights cleanly */
-    }
-    .card h3 { margin: 0 0 8px; font-size: 1.05rem; color:#7df9ff; }
-    .content {
-      background: rgba(0,0,0,.25);
-      border:1px solid rgba(0,255,255,.18);
-      border-radius:10px;
-      padding:10px;
-      color:#EAFBFF;
-      min-height: 90px;
-      overflow:auto;
-      flex: 1 1 auto; /* stretch inside card */
-    }
+  .flow-cell {
+    background: var(--pf-surface);
+    border: 1px solid var(--pf-border);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .flow-cell-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--pf-border-subtle);
+    background: var(--pf-surface-raised);
+  }
+  .flow-cell-stage {
+    font-family: var(--pf-font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--pf-text-muted);
+    flex: none;
+  }
+  .flow-cell-head h3 {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    color: var(--pf-text);
+  }
+  .flow-cell-who {
+    font-family: var(--pf-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    flex: none;
+  }
+  .flow-cell-who.is-you { color: var(--pf-selected-border); }
+  .flow-cell-who.is-ai { color: var(--pf-ai-bright); }
 
-    /* Toolbar responsive rules live in toolbar.css. */
-    @media (max-width: 600px) {
-      body { padding: 0 12px 20px; }
-      .page { width: 100%; margin-top: 12px; padding: 16px; }
-    }
-  </style>
+  .cell-body {
+    padding: 14px 16px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #C6D9EC;
+    overflow-wrap: anywhere;
+    max-height: 480px;
+    overflow-y: auto;
+  }
+  .cell-body.is-empty {
+    padding: 22px 16px;
+    text-align: center;
+    color: var(--pf-text-faint);
+    font-style: italic;
+    max-height: none;
+  }
+
+  .fb-panel {
+    margin-top: 26px;
+    background: var(--pf-surface);
+    border: 1px solid var(--pf-border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .fb-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 26px;
+    border-bottom: 1px solid var(--pf-border-subtle);
+    background: var(--pf-surface-raised);
+    flex-wrap: wrap;
+  }
+  .fb-head h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--pf-text);
+  }
+  .fb-judge-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 10px;
+    border: 1px solid var(--pf-selected-border);
+    background: var(--pf-selected);
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pf-accent);
+  }
+  .fb-body {
+    padding: 24px 26px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 26px 40px;
+    align-items: flex-start;
+  }
+  .fb-decision-label {
+    font-family: var(--pf-font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pf-text-muted);
+    margin-bottom: 6px;
+  }
+  .fb-decision-row { display: flex; align-items: center; gap: 9px; }
+  .fb-swatch { display: block; width: 11px; height: 11px; border-radius: 2px; }
+  .fb-swatch.is-you { background: var(--pf-selected-border); }
+  .fb-swatch.is-ai { background: var(--pf-ai-strong); }
+  .fb-winner { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--pf-text); }
+  .fb-text { flex: 1 1 380px; min-width: 0; }
+  .fb-excerpt {
+    margin: 0 0 12px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: #C6D9EC;
+    max-width: 52em;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+  }
+  .fb-excerpt em { color: var(--pf-text-faint); }
+  .fb-link { font-size: 14px; font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .round-wrap { padding: 24px 18px 60px; }
+    .fb-head, .fb-body { padding-left: 18px; padding-right: 18px; }
+  }
+</style>
 </head>
-<body>
-  <!-- Toolbar -->
+<body class="pf-page">
   <nav class="toolbar">
     <a class="logo" href="index.html">
-      <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
+      <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
       <span class="logo-text">PublicForumAI</span>
     </a>
     <div class="nav-links">
-      <a href="flower.html">AI Flow</a>
-      <a href="setup.html">AI Practice Round</a>
-      <a href="casewriter.html">AI Casewriter</a>
-      <a href="modules.html">Training Modules</a>
+      <a href="flower.html">Flow</a>
+      <a href="casewriter.html">Casewriter</a>
+      <a href="setup.html">Practice Round</a>
+      <a href="login.html?next=%2Frounds.html" data-nav="myrounds">My Rounds</a>
+      <a href="modules.html">Training</a>
+      <a href="pricing.html">Pricing</a>
     </div>
-    <div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+    <div id="authSlot"><a href="login.html?next=%2Fround.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
   </nav>
 
-  <!-- Page -->
-  <div class="page">
-    <div class="round-header">
-      <div>
-        <h2 id="roundTopic" class="topic">Loading topic…</h2>
-        <div id="roundMeta" class="meta"></div>
+  <div class="round-wrap">
+    <a class="round-back" href="rounds.html">← Back to your rounds</a>
+
+    <div class="round-head">
+      <div class="round-head-info">
+        <span class="round-eyebrow">Saved round</span>
+        <h1 id="roundTopic" class="round-topic">Loading topic…</h1>
+        <div id="roundMeta" class="round-meta"></div>
       </div>
-      <div>
-        <a href="profile.html" class="backlink">← Back to Profile</a>
+      <div class="round-actions" id="roundActions">
+        <button type="button" class="round-btn-quiet" id="downloadFlowBtn">Download flow</button>
+        <a class="round-btn-primary" id="viewBallotLink" href="ballot.html" hidden>View ballot</a>
       </div>
     </div>
 
-    <!-- Side headers (Aff left, Neg right) -->
-    <div class="grid">
-      <div class="side-header"><h3 id="affHeader" class="side-title">Aff</h3></div>
-      <div class="side-header"><h3 id="negHeader" class="side-title">Neg</h3></div>
+    <div class="flow-grid" id="flowGrid">
+      <!-- AI case sheet: their arguments, your answers -->
+      <div class="flow-col">
+        <div class="flow-col-head">
+          <span class="flow-col-dot is-ai"></span>
+          <h2>AI case flow</h2>
+          <span class="flow-col-sub">their arguments, your answers</span>
+        </div>
+        <div class="flow-cells">
+          <section class="flow-cell">
+            <div class="flow-cell-head">
+              <span class="flow-cell-stage">01</span>
+              <h3>Contention flow</h3>
+              <span class="flow-cell-who is-ai" data-actor="ai">AI</span>
+            </div>
+            <div id="AICase" class="cell-body is-empty">Empty</div>
+          </section>
+          <section class="flow-cell">
+            <div class="flow-cell-head">
+              <span class="flow-cell-stage">02</span>
+              <h3>Rebuttal flow</h3>
+              <span class="flow-cell-who is-you" data-actor="you">You</span>
+            </div>
+            <div id="RebuttalFlow" class="cell-body is-empty">Empty</div>
+          </section>
+          <section class="flow-cell">
+            <div class="flow-cell-head">
+              <span class="flow-cell-stage">03</span>
+              <h3>Summary flow</h3>
+              <span class="flow-cell-who is-ai" data-actor="ai">AI</span>
+            </div>
+            <div id="AISummary" class="cell-body is-empty">Empty</div>
+          </section>
+          <section class="flow-cell">
+            <div class="flow-cell-head">
+              <span class="flow-cell-stage">04</span>
+              <h3>Final focus flow</h3>
+              <span class="flow-cell-who is-ai" data-actor="ai">AI</span>
+            </div>
+            <div id="AIFF" class="cell-body is-empty">Empty</div>
+          </section>
+        </div>
+      </div>
 
-      <!-- Row 1: Contention (paired, equal-height row) -->
-      <div class="card">
-        <h3>Contention Flow</h3>
-        <div id="ContentionFlow" class="content"><em>Empty</em></div>
-      </div>
-      <div class="card">
-        <h3>AI Contention</h3>
-        <div id="AICase" class="content"><em>Empty</em></div>
-      </div>
-
-      <!-- Row 2: Rebuttal -->
-      <div class="card">
-        <h3>Rebuttal Flow</h3>
-        <div id="RebuttalFlow" class="content"><em>Empty</em></div>
-      </div>
-      <div class="card">
-        <h3>AI Rebuttal</h3>
-        <div id="AIRebuttal" class="content"><em>Empty</em></div>
-      </div>
-
-      <!-- Row 3: Summary -->
-      <div class="card">
-        <h3>Summary Flow</h3>
-        <div id="SummaryFlow" class="content"><em>Empty</em></div>
-      </div>
-      <div class="card">
-        <h3>AI Summary</h3>
-        <div id="AISummary" class="content"><em>Empty</em></div>
-      </div>
-
-      <!-- Row 4: Final Focus -->
-      <div class="card">
-        <h3>Final Focus Flow</h3>
-        <div id="FFFlow" class="content"><em>Empty</em></div>
-      </div>
-      <div class="card">
-        <h3>AI Final Focus</h3>
-        <div id="AIFF" class="content"><em>Empty</em></div>
+      <!-- The user's case sheet: your arguments, their answers -->
+      <div class="flow-col">
+        <div class="flow-col-head">
+          <span class="flow-col-dot is-you"></span>
+          <h2>Your case flow</h2>
+          <span class="flow-col-sub">your arguments, their answers</span>
+        </div>
+        <div class="flow-cells">
+          <section class="flow-cell">
+            <div class="flow-cell-head">
+              <span class="flow-cell-stage">01</span>
+              <h3>Contention flow</h3>
+              <span class="flow-cell-who is-you" data-actor="you">You</span>
+            </div>
+            <div id="ContentionFlow" class="cell-body is-empty">Empty</div>
+          </section>
+          <section class="flow-cell">
+            <div class="flow-cell-head">
+              <span class="flow-cell-stage">02</span>
+              <h3>Rebuttal flow</h3>
+              <span class="flow-cell-who is-ai" data-actor="ai">AI</span>
+            </div>
+            <div id="AIRebuttal" class="cell-body is-empty">Empty</div>
+          </section>
+          <section class="flow-cell">
+            <div class="flow-cell-head">
+              <span class="flow-cell-stage">03</span>
+              <h3>Summary flow</h3>
+              <span class="flow-cell-who is-you" data-actor="you">You</span>
+            </div>
+            <div id="SummaryFlow" class="cell-body is-empty">Empty</div>
+          </section>
+          <section class="flow-cell">
+            <div class="flow-cell-head">
+              <span class="flow-cell-stage">04</span>
+              <h3>Final focus flow</h3>
+              <span class="flow-cell-who is-you" data-actor="you">You</span>
+            </div>
+            <div id="FFFlow" class="cell-body is-empty">Empty</div>
+          </section>
+        </div>
       </div>
     </div>
 
-    <div style="height:16px"></div>
-
-    <div class="card">
-      <h3>Feedback (most recent)</h3>
-      <div id="Feedback" class="content"><em>Empty</em></div>
+    <div class="fb-panel" id="feedbackPanel">
+      <div class="fb-head">
+        <h2>Feedback (most recent)</h2>
+        <span class="fb-judge-chip" id="fbJudgeChip" hidden></span>
+      </div>
+      <div class="fb-body">
+        <div style="flex:none" id="fbDecision" hidden>
+          <div class="fb-decision-label">Decision</div>
+          <div class="fb-decision-row">
+            <span class="fb-swatch" id="fbSwatch"></span>
+            <span class="fb-winner" id="fbWinner"></span>
+          </div>
+        </div>
+        <div class="fb-text">
+          <p class="fb-excerpt" id="fbExcerpt"><em>Empty</em></p>
+          <a class="fb-link" id="fbBallotLink" href="ballot.html" hidden>Read the full ballot →</a>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Auth + loader -->
+  <footer class="pf-footer">
+    <div class="pf-footer-cols">
+      <div class="pf-footer-brand">
+        <a class="pf-footer-logo" href="index.html">
+          <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+          <span>PublicForumAI</span>
+        </a>
+        <p class="pf-footer-tag">Empowering debaters through AI</p>
+      </div>
+      <div class="pf-footer-contact">
+        <h4>Contact Us</h4>
+        <a class="pf-footer-email" href="mailto:support@publicforumai.com">support@publicforumai.com</a>
+        <div class="pf-footer-or"><span></span><span class="pf-footer-or-label">OR</span><span></span></div>
+        <form id="feedbackForm" class="pf-footer-form">
+          <input name="from_email" placeholder="Your email" required="" type="email"/>
+          <textarea name="message" placeholder="Your feedback" required="" rows="3"></textarea>
+          <button type="submit">Submit Feedback</button>
+          <p class="pf-form-status" id="feedbackStatus" role="status" hidden></p>
+        </form>
+      </div>
+      <div class="pf-footer-social">
+        <h4>Follow Us</h4>
+        <div class="pf-footer-links">
+          <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="https://www.youtube.com/@PublicForumAI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" rel="noopener">Reddit</a>
+        </div>
+      </div>
+    </div>
+    <div class="pf-footer-bottom-wrap">
+      <div class="pf-footer-bottom">
+        <span>© 2026 PublicForumAI. All rights reserved.</span>
+        <span>Not for use in live rounds.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+// Feedback form: inline status messages, no dialogs.
+(function () {
+  var form = document.getElementById('feedbackForm');
+  var status = document.getElementById('feedbackStatus');
+  if (!form || !status) return;
+
+  function showStatus(message, ok) {
+    status.textContent = message;
+    status.classList.remove('ok', 'err');
+    status.classList.add(ok ? 'ok' : 'err');
+    status.hidden = false;
+  }
+
+  try {
+    if (window.emailjs) emailjs.init('wgsczkr19C1FrKtLj');
+  } catch (e) { /* handled on submit */ }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!window.emailjs) {
+      showStatus('The feedback service did not load. Please email us directly instead.', false);
+      return;
+    }
+
+    var btn = form.querySelector('button');
+    status.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    function done() {
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
+    }
+
+    emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
+      .then(function () {
+        form.reset();
+        showStatus('Thanks! Your feedback was sent.', true);
+        done();
+      }, function (error) {
+        showStatus('Something went wrong and your feedback was not sent. Please try again, or email us directly.', false);
+        console.error('Error:', error);
+        done();
+      });
+  });
+})();
+  </script>
+
   <script src="auth.js"></script>
   <script src="sanitize.js"></script>
   <script src="gate.js"></script>
@@ -267,15 +570,32 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       return (typeof window.pfSanitize === 'function') ? window.pfSanitize(s) : localSanitize(s);
     }
 
+    function plainText(text){
+      return legacyToText(text == null ? '' : text).replace(/\*\*/g, '').replace(/\r/g, '').trim();
+    }
+
+    function normSide(value){
+      var s = String(value || '').trim();
+      if (/^aff/i.test(s)) return 'Aff';
+      if (/^neg/i.test(s)) return 'Neg';
+      return '';
+    }
+    function sideLabel(side){ return side === 'Aff' ? 'Affirmative' : side === 'Neg' ? 'Negative' : ''; }
+
     // Error states replace the "Loading topic" heading so the page never
     // looks stuck mid-load.
     function showPageMessage(title, msg){
       document.getElementById('roundTopic').textContent = title;
       document.getElementById('roundMeta').textContent = '';
+      document.getElementById('flowGrid').hidden = true;
+      document.getElementById('feedbackPanel').hidden = true;
+      document.getElementById('roundActions').hidden = true;
       var p = document.createElement('p');
-      p.style.marginTop = '12px';
+      p.style.marginTop = '16px';
+      p.style.color = '#8AA6C2';
+      p.style.fontSize = '14px';
       p.textContent = msg;
-      document.querySelector('.page').appendChild(p);
+      document.querySelector('.round-wrap').appendChild(p);
     }
 
     // Server rounds date themselves with savedAt in Unix seconds; rounds saved
@@ -289,28 +609,42 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       return isNaN(d) ? null : d;
     }
 
-    function renderRound(round){
+    // Filled during render; the Download flow button reads it.
+    var downloadState = null;
+
+    function renderRound(round, id){
       // Title & meta. Rounds saved on the device nest these under meta; the
       // server returns one flat object.
       const meta  = round.meta || {};
       const topic = meta.debateTopic || round.topic || 'Practice Round';
-      const dt    = toDate(round.timestamp || round.createdAt || round.savedAt);
-      const when  = dt ? dt.toLocaleString() : '';
-      const side  = meta.selectedSide || round.side || '';
-      const turnValue = meta.selectedTurn || round.turn || '';
-      const turn  = turnValue ? ' (' + turnValue + ')' : '';
-      const judgeValue = meta.judgeType || round.judgeType || '';
+      const dt    = toDate(round.timestamp || round.savedAt || round.createdAt);
+      const side  = normSide(meta.selectedSide || round.side);
+      const skill = String(meta.selectedSkill || round.skill || '').trim();
+      const judgeValue = String(meta.judgeType || round.judgeType || '').trim().toLowerCase();
 
       document.getElementById('roundTopic').textContent = topic;
       document.title = topic + ' | PublicForumAI';
-      document.getElementById('roundMeta').textContent =
-        [when, (side + turn).trim(), judgeValue ? judgeValue.toUpperCase() + ' judge' : ''].filter(Boolean).join(' • ');
 
-      // Side headers: Aff always left, Neg always right. Add (you) to the user's side.
-      var affHeader = document.getElementById('affHeader');
-      var negHeader = document.getElementById('negHeader');
-      if (affHeader) affHeader.textContent = 'Aff' + (side === 'Aff' ? ' (you)' : '');
-      if (negHeader) negHeader.textContent = 'Neg' + (side === 'Neg' ? ' (you)' : '');
+      var metaParts = [];
+      if (dt) metaParts.push(dt.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }));
+      if (side) metaParts.push('You debated ' + sideLabel(side));
+      if (/^high/i.test(skill)) metaParts.push('High school');
+      else if (/^mid/i.test(skill)) metaParts.push('Middle school');
+      var metaHost = document.getElementById('roundMeta');
+      metaHost.textContent = '';
+      metaParts.forEach(function (part) {
+        var span = document.createElement('span');
+        span.textContent = part;
+        metaHost.appendChild(span);
+      });
+
+      // Who chips: blue is always the user, red is always the AI. The side
+      // name is appended when known ("You · Aff").
+      var aiSide = side === 'Aff' ? 'Neg' : side === 'Neg' ? 'Aff' : '';
+      document.querySelectorAll('.flow-cell-who').forEach(function (el) {
+        if (el.dataset.actor === 'you') el.textContent = side ? 'You · ' + side : 'You';
+        else el.textContent = aiSide ? 'AI · ' + aiSide : 'AI';
+      });
 
       // Fill the saved snapshots. The server stores the final focus as
       // AIFinalFocus and keeps the speech transcripts rather than the flow
@@ -323,16 +657,98 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
         ContentionFlow: round.ContentionFlow || round.transcriptionC || round.transcription,
         RebuttalFlow: round.RebuttalFlow || round.transcriptionR,
         SummaryFlow: round.SummaryFlow || round.transcriptionS,
-        FFFlow: round.FFFlow || round.transcriptionF,
-        Feedback: round.Feedback || round.feedback
+        FFFlow: round.FFFlow || round.transcriptionF
       };
 
       Object.keys(map).forEach(function(key){
         var el = document.getElementById(key);
+        if (!el) return;
         var content = map[key];
-        if (el) el.innerHTML = (content && String(content).trim()) ? sanitize(content) : '<em>Empty</em>';
+        if (content && String(content).trim()) {
+          el.classList.remove('is-empty');
+          el.innerHTML = sanitize(content);
+        } else {
+          el.classList.add('is-empty');
+          el.textContent = 'Empty';
+        }
       });
+
+      // Feedback panel + ballot links.
+      var feedbackText = (typeof round.Feedback === 'string' && round.Feedback.trim()) ? round.Feedback
+        : (typeof round.feedback === 'string' && round.feedback.trim()) ? round.feedback : '';
+      var judged = !!(feedbackText || round.feedbackExpired || round.winner === 'user' || round.winner === 'ai' || round.hasFeedback);
+
+      if (judgeValue === 'tech' || judgeValue === 'lay') {
+        var chip = document.getElementById('fbJudgeChip');
+        chip.textContent = judgeValue === 'tech' ? 'Tech judge' : 'Lay judge';
+        chip.hidden = false;
+      }
+
+      // Decision: the server normalizes winner to "user"/"ai". Blue swatch
+      // when you won, red when the AI did. Hidden when unknown.
+      if ((round.winner === 'user' || round.winner === 'ai') && side) {
+        var winnerSide = round.winner === 'user' ? side : aiSide;
+        document.getElementById('fbWinner').textContent = sideLabel(winnerSide);
+        document.getElementById('fbSwatch').classList.add(round.winner === 'user' ? 'is-you' : 'is-ai');
+        document.getElementById('fbDecision').hidden = false;
+      }
+
+      var excerptEl = document.getElementById('fbExcerpt');
+      if (round.feedbackExpired && !feedbackText) {
+        excerptEl.textContent = 'This ballot has expired. Free plan ballots are kept for 30 days after the round finishes. ';
+        var plansLink = document.createElement('a');
+        plansLink.href = 'pricing.html';
+        plansLink.textContent = 'See plans';
+        excerptEl.appendChild(plansLink);
+      } else if (feedbackText) {
+        var excerpt = plainText(feedbackText).replace(/\s+/g, ' ').trim();
+        if (excerpt.length > 320) excerpt = excerpt.slice(0, 320).replace(/\s+\S*$/, '') + '…';
+        excerptEl.textContent = excerpt;
+        var ballotLink = document.getElementById('fbBallotLink');
+        ballotLink.href = 'ballot.html?round=' + encodeURIComponent(id);
+        ballotLink.hidden = false;
+      }
+
+      if (judged && !round.feedbackExpired) {
+        var viewBallot = document.getElementById('viewBallotLink');
+        viewBallot.href = 'ballot.html?round=' + encodeURIComponent(id);
+        viewBallot.hidden = false;
+      }
+
+      downloadState = { topic: topic, metaLine: metaParts.join(' · '), side: side, aiSide: aiSide, map: map };
     }
+
+    document.getElementById('downloadFlowBtn').addEventListener('click', function () {
+      if (!downloadState) return;
+      var s = downloadState;
+      function who(actor){ return actor === 'you' ? (s.side ? 'You · ' + s.side : 'You') : (s.aiSide ? 'AI · ' + s.aiSide : 'AI'); }
+      function block(label, actor, value){
+        var text = (value && String(value).trim()) ? plainText(value) : 'Empty';
+        return label + ' (' + who(actor) + ')\n' + text;
+      }
+      var lines = [
+        'Saved round', s.topic, s.metaLine, '',
+        'AI case flow (their arguments, your answers)', '',
+        block('01 Contention flow', 'ai', s.map.AICase), '',
+        block('02 Rebuttal flow', 'you', s.map.RebuttalFlow), '',
+        block('03 Summary flow', 'ai', s.map.AISummary), '',
+        block('04 Final focus flow', 'ai', s.map.AIFF), '',
+        'Your case flow (your arguments, their answers)', '',
+        block('01 Contention flow', 'you', s.map.ContentionFlow), '',
+        block('02 Rebuttal flow', 'ai', s.map.AIRebuttal), '',
+        block('03 Summary flow', 'you', s.map.SummaryFlow), '',
+        block('04 Final focus flow', 'you', s.map.FFFlow)
+      ];
+      var blob = new Blob([lines.join('\n') + '\n'], { type: 'text/plain' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'pf-flow.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
 
     document.addEventListener('DOMContentLoaded', async () => {
       if (typeof ensureFirebase === 'function') { await ensureFirebase(); }
@@ -350,9 +766,9 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
           return;
         }
 
-        const id = getParam('id');
+        const id = getParam('id') || getParam('round');
         if (!id) {
-          showPageMessage('No debate selected', 'Open a saved debate from your profile page.');
+          showPageMessage('No round selected', 'Open a saved round from your rounds page.');
           return;
         }
 
@@ -373,18 +789,20 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
           round = localRound;
         } else if (localRound) {
           // The account copy carries no flow columns, so fill whatever it left
-          // empty from the copy this device still holds.
+          // empty from the copy this device still holds. An expired ballot
+          // stays expired: its cleared feedback is not refilled from local.
           Object.keys(localRound).forEach(function (k) {
+            if (round.feedbackExpired && (k === 'feedback' || k === 'Feedback')) return;
             const v = round[k];
             if (v === undefined || v === null || v === '') round[k] = localRound[k];
           });
         }
 
         if (!round) {
-          showPageMessage('Debate not found', 'This debate may have been deleted, or the link is wrong. Your saved debates are listed on your profile page.');
+          showPageMessage('Round not found', 'This round may have been deleted, or the link is wrong. Your saved rounds are listed on your rounds page.');
           return;
         }
-        renderRound(round);
+        renderRound(round, id);
       });
     });
   </script>

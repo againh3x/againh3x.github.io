@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 
-
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com; media-src 'self' blob:; connect-src 'self' https://pf-ai-debater-24c5902c1a88.herokuapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.emailjs.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://apis.google.com https://publicforumai.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.emailjs.com"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
 <script>
@@ -12,147 +11,358 @@
 if (self !== top) { document.documentElement.style.display = 'none'; try { top.location = self.location; } catch (e) {} }
 </script>
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-ERE3HL6LKB');
-    </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI PF Debate Practice Round</title>
-    <link rel="stylesheet" href="oldstyles.css">
-    <style>
-        /* New Round confirmation popover, anchored to the .save-button box.
-           Page-scoped on purpose: oldstyles.css is shared. */
-        .new-round-confirm {
-            display: none;
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            width: 270px;
-            padding: 14px;
-            background: rgba(10, 14, 39, 0.97);
-            border: 1px solid rgba(111, 203, 255, 0.4);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-            z-index: 200;
-            text-align: left;
-        }
-
-        .new-round-confirm.open {
-            display: block;
-        }
-
-        .new-round-confirm p {
-            margin: 0 0 10px;
-            color: #cfeaff;
-            font-size: 13px;
-            line-height: 1.4;
-        }
-
-        .new-round-confirm .confirm-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .save-button .new-round-confirm button {
-            padding: 8px 12px;
-            font-size: 12px;
-            border-radius: 10px;
-            box-shadow: none;
-        }
-
-        .save-button .new-round-confirm button:first-child {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(111, 203, 255, 0.4);
-            color: #cfeaff;
-        }
-
-        .save-button .new-round-confirm button:last-child {
-            background: linear-gradient(145deg, #ff1744, #d50000);
-            border: none;
-            color: #fff;
-        }
-    </style>
+<!-- Google tag (gtag.js) -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
+</script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI PF Debate Practice Round</title>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pf-theme.css"/>
+<link rel="stylesheet" href="oldstyles.css"/>
 </head>
 
 
 <body>
-    <div class="header">
-        <h1 id="Flow1"></h1>
-        <button id="toggle-flow"></button>
-        <div class="results-button-container">
-            <div id="results-placeholder">Results will be available after the round is finished</div>
-            <button id="results-btn" onclick="openResultsModal()">View Results</button>
+    <div class="round-shell">
+
+        <div class="round-topbar">
+            <a class="round-logo" href="index.html">
+                <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+            </a>
+            <h1 id="Flow1"></h1>
+            <button id="toggle-flow" type="button"></button>
+            <div class="results-slot">
+                <span id="results-placeholder">Results will be available after the round is finished</span>
+                <button id="results-btn" type="button" onclick="openResultsModal()">View Results</button>
+            </div>
+
+            <div class="settings-wrap">
+                <button id="settingsBtn" type="button" title="Settings" aria-haspopup="true" aria-expanded="false">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    Settings
+                </button>
+
+                <div id="settingsMenu" class="settings-menu" hidden>
+                    <div class="settings-head">
+                        <div class="settings-eyebrow">This round</div>
+                        <p id="settingsTopic"></p>
+                    </div>
+                    <div class="settings-rows">
+                        <div class="settings-row"><span class="settings-row-label">You are</span><span class="settings-row-value" id="settingsSide"></span></div>
+                        <div class="settings-row"><span class="settings-row-label">Speaking</span><span class="settings-row-value" id="settingsTurn"></span></div>
+                        <div class="settings-row"><span class="settings-row-label">Level</span><span class="settings-row-value" id="settingsLevel"></span></div>
+                        <div class="settings-note">
+                            <p>Locked once a round starts. Your work is kept as you go, so you can leave and come back.</p>
+                        </div>
+                        <div class="settings-note settings-note--evidence" id="evidenceNote" hidden>
+                            <p>Evidence in free rounds is simulated: realistic but made-up citations, close to the truth and not real sources. Never read them in a live round.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-drafts" id="switchRoundSec" hidden>
+                        <div class="settings-drafts-head">
+                            <span class="settings-eyebrow">Switch round</span>
+                            <span class="settings-quota" id="switchQuota"></span>
+                        </div>
+                        <div id="draftList"></div>
+                    </div>
+
+                    <div class="settings-links">
+                        <a class="settings-link" href="rounds.html"><span>My rounds</span><span class="settings-chev">&#8250;</span></a>
+                        <a class="settings-link" href="index.html"><span>Home</span><span class="settings-chev">&#8250;</span></a>
+                    </div>
+
+                    <div class="settings-newround">
+                        <button id="newRoundBtn" type="button" aria-expanded="false" onclick="showNewRoundConfirm()">
+                            <span>Start a new round</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="newRoundConfirm" class="new-round-confirm" role="alertdialog" aria-label="Start a new round?">
+                    <p>Start a new round? This deletes the current round for good.</p>
+                    <div class="confirm-actions">
+                        <button type="button" class="confirm-keep" onclick="hideNewRoundConfirm()">Keep round</button>
+                        <button type="button" class="confirm-delete" onclick="clearSavedRound()">Delete it</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="container">
+            <div class="content-box" id="AIFlow">
+                <!-- AI case -->
+                <div class="flow-col case-box" id="AIContention">
+                    <div class="col-head" id="caseHeaderAI">
+                        <h2 class="col-title is-ai"><span id="Flow2"></span> Case</h2>
+                        <div class="col-actions">
+                            <span class="act-wrap"><button id="GenerateAIContention" type="button">Generate</button></span>
+                            <span class="act-wrap"><button id="SpeakAIContention" type="button" class="speak-btn">Speak</button></span>
+                        </div>
+                    </div>
+                    <div class="cell-text" id="AIContentionText"></div>
+                    <div class="loading">
+                        <div class="text10">Generating (~15 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- RebuttalUser -->
+                <div class="flow-col rebuttal-box" id="RebuttalUser">
+                    <div class="col-head" id="rebuttalHeaderUser">
+                        <h2 class="col-title is-you">Rebuttal</h2>
+                        <div class="col-actions">
+                            <span class="act-wrap"><button id="recordButtonRebuttal" type="button">Record</button></span>
+                        </div>
+                    </div>
+                    <div class="cell-text" id="transcriptionRebuttalText"></div>
+                    <div class="loadingRU">
+                        <div class="text1">Generating (~5 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                    <div class="loading1U">
+                        <div class="text4">Listening (~5 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                    <div class="listeningR">
+                        <canvas id="visualizer1"></canvas>
+                    </div>
+                </div>
+
+                <!-- SummaryAI -->
+                <div class="flow-col summary-box" id="SummaryAI">
+                    <div class="col-head" id="summaryHeaderAI">
+                        <h2 class="col-title is-ai">Summary</h2>
+                        <div class="col-actions">
+                            <span class="act-wrap"><button id="GenerateAISummary" type="button">Generate</button></span>
+                            <span class="act-wrap"><button id="SpeakAISummary" type="button" class="speak-btn">Speak</button></span>
+                        </div>
+                    </div>
+                    <div class="cell-text" id="AISummaryText"></div>
+                    <div class="loadingSA">
+                        <div class="text2">Generating (~15 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- FinalFocusUser -->
+                <div class="flow-col ff-box" id="ffUser">
+                    <div class="col-head" id="FFHeaderUser">
+                        <h2 class="col-title is-you ff-title">Final Focus</h2>
+                        <div class="col-actions">
+                            <span class="act-wrap"><button id="recordButtonFF" type="button">Record</button></span>
+                        </div>
+                    </div>
+                    <div class="cell-text" id="FFUserText"></div>
+                    <div class="loadingFFU">
+                        <div class="text3">Generating (~5 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                    <div class="loading3U">
+                        <div class="text4">Listening (~5 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                    <div class="listeningF">
+                        <canvas id="visualizer3"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="content-box" id="UserFlow">
+                <!-- User case -->
+                <div class="flow-col case-box" id="transcriptionContention">
+                    <div class="col-head" id="caseHeader">
+                        <h2 class="col-title is-you"><span id="Flow2"></span> Case</h2>
+                        <div class="col-actions">
+                            <span class="act-wrap"><button id="recordButtonContention" type="button">Record</button></span>
+                        </div>
+                    </div>
+                    <div class="cell-text" id="transcriptionContentionText"></div>
+                    <div class="loadingU">
+                        <div class="text4">Flowing (~10 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                    <div class="loading0U">
+                        <div class="text4">Listening (~5 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                    <div class="listeningC">
+                        <canvas id="visualizer"></canvas>
+                    </div>
+                </div>
+                <!-- AIRebuttal -->
+                <div class="flow-col rebuttal-box" id="RebuttalAI">
+                    <div class="col-head" id="rebuttalHeaderAI">
+                        <h2 class="col-title is-ai">Rebuttal</h2>
+                        <div class="col-actions">
+                            <span class="act-wrap"><button id="GenerateAIRebuttal" type="button">Generate</button></span>
+                            <span class="act-wrap"><button id="speakAIRebuttal" type="button" class="speak-btn">Speak</button></span>
+                        </div>
+                    </div>
+                    <div class="cell-text" id="AIRebuttalText"></div>
+                    <div class="loadingRA">
+                        <div class="text5">Generating (~20 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- UserSummary  -->
+                <div class="flow-col summary-box" id="SummaryUser">
+                    <div class="col-head" id="summaryHeaderUser">
+                        <h2 class="col-title is-you">Summary</h2>
+                        <div class="col-actions">
+                            <span class="act-wrap"><button id="recordButtonSummary" type="button">Record</button></span>
+                        </div>
+                    </div>
+                    <div class="cell-text" id="SummaryUserText"></div>
+                    <div class="loadingSU">
+                        <div class="text6">Generating (~5 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                    <div class="loading2U">
+                        <div class="text4">Listening (~5 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                    <div class="listeningS">
+                        <canvas id="visualizer2"></canvas>
+                    </div>
+                </div>
+                <!-- FFAI -->
+                <div class="flow-col ff-box" id="FinalFocusAI">
+                    <div class="col-head" id="FFHeaderAI">
+                        <h2 class="col-title is-ai ff-title">Final Focus</h2>
+                        <div class="col-actions">
+                            <span class="act-wrap"><button id="GenerateAIFF" type="button">Generate</button></span>
+                            <span class="act-wrap"><button id="SpeakAIFF" type="button" class="speak-btn">Speak</button></span>
+                        </div>
+                    </div>
+                    <div class="cell-text" id="AIFFText"></div>
+                    <div class="loadingFFA">
+                        <div class="text7">Generating (~15 seconds)</div>
+                        <div class="ai-loader">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                            <div class="dot dot4"></div>
+                            <div class="dot dot5"></div>
+                            <div class="dot dot6"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
     <div id="results-modal" class="results-modal">
         <div class="modal-content">
-
-            <div class="judge-type-selector">
-                <h3>Choose Judge Type:
-                    <span class="info-icon" onmouseover="showTooltip()" onmouseout="hideTooltip()">ⓘ
-                        <span class="tooltip">Tech judges prefer technical debate, Lay judges prefer persuasive
-                            storytelling. Tech mode offers structured feedback for each speech that is often more
-                            helpful.</span>
-                    </span>
-                </h3>
-                <button class="judge-btn active" data-type="tech" onclick="selectJudgeType('tech')"
-                    id="techJudgeBtn">Tech (default)</button>
-                <button class="judge-btn" data-type="lay" onclick="selectJudgeType('lay')">Lay</button>
+            <div class="modal-head">
+                <h2>Round Results</h2>
+                <button type="button" class="modal-close" onclick="closeResultsModal()" aria-label="Close results">&#10005;</button>
             </div>
-            <button class="download-btn" id="download-btn">Generate Feedback and Results</button>
-
-
-
-            <div class="loadingfeed">
-                <div class="text10">Generating (~20 seconds)</div>
-                <div class="ai-loader">
-                    <div class="dot dot1"></div>
-                    <div class="dot dot2"></div>
-                    <div class="dot dot3"></div>
-                    <div class="dot dot4"></div>
-                    <div class="dot dot5"></div>
-                    <div class="dot dot6"></div>
+            <div class="modal-body">
+                <div class="judge-type-selector">
+                    <h3>Choose Judge Type</h3>
+                    <div class="judge-grid">
+                        <button class="judge-btn active" data-type="tech" onclick="selectJudgeType('tech')" id="techJudgeBtn" type="button">
+                            <span class="judge-label">Tech (default)</span>
+                            <span class="judge-note">Structured feedback for each speech. Usually more helpful.</span>
+                        </button>
+                        <button class="judge-btn" data-type="lay" onclick="selectJudgeType('lay')" type="button">
+                            <span class="judge-label">Lay</span>
+                            <span class="judge-note">Rewards persuasive storytelling over technical debate.</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div id="feedback-content" class="feedback-content">
+                <button class="download-btn" id="download-btn" type="button">Generate Feedback and Results</button>
 
-                <!-- Generated feedback will appear here -->
-            </div>
-
-
-
-
-        </div>
-    </div>
-    <div class="save-button">
-        <div class="save-note">Rounds autosave</div>
-        <div id="newRoundConfirm" class="new-round-confirm" role="alertdialog" aria-label="Start a new round?">
-            <p>Start a new round? This deletes the current round for good.</p>
-            <div class="confirm-actions">
-                <button type="button" onclick="hideNewRoundConfirm()">Keep round</button>
-                <button type="button" onclick="clearSavedRound()">Delete it</button>
-            </div>
-        </div>
-        <button id="newRoundBtn" aria-expanded="false" onclick="showNewRoundConfirm()">New Round</button>
-
-    </div>
-    <div id="container">
-        <div class="content-box" id="AIFlow">
-            <!-- AI case -->
-            <div class="case-box" id="AIContention">
-                <div id="caseHeaderAI">
-                    <h2><span id="Flow2"></span> Case: </h2>
-                    <button id="GenerateAIContention">Generate</button>
-                    <button id="SpeakAIContention">Speak</button>
-                </div>
-                <div id="AIContentionText"></div>
-                <div class="loading">
-                    <div class="text10">Generating (~15 seconds)</div>
+                <div class="loadingfeed">
+                    <div class="text10">Generating (~20 seconds)</div>
                     <div class="ai-loader">
                         <div class="dot dot1"></div>
                         <div class="dot dot2"></div>
@@ -162,218 +372,25 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
                         <div class="dot dot6"></div>
                     </div>
                 </div>
-            </div>
-            <!-- RebuttalUser -->
-            <div class="rebuttal-box" id="RebuttalUser">
-                <div id="rebuttalHeaderUser">
-                    <h2><span id="Flow3"></span> Rebuttal: </h2>
-                    <button id="recordButtonRebuttal">Record</button>
-                </div>
-                <div id="transcriptionRebuttalText"></div>
-                <div class="loadingRU">
-                    <div class="text1">Generating (~5 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-                <div class="loading1U">
-                    <div class="text4">Listening (~5 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-                <div class="listeningR">
-                    <canvas id="visualizer1"></canvas>
-                </div>
-            </div>
-
-            <!-- SummaryAI -->
-            <div class="summary-box" id="SummaryAI">
-                <div id="summaryHeaderAI">
-                    <h2><span id="Flow4"></span> Summary: </h2>
-                    <button id="GenerateAISummary">Generate</button>
-                    <button id="SpeakAISummary">Speak</button>
-                </div>
-                <div id="AISummaryText"></div>
-                <div class="loadingSA">
-                    <div class="text2">Generating (~15 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- FinalFocusUser(see if this is necessary)-->
-            <div class="ff-box" id="ffUser">
-                <div id="FFHeaderUser">
-                    <h2><span id="Flow5"></span> Final Focus: </h2>
-                    <button id="recordButtonFF">Record</button>
-                </div>
-                <div id="FFUserText"></div>
-                <div class="loadingFFU">
-                    <div class="text3">Generating (~5 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-                <div class="loading3U">
-                    <div class="text4">Listening (~5 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-                <div class="listeningF">
-                    <canvas id="visualizer3"></canvas>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="content-box" id="UserFlow">
-            <!-- User case -->
-            <div class="case-box" id="transcriptionContention">
-                <div id="caseHeader">
-                    <h2><span id="Flow2"></span> Case: </h2>
-                    <button id="recordButtonContention">Record</button>
-                </div>
-                <div id="transcriptionContentionText"></div>
-                <div class="loadingU">
-                    <div class="text4">Flowing (~10 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-                <div class="loading0U">
-                    <div class="text4">Listening (~5 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-                <div class="listeningC">
-                    <canvas id="visualizer"></canvas>
-
-                </div>
-
-            </div>
-            <!-- AIRebuttal -->
-            <div class="rebuttal-box" id="RebuttalAI">
-                <div id="rebuttalHeaderAI">
-                    <h2><span id="Flow3"></span> Rebuttal: </h2>
-                    <button id="GenerateAIRebuttal">Generate</button>
-                    <button id="speakAIRebuttal">Speak</button>
-                </div>
-                <div id="AIRebuttalText"></div>
-                <div class="loadingRA">
-                    <div class="text5">Generating (~20 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- UserSummary  -->
-            <div class="summary-box" id="SummaryUser">
-                <div id="summaryHeaderUser">
-                    <h2><span id="Flow4"></span> Summary: </h2>
-                    <button id="recordButtonSummary">Record</button>
-                </div>
-                <div id="SummaryUserText"></div>
-                <div class="loadingSU">
-                    <div class="text6">Generating (~5 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-                <div class="loading2U">
-                    <div class="text4">Listening (~5 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
-                <div class="listeningS">
-                    <canvas id="visualizer2"></canvas>
-                </div>
-            </div>
-            <!-- FFAI -->
-            <div class="ff-box" id="FinalFocusAI">
-                <div id="FFHeaderAI">
-                    <h2><span id="Flow5"></span> Final Focus: </h2>
-                    <button id="GenerateAIFF">Generate</button>
-                    <button id="SpeakAIFF">Speak</button>
-                </div>
-                <div id="AIFFText"></div>
-                <div class="loadingFFA">
-                    <div class="text7">Generating (~15 seconds)</div>
-                    <div class="ai-loader">
-                        <div class="dot dot1"></div>
-                        <div class="dot dot2"></div>
-                        <div class="dot dot3"></div>
-                        <div class="dot dot4"></div>
-                        <div class="dot dot5"></div>
-                        <div class="dot dot6"></div>
-                    </div>
-                </div>
+                <div id="feedback-content" class="feedback-content"></div>
+                <a id="ballotLink" href="#" hidden>Open the full ballot &#8594;</a>
             </div>
         </div>
     </div>
 
-
-    <div class="small-text">User: <span id="selectedTurn"></span>, <span id="selectedSide"></span> | Level: <span
+    <!-- Round settings live in the URL; script.js reads them back from these
+         spans everywhere, so they stay in the DOM, hidden. The Settings
+         dropdown shows the same values in full words. -->
+    <div class="small-text" hidden>User: <span id="selectedTurn"></span>, <span id="selectedSide"></span> | Level: <span
             id="selectedSkill"></span></div>
 
 
     <script>
         // Inline confirmation for New Round; clearSavedRound (script.js) only
-        // runs after the user confirms.
+        // runs after the user confirms. The Settings dropdown open/close also
+        // lives here so the gear works even if script.js chokes on a bad URL.
         function showNewRoundConfirm() {
+            closeSettingsMenu();
             document.getElementById('newRoundConfirm').classList.add('open');
             document.getElementById('newRoundBtn').setAttribute('aria-expanded', 'true');
         }
@@ -381,19 +398,43 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
             document.getElementById('newRoundConfirm').classList.remove('open');
             document.getElementById('newRoundBtn').setAttribute('aria-expanded', 'false');
         }
+        function closeSettingsMenu() {
+            var menu = document.getElementById('settingsMenu');
+            var btn = document.getElementById('settingsBtn');
+            menu.hidden = true;
+            btn.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+        document.getElementById('settingsBtn').addEventListener('click', function () {
+            var menu = document.getElementById('settingsMenu');
+            hideNewRoundConfirm();
+            if (menu.hidden) {
+                menu.hidden = false;
+                this.classList.add('open');
+                this.setAttribute('aria-expanded', 'true');
+            } else {
+                closeSettingsMenu();
+            }
+        });
         document.addEventListener('click', function (e) {
-            var box = document.querySelector('.save-button');
-            if (box && !box.contains(e.target)) hideNewRoundConfirm();
+            var wrap = document.querySelector('.settings-wrap');
+            if (wrap && !wrap.contains(e.target)) {
+                closeSettingsMenu();
+                hideNewRoundConfirm();
+            }
         });
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') hideNewRoundConfirm();
+            if (e.key === 'Escape') {
+                closeSettingsMenu();
+                hideNewRoundConfirm();
+            }
         });
     </script>
-    <script src="script.js"></script>
 <script src="auth.js"></script>
 <script src="sanitize.js"></script>
 <script src="gate.js"></script>
 <script src="api.js"></script>
+<script src="script.js"></script>
 </body>
 
 

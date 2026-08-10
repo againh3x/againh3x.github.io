@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -14,17 +13,23 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 <!-- Google tag (gtag.js) -->
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-ERE3HL6LKB');
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
 </script>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Public Forum Debate AI Casewriter</title>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <link rel="stylesheet" href="toolbar.css"/>
+<link rel="stylesheet" href="pf-theme.css"/>
 <script>
 /* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
 (function () {
@@ -40,12 +45,18 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     painted = true;
     obs.disconnect();
     var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
-    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
-    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
-    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
-      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
-    slot.querySelector('.user-avatar-initials').textContent = initials;
-    slot.querySelector('.user-name').textContent = '@' + name;
+    var initials = name.slice(0, 2).toUpperCase() || '?';
+    var premium = snap.plan === 'premium';
+    var planLabel = premium ? 'Premium' : 'Free plan';
+    slot.innerHTML = '<div class="user-menu-wrap">' +
+      '<button class="pf-avatar-btn' + (premium ? ' premium' : '') + '" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span class="pf-avatar-initials"></span>' +
+      (premium ? '<span class="pf-avatar-star">★</span>' : '') +
+      '</button></div>';
+    slot.querySelector('.pf-avatar-initials').textContent = initials;
+    slot.querySelector('.pf-avatar-btn').title = name + ' · ' + planLabel;
+    var myRounds = document.querySelectorAll('a[data-nav="myrounds"]');
+    for (var i = 0; i < myRounds.length; i++) myRounds[i].setAttribute('href', 'rounds.html');
   }
   var obs = new MutationObserver(paint);
   obs.observe(document.documentElement, { childList: true, subtree: true });
@@ -53,826 +64,970 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 })();
 </script>
 <style>
-        *, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(180deg, #8ac8ff, #185da1, #08316a, #011529);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            color: #333;
-        }
+body.pf-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
 
-        /* Mark the current page in the shared toolbar. */
-        nav.toolbar .nav-links a[aria-current="page"]::after { width: 100%; }
+.cw-main {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 36px 32px 72px;
+  flex: 1;
+}
+.cw-main h1 {
+  margin: 0 0 8px;
+  font-size: 34px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+.cw-intro {
+  margin: 0 0 32px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--pf-text-2);
+  max-width: 44em;
+}
 
-        .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: stretch;
-            width: min(95%, 1400px);
-            background: #fff;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            margin: 30px auto 0;
-        }
-        .controls {
-            flex: 1;
-            min-width: 0;
-            margin-right: 30px;
-        }
-        .output {
-            flex: 2;
-            min-width: 0;
-        }
-        h1, h2 {
-            color: #333;
-            text-align: center;
-        }
-        h1 { font-size: 1.8rem; }
-        .output-head {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 10px;
-        }
-        .output-head h2 {
-            font-size: 1.8rem;
-            margin: 10px 0;
-        }
-        #copyButton {
-            padding: 6px 14px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #0056b3;
-            background: #eef6ff;
-            border: 1px solid #9ecdf5;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s ease, color 0.2s ease;
-        }
-        #copyButton:hover {
-            background: #d9ecff;
-        }
-        #copyButton.copied {
-            color: #1a7d3c;
-            border-color: #8fd3a7;
-            background: #e8f8ee;
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        .input-group input[type="text"], .input-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            background: #f9f9f9;
-            color: #333;
-            font-size: 1rem;
-        }
-        #contentionsGroup {
-            display: flex;
-            flex-direction: column;
-        }
-        #contentionsGroup label {
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: border-color 0.25s ease, box-shadow 0.25s ease;
-            background: #f9f9f9;
-            font-weight: normal;
-        }
-        #contentionsGroup input[type="radio"] {
-            display: none;
-        }
-        #contentionsGroup input[type="radio"]:checked + label {
-            border-color: #007bff;
-            box-shadow: 0 0 10px #007bff;
-        }
-        .contentions-label {
-            font-weight: bold;
-            font-size: 1rem;
-            color: #333;
-            margin-bottom: 5px;
-            display: block;
-        }
-        #generateButton {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2rem;
-            color: white;
-            background: linear-gradient(90deg, #0099ff, #66a6ff);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-            margin-top: 20px;
-            transition: background 0.3s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 15px rgba(0, 150, 255, 0.3);
-        }
-        #generateButton:hover:not(:disabled) {
-            background: linear-gradient(90deg, #00ccff, #80d4ff);
-            box-shadow: 0 6px 20px rgba(0, 150, 255, 0.45);
-        }
-        #generateButton:disabled {
-            opacity: 0.7;
-            cursor: default;
-        }
-        .form-error {
-            margin: 10px 0 0;
-            padding: 10px 12px;
-            border: 1px solid #f0b4b4;
-            border-radius: 5px;
-            background: #fdf0f0;
-            color: #a02020;
-            font-size: 0.95rem;
-        }
-        #Box-output {
-            border: 2px solid #ddd;
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 5px;
-            height: 600px;
-            overflow-y: auto;
-            overflow-wrap: break-word;
-            font-size: 1rem;
-            color: #333;
-        }
-        #Output {
-            max-width: 70ch;
-            margin: 0 auto;
-            line-height: 1.65;
-        }
-        #Output p { margin: 0; }
-        #Output strong { display: inline-block; margin-top: 0.6em; }
-        #Box-output:not(.busy) #Output:empty::before {
-            content: 'Your generated case will appear here.';
-            display: block;
-            text-align: center;
-            padding-top: 60px;
-            color: #888;
-        }
-        .output-error {
-            text-align: center;
-            padding-top: 60px;
-            color: #a02020;
-        }
+.cw-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
 
-        .loading {
-            text-align: center;
-            padding-top: 60px;
-            display: none;
-        }
-        .text10 {
-            font-size: 20px;
-            margin-bottom: 0px;
-        }
-        .ai-loader {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 10vh;
-        }
-        .dot {
-            width: 15px;
-            height: 15px;
-            margin: 0 5px;
-            border-radius: 50%;
-            background-color: #2e5adc;
-            animation: pulse 1.5s infinite;
-        }
-        .dot1 { animation-delay: 0s; }
-        .dot2 { animation-delay: 0.2s; }
-        .dot3 { animation-delay: 0.4s; }
-        .dot4 { animation-delay: 0.6s; }
-        .dot5 { animation-delay: 0.8s; }
-        .dot6 { animation-delay: 1s; }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
+/* ---- Left: case brief panel ---- */
+.cw-brief-col {
+  flex: 1 1 300px;
+  max-width: 350px;
+  min-width: 0;
+  position: sticky;
+  top: 96px;
+}
+.cw-panel {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cw-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--pf-border-subtle);
+  background: var(--pf-surface-raised);
+  flex: none;
+}
+.cw-eyebrow {
+  font-family: var(--pf-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pf-text-muted);
+}
+.cw-brief-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.cw-field-label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.cw-field-label--options { margin-bottom: 8px; }
+.cw-hint {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--pf-text-muted);
+}
+#topic {
+  width: 100%;
+  padding: 11px 13px;
+  background: var(--pf-surface-sunken);
+  border: 1px solid var(--pf-border);
+  border-radius: 3px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  font-family: var(--pf-font);
+  color: var(--pf-text);
+  resize: vertical;
+  outline: none;
+}
+#topic:focus { border-color: var(--pf-accent); background: var(--pf-surface); }
 
-        /* Info icon and tooltip */
-        .info-icon {
-            cursor: pointer;
-            margin-left: 10px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: none;
-            background-color: #0066cc;
-            color: #fff;
-            font-size: 14px;
-            font-weight: bold;
-            position: relative;
-            padding: 0;
-        }
-        .info-icon:hover, .info-icon:focus-visible {
-            background-color: #004d99;
-        }
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: min(300px, calc(100vw - 48px));
-            background-color: #fff;
-            color: #333;
-            font-weight: normal;
-            text-align: left;
-            border-radius: 6px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            z-index: 50;
-            top: 50%;
-            left: 110%;
-            transform: translateY(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .tooltip:hover .tooltiptext,
-        .tooltip.open .tooltiptext,
-        .tooltip:focus-within .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
+.cw-opt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.cw-opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 12px 13px;
+  background: var(--pf-surface-sunken);
+  border: 1px solid var(--pf-border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--pf-font);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pf-text);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.cw-opt:hover { border-color: var(--pf-accent); }
+.cw-opt[aria-pressed="true"] {
+  background: var(--pf-selected);
+  border-color: var(--pf-selected-border);
+}
+.cw-opt-dot {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex: none;
+}
+.cw-opt-dot--aff { background: var(--pf-selected-border); }
+.cw-opt-dot--neg { background: var(--pf-ai-bright); }
 
-        @media (max-width: 900px) {
-            .container {
-                flex-direction: column;
-                height: auto;
-                padding: 20px;
-                margin-top: 20px;
-            }
-            .controls {
-                margin-right: 0;
-                width: 100%;
-            }
-            .output {
-                width: 100%;
-                margin-top: 20px;
-            }
-            #Box-output {
-                height: 55vh;
-                min-height: 320px;
-            }
-            /* Drop the tooltip below the icon so it cannot run off the right edge. */
-            .tooltip .tooltiptext {
-                top: calc(100% + 8px);
-                left: 50%;
-                right: auto;
-                transform: translateX(-50%);
-            }
-        }
+.cw-slider-wrap { padding: 0 8px; }
+#contentions {
+  width: 100%;
+  display: block;
+  margin: 0;
+  accent-color: var(--pf-selected-border);
+  cursor: pointer;
+}
+#contentions:disabled { cursor: not-allowed; opacity: 0.5; }
+.cw-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  font-family: var(--pf-font-mono);
+  font-size: 11.5px;
+  color: var(--pf-text-muted);
+}
+.cw-locked-note {
+  margin: 9px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--pf-text-muted);
+}
+.cw-locked-note a { color: var(--pf-accent); text-decoration: none; }
 
-        /* ---- Footer ---- */
-        .site-footer {
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
-            color: #00f3ff;
-            padding: 40px 20px 20px;
-            margin-top: auto;
-            border-top: 1px solid rgba(0, 255, 255, 0.2);
-            width: 100%;
-        }
-        .site-footer .logo { display: flex; align-items: center; gap: 15px; text-decoration: none; }
-        .site-footer .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4)); }
-        .site-footer .logo-text {
-            color: #00f3ff; font-size: 1.4rem; font-weight: 600; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
-            letter-spacing: 0.5px; margin-left: 10px; text-decoration: none;
-        }
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin: 0 auto;
-            gap: 30px;
-        }
-        .footer-column {
-            flex: 1;
-            min-width: 0;
-        }
-        .footer-column h4 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #00f3ff;
-            padding-bottom: 5px;
-        }
-        .feedback-form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 500px;
-            margin: 15px auto 0;
-            border-radius: 8px;
-        }
-        .feedback-form input,
-        .feedback-form textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #00f3ff;
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #00f3ff;
-            font-family: inherit;
-        }
-        .feedback-form textarea {
-            height: 100px;
-        }
-        .feedback-form button {
-            background: linear-gradient(135deg, #00f3ff, #0066cc);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-        .feedback-form button:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-        .form-status {
-            margin: 8px 0 0;
-            font-size: 0.95rem;
-            min-height: 1.3em;
-        }
-        .form-status.ok { color: #9fe8b8; }
-        .form-status.error { color: #ffb3b3; }
-        .or-separator {
-            color: #00f3ff;
-            margin: 15px 0;
-            display: flex;
-            align-items: center;
-            text-align: center;
-            gap: 10px;
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-        .or-separator::before,
-        .or-separator::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #00f3ff;
-        }
-        .social-links {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .social-link {
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-            padding: 5px 10px;
-            border-radius: 4px;
-        }
-        .social-link.linkedin { color: #0A66C2 !important; }
-        .social-link.youtube { color: #FF0000 !important; }
-        .social-link.reddit { color: #FF4500 !important; }
-        .social-link.linkedin:hover {
-            color: #004182 !important;
-            text-shadow: 0 0 10px rgba(10, 102, 194, 0.3);
-            background: rgba(10, 102, 194, 0.1);
-        }
-        .social-link.youtube:hover {
-            color: #CC0000 !important;
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-            background: rgba(255, 0, 0, 0.1);
-        }
-        .social-link.reddit:hover {
-            color: #D93A00 !important;
-            text-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
-            background: rgba(255, 69, 0, 0.1);
-        }
-        .plain-email {
-            color: #00f3ff !important;
-            text-decoration: none !important;
-            background: none !important;
-            transition: none !important;
-        }
-        .plain-email:hover {
-            color: #00c4d6 !important;
-            text-decoration: underline !important;
-        }
-        .footer-bottom {
-            text-align: center;
-            margin-top: 0px;
-            padding-top: 20px;
-            padding-bottom: 0px;
-            border-top: 1px solid rgba(0, 255, 255, 0.1);
-        }
-        @media (max-width: 768px) {
-            .footer-content {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-            .footer-column {
-                width: 100%;
-            }
-            .social-links {
-                align-items: center;
-            }
-        }
-    </style>
+#generateButton {
+  width: 100%;
+  height: 50px;
+  background: var(--pf-blue);
+  border: none;
+  border-radius: 3px;
+  color: #FFFFFF;
+  font-family: var(--pf-font);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+#generateButton:hover:not(:disabled) { background: var(--pf-blue-hover); }
+#generateButton:disabled { cursor: not-allowed; }
+#generateButton.out-of-quota,
+#generateButton.out-of-quota:hover { background: #1E3252; }
+
+.cw-quota-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.cw-quota-track {
+  flex: 1;
+  height: 4px;
+  background: #132A45;
+  border-radius: 2px;
+  overflow: hidden;
+}
+#quotaFill {
+  height: 100%;
+  width: 100%;
+  background: var(--pf-selected-border);
+  transition: width 0.3s ease, background 0.3s ease;
+}
+#quotaFill.is-low { background: var(--pf-warning); }
+#quotaFill.is-empty { background: var(--pf-ai-strong); }
+#quotaLabel {
+  font-family: var(--pf-font-mono);
+  font-size: 11.5px;
+  color: var(--pf-text-muted);
+  white-space: nowrap;
+}
+#quotaLabel.is-empty { color: var(--pf-ai-bright); }
+#quotaNote {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--pf-text-muted);
+}
+
+.cw-form-error {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #5C2A2A;
+  border-radius: 3px;
+  background: rgba(201, 74, 69, 0.1);
+  color: var(--pf-loss-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ---- Right: generated case panel ---- */
+.cw-case-col {
+  flex: 2.2 1 520px;
+  min-width: 0;
+}
+.cw-case-col.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  padding: 24px;
+  background: rgba(4, 15, 31, 0.94);
+  display: flex;
+}
+.cw-case-panel {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 6px;
+  overflow: hidden;
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+}
+.cw-case-col.is-fullscreen .cw-case-panel {
+  flex: 1;
+  overflow: auto;
+  max-width: 1100px;
+  margin: 0 auto;
+  min-height: 0;
+}
+.cw-case-panel .cw-panel-head { padding: 14px 22px; }
+.cw-actions { display: flex; gap: 8px; }
+.cw-action-btn {
+  height: 30px;
+  padding: 0 12px;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 3px;
+  font-family: var(--pf-font);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--pf-text);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+.cw-action-btn:hover { border-color: var(--pf-text); }
+
+.cw-state-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 90px 24px;
+  text-align: center;
+}
+.cw-state-title { font-size: 16px; font-weight: 600; color: var(--pf-text-2); }
+.cw-state-sub {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--pf-text-muted);
+  max-width: 28em;
+}
+#stateError .cw-state-sub { color: var(--pf-loss-text); }
+
+#stateLoading { gap: 18px; padding: 80px 24px; }
+.cw-dots { display: flex; gap: 6px; }
+.cw-dots span {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pf-blue);
+  animation: pf-fade 1.2s ease-in-out infinite;
+}
+.cw-dots span:nth-child(2) { animation-delay: 0.12s; }
+.cw-dots span:nth-child(3) { animation-delay: 0.24s; }
+.cw-dots span:nth-child(4) { animation-delay: 0.36s; }
+.cw-dots span:nth-child(5) { animation-delay: 0.48s; }
+.cw-dots span:nth-child(6) { animation-delay: 0.6s; }
+#loadingTitle { font-size: 16px; font-weight: 600; }
+#loadingSub { font-size: 14px; color: var(--pf-text-muted); margin-top: 4px; }
+
+#stateDone {
+  flex: 1;
+  padding: 34px 44px 44px;
+  max-width: 64em;
+}
+.cw-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 11px 14px;
+  margin: 0 0 22px;
+  background: var(--pf-surface-sunken);
+  border: 1px solid var(--pf-border);
+  border-radius: 3px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--pf-text-muted);
+}
+.cw-note::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pf-text-faint);
+  margin-top: 6px;
+  flex: none;
+}
+#caseResolution {
+  margin: 0 0 22px;
+  font-family: var(--pf-font-serif);
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+#Output {
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: #C6D9EC;
+  overflow-wrap: break-word;
+  padding-bottom: 26px;
+  margin-bottom: 26px;
+  border-bottom: 1px solid var(--pf-border-row);
+}
+#Output p { margin: 0; }
+.cw-disclaimer {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--pf-text-muted);
+}
+
+@media (max-width: 760px) {
+  .cw-main { padding: 28px 20px 56px; }
+  .cw-brief-col { max-width: none; position: static; }
+  #stateDone { padding: 26px 22px 32px; }
+}
+</style>
 </head>
-<body>
+<body class="pf-page">
 <nav class="toolbar">
-<a class="logo" href="index.html">
-<img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
-<span class="logo-text">PublicForumAI</span>
-</a>
-<div class="nav-links"><a href="flower.html">AI Flow</a>
-<a href="setup.html">AI Practice Round</a>
-<a aria-current="page" href="casewriter.html">AI Casewriter</a>
-<a href="modules.html">Training Modules</a>
-</div>
-<div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+  <a class="logo" href="index.html">
+    <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+    <span class="logo-text">PublicForumAI</span>
+  </a>
+  <div class="nav-links">
+    <a href="flower.html">Flow</a>
+    <a aria-current="page" href="casewriter.html">Casewriter</a>
+    <a href="setup.html">Practice Round</a>
+    <a href="login.html?next=%2Frounds.html" data-nav="myrounds">My Rounds</a>
+    <a href="modules.html">Training</a>
+    <a href="pricing.html">Pricing</a>
+  </div>
+  <div id="authSlot"><a href="login.html?next=%2Fcasewriter.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
 </nav>
-<div class="container">
-<div class="controls">
-<h1>Build Your Case</h1>
-<div class="input-group">
-<label for="topic">
-                    Full Resolution (topic):
-                    <div class="tooltip">
-<button aria-label="What counts as a full resolution?" class="info-icon" type="button">i</button>
-<span class="tooltiptext" role="tooltip">
-                          This is the topic of the debate. <em>It should not be one or two words</em>, but a full resolution stating that something should or should not happen. For example, <em>"NATO should strengthen its relationship with Ukraine in order to deter further Russian aggression."</em>
-</span>
+
+<div class="cw-main">
+  <h1>Build your case</h1>
+  <p class="cw-intro">A structured constructive with contentions, warrants, and cited evidence. Use it as a model for your own writing, not as a case to read in a live round.</p>
+
+  <div class="cw-columns">
+
+    <div class="cw-brief-col">
+      <div class="cw-panel">
+        <div class="cw-panel-head">
+          <span class="cw-eyebrow">Case brief</span>
+        </div>
+        <div class="cw-brief-body">
+          <div>
+            <label class="cw-field-label" for="topic">Topic (full resolution)</label>
+            <p class="cw-hint">Write the topic out in full, not one or two words. It should state that something should or should not happen.</p>
+            <textarea id="topic" rows="3"></textarea>
+          </div>
+
+          <div>
+            <span class="cw-field-label cw-field-label--options" id="sideLabel">Side</span>
+            <div class="cw-opt-grid" role="group" aria-labelledby="sideLabel">
+              <button type="button" class="cw-opt" id="sideAff" data-side="Affirmative" aria-pressed="false"><span class="cw-opt-dot cw-opt-dot--aff"></span>Affirmative</button>
+              <button type="button" class="cw-opt" id="sideNeg" data-side="Negative" aria-pressed="false"><span class="cw-opt-dot cw-opt-dot--neg"></span>Negative</button>
+            </div>
+          </div>
+
+          <div>
+            <span class="cw-field-label cw-field-label--options" id="skillLabel">Skill level</span>
+            <div class="cw-opt-grid" role="group" aria-labelledby="skillLabel">
+              <button type="button" class="cw-opt" id="skillHigh" data-skill="high" aria-pressed="true">High school</button>
+              <button type="button" class="cw-opt" id="skillMiddle" data-skill="middle" aria-pressed="false">Middle school</button>
+            </div>
+          </div>
+
+          <div>
+            <span class="cw-field-label cw-field-label--options" id="contentionsLabel">Contentions</span>
+            <div class="cw-slider-wrap">
+              <input type="range" id="contentions" min="1" max="3" step="1" value="2" disabled aria-labelledby="contentionsLabel"/>
+              <div class="cw-slider-labels" aria-hidden="true">
+                <span>1</span>
+                <span>2</span>
+                <span>3</span>
+              </div>
+            </div>
+            <p class="cw-locked-note" id="contentionsLockedNote">Free plan cases use 2 contentions. <a href="pricing.html">Premium</a> lets you change this.</p>
+          </div>
+
+          <div>
+            <button type="button" id="generateButton">Generate case</button>
+            <div id="quotaWrap">
+              <div class="cw-quota-row">
+                <div class="cw-quota-track"><div id="quotaFill"></div></div>
+                <span id="quotaLabel">5 of 5 left</span>
+              </div>
+              <p id="quotaNote">Free plan includes 5 cases a month. Resets on the 1st.</p>
+            </div>
+            <p class="cw-form-error" hidden id="formError" role="alert"></p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="cw-case-col" id="caseColumn">
+      <div class="cw-case-panel">
+        <div class="cw-panel-head">
+          <span class="cw-eyebrow">Generated case</span>
+          <div class="cw-actions" id="caseActions" hidden>
+            <button type="button" class="cw-action-btn" id="copyButton">Copy</button>
+            <button type="button" class="cw-action-btn" id="downloadButton">Download</button>
+            <button type="button" class="cw-action-btn" id="fullscreenButton">Full screen</button>
+          </div>
+        </div>
+
+        <div class="cw-state-center" id="stateEmpty">
+          <div class="cw-state-title">No case yet</div>
+          <p class="cw-state-sub">Fill in the resolution and pick a side. Your case appears here with contentions, warrants, and evidence.</p>
+        </div>
+
+        <div class="cw-state-center" id="stateLoading" hidden>
+          <div class="cw-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div>
+            <div id="loadingTitle">Writing your case</div>
+            <div id="loadingSub">About 15 seconds. Sources are pulled after the draft.</div>
+          </div>
+        </div>
+
+        <div class="cw-state-center" id="stateError" hidden>
+          <p class="cw-state-sub" id="errorMsg"></p>
+        </div>
+
+        <div id="stateDone" hidden>
+          <p class="cw-note" id="outputNote" hidden></p>
+          <h2 id="caseResolution"></h2>
+          <div id="Output"></div>
+          <p class="cw-disclaimer">Check every citation before you use it. Evidence is retrieved automatically and can be wrong.</p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
 </div>
-</label>
-<input id="topic" placeholder="Enter the resolution" type="text"/>
-</div>
-<div class="input-group">
-<label for="side">Select Side:</label>
-<select id="side">
-<option disabled="" hidden="" selected="" value="">Choose a side</option>
-<option value="Affirmative">Affirmative</option>
-<option value="Negative">Negative</option>
-</select>
-</div>
-<div class="input-group">
-<label for="skillLevel">Skill Level:</label>
-<select id="skillLevel">
-<option selected="" value="high">High School (default)</option>
-<option value="middle">Middle School</option>
-</select>
-</div>
-<label class="contentions-label" for="contentions"># of Contentions:</label>
-<div class="input-group" id="contentionsGroup">
-<input id="one" name="contentions" type="radio" value="1"/>
-<label for="one">1 Contention</label>
-<input checked="" id="two" name="contentions" type="radio" value="2"/>
-<label for="two">2 Contentions (default)</label>
-<input id="three" name="contentions" type="radio" value="3"/>
-<label for="three">3 Contentions</label>
-</div>
-<button id="generateButton" onclick="generateCase()">Generate</button>
-<p class="form-error" hidden="" id="formError" role="alert"></p>
-</div>
-<div class="output">
-<div class="output-head">
-<h2>Generated Case</h2>
-<button hidden="" id="copyButton" type="button">Copy</button>
-</div>
-<div id="Box-output">
-<div id="Output"></div>
-<div class="loading">
-<div class="text10">Writing your case (about 15 seconds)</div>
-<div class="ai-loader">
-<div class="dot dot1"></div>
-<div class="dot dot2"></div>
-<div class="dot dot3"></div>
-<div class="dot dot4"></div>
-<div class="dot dot5"></div>
-<div class="dot dot6"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<footer class="site-footer">
-<div class="footer-content">
-<!-- Brand Section -->
-<div class="footer-column">
-<a class="logo" href="index.html">
-<img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
-<span class="logo-text">PublicForumAI</span>
-</a>
-<p>Empowering debaters through AI</p>
-</div>
-<!-- Contact Section -->
-<div class="footer-column">
-<h4>Contact Us</h4>
-<p><a class="plain-email" href="mailto:arda_altintepe@horacemann.org">arda_altintepe@horacemann.org</a></p>
-<div class="or-separator">OR</div>
-<div class="feedback-form">
-<form id="feedbackForm">
-<input name="from_email" placeholder="Your email" required="" type="email"/>
-<textarea name="message" placeholder="Your feedback" required=""></textarea>
-<button type="submit">Submit Feedback</button>
-<p aria-live="polite" class="form-status" id="feedbackStatus"></p>
-</form>
-</div>
-</div>
-<!-- Social Links -->
-<div class="footer-column">
-<h4>Follow Us</h4>
-<div class="social-links">
-<a class="social-link linkedin" href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank">
-<i class="fab fa-linkedin"></i> LinkedIn
-              </a>
-<a class="social-link youtube" href="https://www.youtube.com/@PublicForumAI" target="_blank">
-<i class="fab fa-youtube"></i> YouTube
-              </a>
-<a class="social-link reddit" href="https://www.reddit.com/r/PublicForumAI/" target="_blank">
-<i class="fab fa-reddit-alien"></i> Reddit
-              </a>
-</div>
-</div>
-</div>
-<!-- Copyright -->
-<div class="footer-bottom">
-<p>© <span id="copyYear">2026</span> PublicForumAI. All rights reserved.</p>
-</div>
+
+<footer class="pf-footer">
+  <div class="pf-footer-cols">
+    <div class="pf-footer-brand">
+      <a class="pf-footer-logo" href="index.html">
+        <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+        <span>PublicForumAI</span>
+      </a>
+      <p class="pf-footer-tag">Empowering debaters through AI</p>
+    </div>
+    <div class="pf-footer-contact">
+      <h4>Contact Us</h4>
+      <a class="pf-footer-email" href="mailto:support@publicforumai.com">support@publicforumai.com</a>
+      <div class="pf-footer-or"><span></span><span class="pf-footer-or-label">OR</span><span></span></div>
+      <form id="feedbackForm" class="pf-footer-form">
+        <input name="from_email" placeholder="Your email" required="" type="email"/>
+        <textarea name="message" placeholder="Your feedback" required="" rows="3"></textarea>
+        <button type="submit">Submit Feedback</button>
+        <p class="pf-form-status" id="feedbackStatus" role="status" hidden></p>
+      </form>
+    </div>
+    <div class="pf-footer-social">
+      <h4>Follow Us</h4>
+      <div class="pf-footer-links">
+        <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://www.youtube.com/@PublicForumAI" target="_blank" rel="noopener">YouTube</a>
+        <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" rel="noopener">Reddit</a>
+      </div>
+    </div>
+  </div>
+  <div class="pf-footer-bottom-wrap">
+    <div class="pf-footer-bottom">
+      <span>© 2026 PublicForumAI. All rights reserved.</span>
+      <span>Not for use in live rounds.</span>
+    </div>
+  </div>
 </footer>
+
 <script>
-let isGenerating = false;
-
-function showFormError(message) {
-    const el = document.getElementById('formError');
-    el.textContent = message;
-    el.hidden = false;
-}
-
-function clearFormError() {
-    const el = document.getElementById('formError');
-    el.textContent = '';
-    el.hidden = true;
-}
-
-function showOutputError(message) {
-    const output = document.getElementById('Output');
-    output.textContent = '';
-    const p = document.createElement('p');
-    p.className = 'output-error';
-    p.textContent = message;
-    output.appendChild(p);
-}
-
-const SOURCES_MISSING_NOTE = 'Your case is below. We could not attach sources this time, so add your own evidence before you use it.';
-
-// Adds a line above the case without clearing what is already rendered.
-function showOutputNote(message) {
-    const output = document.getElementById('Output');
-    const p = document.createElement('p');
-    p.className = 'output-error';
-    p.textContent = message;
-    output.insertBefore(p, output.firstChild);
-}
-
-// Plain text of the case on screen, so Copy never picks up a status note.
-let lastCaseText = '';
-
-// The µ markers and ** are stripped by /get_sources server-side. On the
-// sources-failed path that cleanup never runs, so do it here for both paths:
-// this text is what the student copies out.
-function renderCase(text) {
-    const cleaned = String(text == null ? '' : text).replace(/µ/g, '').replace(/\*\*/g, '');
-    document.getElementById('Output').innerHTML = "<p>" + pfSanitize(cleaned) + "</p>";
-    lastCaseText = cleaned;
-    document.getElementById('copyButton').hidden = false;
-}
-
-async function generateCase() {
-            if (isGenerating) return;
-            clearFormError();
-
-            const topic = document.getElementById('topic').value.trim();
-            const side = document.getElementById('side').value;
-            const skill = document.getElementById('skillLevel').value;
-            const contentionsInput = document.querySelector('input[name="contentions"]:checked');
-            const contentions = contentionsInput ? contentionsInput.value : '2';
-
-            if (!topic) {
-                showFormError('Enter the full resolution first.');
-                return;
-            }
-            if (!side) {
-                showFormError('Pick a side to argue before generating.');
-                return;
-            }
-
-            // Generating costs money; the typed form state survives the login trip.
-            if (window.pfGate) {
-                const ok = await pfGate.requireAuth({
-                    page: 'casewriter',
-                    saveState: function () {
-                        return { topic: topic, side: side, skillLevel: skill, contentions: contentions };
-                    }
-                });
-                if (!ok) return;
-            }
-
-            isGenerating = true;
-            const button = document.getElementById('generateButton');
-            button.disabled = true;
-            button.textContent = 'Generating...';
-            document.getElementById('copyButton').hidden = true;
-            document.getElementById('Output').textContent = '';
-            lastCaseText = '';
-            document.getElementById('Box-output').classList.add('busy');
-            document.querySelector('.loading').style.display = 'block';
-            document.querySelector('.text10').textContent = 'Writing your case (about 15 seconds)';
-
-            // Tracks whether the case itself arrived, so a failure in the
-            // sources call is reported as a partial success rather than a loss.
-            let caseRendered = false;
-
-            try {
-                // First API call to generate AI case
-                const response1 = await pfFetch('/generate_ai_casewriter', {
-                    json: {
-                        debateTopic: topic,
-                        nonselectedSide: side,
-                        selectedSkill: skill,
-                        contentions: contentions
-                    }
-                }, { page: 'casewriter', button: button, label: 'Generate' });
-
-                const data1 = await response1.json();
-                const AICase = data1.AICase;
-
-                // Show the case the moment it exists. Sources are an upgrade on
-                // top of it, not a condition for showing it.
-                renderCase(AICase);
-                caseRendered = true;
-
-                // Update loading text
-                document.querySelector('.text10').textContent = 'Finding sources (about 10 seconds)';
-
-                // Second API call to get sources
-                const response2 = await pfFetch('/get_sources', {
-                    json: {
-                        AICase: AICase
-                    }
-                }, { page: 'casewriter', button: button, label: 'Generate' });
-
-                const data2 = await response2.json();
-
-                // Replace the case with the sourced version, but never with an
-                // empty one: the case already on screen is worth more.
-                if (data2 && typeof data2.AICase === 'string' && data2.AICase.trim()) {
-                    renderCase(data2.AICase);
-                } else {
-                    showOutputNote(SOURCES_MISSING_NOTE);
-                }
-            } catch (error) {
-                console.error('Error processing user input:', error);
-                if (caseRendered) {
-                    showOutputNote(SOURCES_MISSING_NOTE);
-                } else if (error && error.code === 'network') {
-                    showOutputError('We could not reach the server. Check your connection, then hit Generate again.');
-                } else if (error && error.code === 'auth_required') {
-                    showOutputError('Please sign in, then hit Generate again.');
-                } else if (error && error.code === 'rate_limited') {
-                    showOutputError('The generator needs a short break. Wait for the timer on the button, then try again.');
-                } else {
-                    showOutputError('Something went wrong while writing your case. Hit Generate to try again.');
-                }
-            } finally {
-                // Hide the loading animation and reset UI elements
-                document.querySelector('.loading').style.display = 'none';
-                document.getElementById('Box-output').classList.remove('busy');
-                if (!button.dataset.pfCooldown) {
-                    button.disabled = false;
-                    button.textContent = 'Generate';
-                }
-                isGenerating = false;
-            }
-        }
-
-// Refill the form after the login round trip.
-document.addEventListener('DOMContentLoaded', function () {
-    if (!window.pfGate) return;
-    const fields = pfGate.restorePending('casewriter');
-    if (!fields) return;
-    if (fields.topic) document.getElementById('topic').value = fields.topic;
-    if (fields.side === 'Affirmative' || fields.side === 'Negative') {
-        document.getElementById('side').value = fields.side;
-    }
-    if (fields.skillLevel === 'high' || fields.skillLevel === 'middle') {
-        document.getElementById('skillLevel').value = fields.skillLevel;
-    }
-    if (['1', '2', '3'].indexOf(String(fields.contentions)) !== -1) {
-        const radio = document.querySelector('input[name="contentions"][value="' + fields.contentions + '"]');
-        if (radio) radio.checked = true;
-    }
-});
-
-// Copy the generated case as plain text, confirm inline on the button.
-document.getElementById('copyButton').addEventListener('click', function () {
-    const btn = this;
-    const text = lastCaseText || document.getElementById('Output').innerText;
-    if (!text.trim()) return;
-    function confirmCopy(label) {
-        btn.textContent = label;
-        btn.classList.add('copied');
-        setTimeout(function () {
-            btn.textContent = 'Copy';
-            btn.classList.remove('copied');
-        }, 2000);
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(
-            function () { confirmCopy('Copied!'); },
-            function () { confirmCopy('Copy failed'); }
-        );
-    } else {
-        confirmCopy('Copy failed');
-    }
-});
-
-// Tooltip: hover works on desktop; the button toggles it for touch and keyboard.
+// Feedback form: inline status messages, no dialogs.
 (function () {
-    const tooltip = document.querySelector('.tooltip');
-    const icon = tooltip.querySelector('.info-icon');
-    icon.addEventListener('click', function (e) {
-        e.preventDefault();
-        tooltip.classList.toggle('open');
-    });
-    document.addEventListener('click', function (e) {
-        if (!tooltip.contains(e.target)) tooltip.classList.remove('open');
-    });
-})();
+  var form = document.getElementById('feedbackForm');
+  var status = document.getElementById('feedbackStatus');
+  if (!form || !status) return;
 
-// Footer year
-document.getElementById('copyYear').textContent = new Date().getFullYear();
+  function showStatus(message, ok) {
+    status.textContent = message;
+    status.classList.remove('ok', 'err');
+    status.classList.add(ok ? 'ok' : 'err');
+    status.hidden = false;
+  }
 
-(function() {
-emailjs.init('wgsczkr19C1FrKtLj'); // Your actual User ID
-})();
+  try {
+    if (window.emailjs) emailjs.init('wgsczkr19C1FrKtLj');
+  } catch (e) { /* handled on submit */ }
 
-// Handle feedback form submission with inline status, no browser dialogs.
-document.getElementById('feedbackForm').addEventListener('submit', function(e) {
-e.preventDefault();
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
 
-const form = this;
-const btn = form.querySelector('button');
-const status = document.getElementById('feedbackStatus');
-btn.disabled = true;
-btn.textContent = 'Sending...';
-status.textContent = '';
-status.className = 'form-status';
+    if (!window.emailjs) {
+      showStatus('The feedback service did not load. Please email us directly instead.', false);
+      return;
+    }
 
-emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
-  .then(() => {
-    form.reset();
-    status.textContent = 'Thanks! Your feedback is on its way.';
-    status.className = 'form-status ok';
-    setTimeout(function () {
-      status.textContent = '';
-      status.className = 'form-status';
-    }, 6000);
-  }, (error) => {
-    status.textContent = 'That did not send. Please try again, or email us directly.';
-    status.className = 'form-status error';
-    console.error('Error:', error);
-  })
-  .finally(() => {
-    btn.disabled = false;
-    btn.textContent = 'Submit Feedback';
+    var btn = form.querySelector('button');
+    status.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    function done() {
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
+    }
+
+    emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
+      .then(function () {
+        form.reset();
+        showStatus('Thanks! Your feedback was sent.', true);
+        done();
+      }, function (error) {
+        showStatus('Something went wrong and your feedback was not sent. Please try again, or email us directly.', false);
+        console.error('Error:', error);
+        done();
+      });
   });
-});
-    </script>
+})();
+</script>
+
 <script src="auth.js"></script>
 <script src="sanitize.js"></script>
 <script src="gate.js"></script>
 <script src="api.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  var isGenerating = false;
+  var lastCaseText = '';
+  var lastCaseTopic = '';
+  var hasCase = false;
+
+  // Plan state. Everything starts as free and locked; pfMe unlocks Premium.
+  var planPremium = false;
+  var meInfo = null;
+  // What the user (or a restored stash) asked for; only sent when Premium.
+  var desiredContentions = 2;
+
+  var selectedSide = '';
+  var selectedSkill = 'high';
+
+  var topicEl = document.getElementById('topic');
+  var sliderEl = document.getElementById('contentions');
+  var lockedNoteEl = document.getElementById('contentionsLockedNote');
+  var generateBtn = document.getElementById('generateButton');
+  var quotaWrap = document.getElementById('quotaWrap');
+  var quotaFill = document.getElementById('quotaFill');
+  var quotaLabel = document.getElementById('quotaLabel');
+  var quotaNote = document.getElementById('quotaNote');
+  var actionsEl = document.getElementById('caseActions');
+  var outputNoteEl = document.getElementById('outputNote');
+  var caseColumn = document.getElementById('caseColumn');
+  var fullscreenBtn = document.getElementById('fullscreenButton');
+
+  // ---- output panel states --------------------------------------------------
+  var STATES = ['stateEmpty', 'stateLoading', 'stateError', 'stateDone'];
+  function showState(name) {
+    for (var i = 0; i < STATES.length; i++) {
+      document.getElementById(STATES[i]).hidden = STATES[i] !== name;
+    }
+    actionsEl.hidden = !(name === 'stateDone' && hasCase);
+  }
+
+  function showFormError(message) {
+    var el = document.getElementById('formError');
+    el.textContent = message;
+    el.hidden = false;
+  }
+  function clearFormError() {
+    var el = document.getElementById('formError');
+    el.textContent = '';
+    el.hidden = true;
+  }
+
+  function showOutputError(message) {
+    document.getElementById('errorMsg').textContent = message;
+    showState('stateError');
+  }
+
+  var SOURCES_MISSING_NOTE = 'Your case is below. We could not attach sources this time, so add your own evidence before you use it.';
+
+  // Adds a line above the case without clearing what is already rendered.
+  function showOutputNote(message) {
+    outputNoteEl.textContent = message;
+    outputNoteEl.hidden = false;
+  }
+  function clearOutputNote() {
+    outputNoteEl.textContent = '';
+    outputNoteEl.hidden = true;
+  }
+
+  // The µ markers and ** are stripped by /get_sources server-side. On the
+  // sources-failed path that cleanup never runs, so do it here for both paths:
+  // this text is what the student copies out.
+  function renderCase(text) {
+    var cleaned = String(text == null ? '' : text).replace(/µ/g, '').replace(/\*\*/g, '');
+    document.getElementById('Output').innerHTML = '<p>' + pfSanitize(cleaned) + '</p>';
+    document.getElementById('caseResolution').textContent = lastCaseTopic;
+    lastCaseText = cleaned;
+    hasCase = true;
+    showState('stateDone');
+  }
+
+  // ---- plan + quota UI ------------------------------------------------------
+  function currentMonthUTC() {
+    var d = new Date();
+    var m = d.getUTCMonth() + 1;
+    return d.getUTCFullYear() + '-' + (m < 10 ? '0' + m : '' + m);
+  }
+
+  function quotaData() {
+    var limit = 5;
+    var used = 0;
+    if (meInfo && meInfo.limits && typeof meInfo.limits.casesPerMonth === 'number') {
+      limit = meInfo.limits.casesPerMonth;
+    }
+    if (meInfo && meInfo.usage && typeof meInfo.usage.casesGenerated === 'number' &&
+        meInfo.usage.month === currentMonthUTC()) {
+      used = meInfo.usage.casesGenerated;
+    }
+    return { limit: limit, used: used, left: Math.max(0, limit - used) };
+  }
+
+  // Free: locked and dimmed at 2. Premium: slider live 1-3.
+  function applyPlanUI() {
+    if (planPremium) {
+      sliderEl.disabled = false;
+      sliderEl.value = String(desiredContentions);
+      lockedNoteEl.hidden = true;
+    } else {
+      sliderEl.disabled = true;
+      sliderEl.value = '2';
+      lockedNoteEl.hidden = false;
+    }
+  }
+
+  function outOfCases() {
+    return !planPremium && quotaData().left === 0;
+  }
+
+  function updateQuotaUI() {
+    if (planPremium) {
+      quotaWrap.hidden = true;
+      generateBtn.classList.remove('out-of-quota');
+      if (!isGenerating && !generateBtn.dataset.pfCooldown) generateBtn.disabled = false;
+      return;
+    }
+    var q = quotaData();
+    quotaWrap.hidden = false;
+    quotaFill.style.width = Math.round((q.left / q.limit) * 100) + '%';
+    quotaFill.classList.remove('is-low', 'is-empty');
+    quotaLabel.classList.remove('is-empty');
+    if (q.left === 0) {
+      quotaFill.classList.add('is-empty');
+      quotaLabel.classList.add('is-empty');
+      quotaNote.textContent = 'You have used all your free cases this month. They reset on the 1st, or upgrade to Premium for unlimited cases.';
+    } else {
+      if (q.left <= 1) quotaFill.classList.add('is-low');
+      quotaNote.textContent = 'Free plan includes ' + q.limit + ' cases a month. Resets on the 1st.';
+    }
+    quotaLabel.textContent = q.left + ' of ' + q.limit + ' left';
+    if (q.left === 0) {
+      generateBtn.classList.add('out-of-quota');
+      generateBtn.disabled = true;
+    } else {
+      generateBtn.classList.remove('out-of-quota');
+      if (!isGenerating && !generateBtn.dataset.pfCooldown) generateBtn.disabled = false;
+    }
+  }
+
+  function applyMe(me) {
+    if (!me) return;
+    meInfo = me;
+    planPremium = me.premium === true || me.plan === 'premium';
+    applyPlanUI();
+    updateQuotaUI();
+  }
+
+  document.addEventListener('pfai:me', function (e) { applyMe(e.detail); });
+  if (window.pfMe) {
+    pfMe().then(function (me) { if (me) applyMe(me); }).catch(function () {});
+  }
+
+  // ---- brief controls -------------------------------------------------------
+  function wireGroup(selector, attr, onPick) {
+    var buttons = document.querySelectorAll(selector);
+    for (var i = 0; i < buttons.length; i++) {
+      (function (btn) {
+        btn.addEventListener('click', function () {
+          for (var j = 0; j < buttons.length; j++) buttons[j].setAttribute('aria-pressed', 'false');
+          btn.setAttribute('aria-pressed', 'true');
+          onPick(btn.getAttribute(attr));
+        });
+      })(buttons[i]);
+    }
+  }
+  wireGroup('.cw-opt[data-side]', 'data-side', function (v) { selectedSide = v; });
+  wireGroup('.cw-opt[data-skill]', 'data-skill', function (v) { selectedSkill = v; });
+
+  function pressButton(selector) {
+    var btn = document.querySelector(selector);
+    if (btn) btn.click();
+  }
+
+  sliderEl.addEventListener('input', function () {
+    if (!sliderEl.disabled) desiredContentions = Number(sliderEl.value) || 2;
+  });
+
+  // The value the request carries. Free plans always send '2', even if a
+  // stale pending stash restored something else into desiredContentions.
+  function currentContentions() {
+    return planPremium ? String(desiredContentions) : '2';
+  }
+
+  // ---- generate flow --------------------------------------------------------
+  async function generateCase() {
+    if (isGenerating) return;
+    clearFormError();
+
+    var topic = topicEl.value.trim();
+    var side = selectedSide;
+    var skill = selectedSkill;
+    var contentions = currentContentions();
+
+    if (!topic) {
+      showFormError('Enter the full resolution first.');
+      return;
+    }
+    if (!side) {
+      showFormError('Pick a side to argue before generating.');
+      return;
+    }
+
+    // Generating costs money; the typed form state survives the login trip.
+    if (window.pfGate) {
+      var ok = await pfGate.requireAuth({
+        page: 'casewriter',
+        saveState: function () {
+          return { topic: topic, side: side, skillLevel: skill, contentions: contentions };
+        }
+      });
+      if (!ok) return;
+    }
+
+    isGenerating = true;
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Generating…';
+    hasCase = false;
+    lastCaseText = '';
+    lastCaseTopic = topic;
+    clearOutputNote();
+    document.getElementById('loadingSub').textContent = 'About 15 seconds. Sources are pulled after the draft.';
+    showState('stateLoading');
+
+    // Tracks whether the case itself arrived, so a failure in the
+    // sources call is reported as a partial success rather than a loss.
+    var caseRendered = false;
+    // Refresh the cached /me after anything that moved the monthly quota.
+    var quotaTouched = false;
+
+    try {
+      var response1 = await pfFetch('/generate_ai_casewriter', {
+        json: {
+          debateTopic: topic,
+          nonselectedSide: side,
+          selectedSkill: skill,
+          contentions: contentions
+        }
+      }, { page: 'casewriter', button: generateBtn, label: 'Generate case' });
+      quotaTouched = true;
+
+      var data1 = await response1.json();
+      var AICase = data1.AICase;
+
+      // Show the case the moment it exists. Sources are an upgrade on
+      // top of it, not a condition for showing it.
+      renderCase(AICase);
+      caseRendered = true;
+
+      // Real linked sources are a Premium feature server-side; free cases
+      // ship with simulated evidence already baked in, so skip the call.
+      if (planPremium) {
+        showOutputNote('Finding sources (about 10 seconds)');
+
+        var response2 = await pfFetch('/get_sources', {
+          json: { AICase: AICase }
+        }, { page: 'casewriter', button: generateBtn, label: 'Generate case', noUpsell: true });
+
+        var data2 = await response2.json();
+
+        // Replace the case with the sourced version, but never with an
+        // empty one: the case already on screen is worth more.
+        if (data2 && typeof data2.AICase === 'string' && data2.AICase.trim()) {
+          clearOutputNote();
+          renderCase(data2.AICase);
+        } else {
+          showOutputNote(SOURCES_MISSING_NOTE);
+        }
+      }
+    } catch (error) {
+      console.error('Error processing user input:', error);
+      if (error && error.code === 'quota_exhausted') quotaTouched = true;
+      if (caseRendered) {
+        showOutputNote(SOURCES_MISSING_NOTE);
+      } else if (error && error.code === 'network') {
+        showOutputError('We could not reach the server. Check your connection, then hit Generate case again.');
+      } else if (error && error.code === 'auth_required') {
+        showOutputError('Please sign in, then hit Generate case again.');
+      } else if (error && error.code === 'rate_limited') {
+        showOutputError('The generator needs a short break. Wait for the timer on the button, then try again.');
+      } else if (error && error.code === 'quota_exhausted') {
+        showOutputError('You have used all your free cases this month. They reset on the 1st, or upgrade to Premium for unlimited cases.');
+      } else if (error && error.code === 'plan_required') {
+        // The upsell modal already explains the gate.
+        showState('stateEmpty');
+      } else {
+        showOutputError('Something went wrong while writing your case. Hit Generate case to try again.');
+      }
+    } finally {
+      if (!generateBtn.dataset.pfCooldown) {
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate case';
+      }
+      isGenerating = false;
+      if (quotaTouched && window.pfMe) {
+        try {
+          pfMeInvalidate();
+          pfMe({ fresh: true }).catch(function () {});
+        } catch (e) {}
+      }
+      updateQuotaUI();
+    }
+  }
+
+  generateBtn.addEventListener('click', generateCase);
+
+  // ---- refill the form after the login round trip ---------------------------
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!window.pfGate) return;
+    var fields = pfGate.restorePending('casewriter');
+    if (!fields) return;
+    if (fields.topic) topicEl.value = fields.topic;
+    if (fields.side === 'Affirmative') pressButton('.cw-opt[data-side="Affirmative"]');
+    if (fields.side === 'Negative') pressButton('.cw-opt[data-side="Negative"]');
+    if (fields.skillLevel === 'high') pressButton('.cw-opt[data-skill="high"]');
+    if (fields.skillLevel === 'middle') pressButton('.cw-opt[data-skill="middle"]');
+    if (['1', '2', '3'].indexOf(String(fields.contentions)) !== -1) {
+      // Held as intent only; the slider and the request stay at 2 unless
+      // Premium unlocks them.
+      desiredContentions = Number(fields.contentions);
+      applyPlanUI();
+    }
+  });
+
+  // ---- case actions ----------------------------------------------------------
+  document.getElementById('copyButton').addEventListener('click', function () {
+    var btn = this;
+    var text = lastCaseText;
+    if (!text.trim()) return;
+    function confirmCopy(label) {
+      btn.textContent = label;
+      setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () { confirmCopy('Copied!'); },
+        function () { confirmCopy('Copy failed'); }
+      );
+    } else {
+      confirmCopy('Copy failed');
+    }
+  });
+
+  document.getElementById('downloadButton').addEventListener('click', function () {
+    if (!lastCaseText.trim()) return;
+    var text = (lastCaseTopic ? lastCaseTopic + '\n\n' : '') + lastCaseText;
+    var url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'pf-case.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  function setFullscreen(on) {
+    caseColumn.classList.toggle('is-fullscreen', on);
+    fullscreenBtn.textContent = on ? 'Exit full screen' : 'Full screen';
+  }
+  fullscreenBtn.addEventListener('click', function () {
+    setFullscreen(!caseColumn.classList.contains('is-fullscreen'));
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && caseColumn.classList.contains('is-fullscreen')) setFullscreen(false);
+  });
+
+  // Initial paint: free defaults until /me says otherwise.
+  applyPlanUI();
+  updateQuotaUI();
+  showState('stateEmpty');
+})();
+</script>
 </body>
 </html>

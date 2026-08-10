@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com; media-src 'self' blob:; connect-src 'self' https://pf-ai-debater-24c5902c1a88.herokuapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.emailjs.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://apis.google.com https://publicforumai.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.emailjs.com"/>
+<meta name="referrer" content="strict-origin-when-cross-origin"/>
+<script>
+/* Clickjacking guard. frame-ancestors is ignored in <meta> and GitHub Pages
+   cannot send X-Frame-Options, so hide the page first, then try to break out. */
+if (self !== top) { document.documentElement.style.display = 'none'; try { top.location = self.location; } catch (e) {} }
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
+</script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pricing | PublicForumAI</title>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<link rel="stylesheet" href="toolbar.css"/>
+<link rel="stylesheet" href="pf-theme.css"/>
+<script>
+/* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
+(function () {
+  var snap = null;
+  try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
+  if (!snap || !snap.uid) return;
+  document.documentElement.classList.add('pfai-signed-in');
+  var painted = false;
+  function paint() {
+    if (painted) return;
+    var slot = document.getElementById('authSlot');
+    if (!slot) return;
+    painted = true;
+    obs.disconnect();
+    var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
+    var initials = name.slice(0, 2).toUpperCase() || '?';
+    var premium = snap.plan === 'premium';
+    var planLabel = premium ? 'Premium' : 'Free plan';
+    slot.innerHTML = '<div class="user-menu-wrap">' +
+      '<button class="pf-avatar-btn' + (premium ? ' premium' : '') + '" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span class="pf-avatar-initials"></span>' +
+      (premium ? '<span class="pf-avatar-star">★</span>' : '') +
+      '</button></div>';
+    slot.querySelector('.pf-avatar-initials').textContent = initials;
+    slot.querySelector('.pf-avatar-btn').title = name + ' · ' + planLabel;
+    var myRounds = document.querySelectorAll('a[data-nav="myrounds"]');
+    for (var i = 0; i < myRounds.length; i++) myRounds[i].setAttribute('href', 'rounds.html');
+  }
+  var obs = new MutationObserver(paint);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('DOMContentLoaded', paint);
+})();
+</script>
+<style>
+/* Pricing page. Values match design/Pricing.dc.html; pf-theme tokens are used
+   where a token exists for the exact design value. */
+.pricing-shell {
+  min-height: 100vh;
+  background: var(--pf-bg);
+  display: flex;
+  flex-direction: column;
+}
+.pricing-main {
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 64px 28px 0;
+  flex: 1;
+}
+
+/* Hero */
+.pricing-hero {
+  text-align: center;
+  max-width: 36em;
+  margin: 0 auto;
+}
+.pricing-hero h1 {
+  margin: 0;
+  font-size: 42px;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+  color: var(--pf-heading);
+  text-wrap: balance;
+}
+.pricing-hero p {
+  margin: 18px 0 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: #9FC4E2;
+}
+
+/* Plan cards */
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 18px;
+  margin-top: 46px;
+  align-items: stretch;
+}
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.plan-card--free {
+  background: var(--pf-surface-sunken);
+  border: 1px solid #1C3E63;
+}
+.plan-card--premium {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border-strong);
+}
+.plan-head {
+  padding: 26px 26px 22px;
+}
+.plan-card--free .plan-head { border-bottom: 1px solid #14304F; }
+.plan-card--premium .plan-head { border-bottom: 1px solid #1C3E63; }
+.plan-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  min-height: 24px;
+}
+.plan-name-row h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.plan-card--free .plan-name-row h2 { color: #DCEEFB; }
+.plan-card--premium .plan-name-row h2 { color: var(--pf-heading); }
+.plan-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--pf-accent);
+  color: #062038;
+  font-size: 12px;
+  line-height: 1;
+}
+.plan-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.plan-price {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+.plan-card--free .plan-price { color: #DCEEFB; }
+.plan-card--premium .plan-price { color: var(--pf-heading); }
+.plan-per { font-size: 14px; }
+.plan-card--free .plan-per, .plan-card--free .plan-blurb { color: #8FB6D4; }
+.plan-card--premium .plan-per, .plan-card--premium .plan-blurb { color: var(--pf-text-2); }
+.plan-blurb {
+  margin: 12px 0 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  max-width: 26em;
+}
+.plan-features {
+  flex: 1;
+  padding: 22px 26px 26px;
+}
+.plan-feature {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+.plan-feature .dot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-top: 8px;
+  flex: none;
+}
+.plan-card--free .plan-feature .dot { background: #4E7BA0; }
+.plan-card--premium .plan-feature .dot { background: var(--pf-accent); }
+.plan-feature span:last-child {
+  font-size: 14.5px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.plan-card--free .plan-feature span:last-child { color: #9FC4E2; }
+.plan-card--premium .plan-feature span:last-child { color: #C5DCF0; }
+.plan-cta-wrap { padding: 0 26px 26px; }
+.plan-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  height: 46px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--pf-font);
+  text-decoration: none;
+  cursor: pointer;
+}
+.plan-cta--free {
+  background: transparent;
+  border: 1px solid #2F5A85;
+  color: #DCEEFB;
+}
+.plan-cta--premium {
+  background: var(--pf-blue);
+  border: 1px solid var(--pf-selected-border);
+  color: var(--pf-heading);
+}
+.plan-cta:hover { border-color: var(--pf-accent); }
+.plan-cta--current {
+  background: transparent;
+  border: 1px solid #2F5A85;
+  color: var(--pf-text-muted);
+  cursor: default;
+}
+.plan-cta--current:hover { border-color: #2F5A85; }
+
+/* Comparison table */
+.compare-section { margin-top: 64px; }
+.compare-section h2, .faq-section h2 {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--pf-heading);
+}
+.compare-table {
+  background: var(--pf-surface-sunken);
+  border: 1px solid #1C3E63;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.compare-head, .compare-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+.compare-head {
+  background: var(--pf-surface);
+  border-bottom: 1px solid #1C3E63;
+}
+.compare-head .feature-col {
+  padding: 13px 20px;
+  font-family: var(--pf-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pf-text-muted);
+}
+.compare-head .plan-col {
+  padding: 13px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #DCEEFB;
+  text-align: center;
+  border-left: 1px solid #1C3E63;
+}
+.compare-row { border-bottom: 1px solid #14304F; }
+.compare-row:last-child { border-bottom: none; }
+.compare-row .row-label {
+  padding: 14px 20px;
+  font-size: 14.5px;
+  color: #C5DCF0;
+}
+.compare-row .row-cell {
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: #DCEEFB;
+  text-align: center;
+  border-left: 1px solid #14304F;
+}
+.compare-row .row-cell--off { color: #5E86AB; }
+
+/* Billing questions */
+.faq-section {
+  margin-top: 64px;
+  padding-bottom: 80px;
+}
+.faq-list { border-top: 1px solid #1C3E63; }
+.faq-item {
+  padding: 20px 0;
+  border-bottom: 1px solid #1C3E63;
+}
+.faq-item h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #DCEEFB;
+}
+.faq-item p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: #9FC4E2;
+  max-width: 48em;
+  text-wrap: pretty;
+}
+
+/* Contact modal (Premium rollout) */
+#contactModal[hidden] { display: none; }
+.contact-modal-alt {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: #9FC4E2;
+}
+.contact-modal-alt button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--pf-accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.contact-modal-alt button:hover { color: #BAE6FD; }
+
+/* Graceful degradation on narrow screens */
+@media (max-width: 640px) {
+  .pricing-main { padding: 44px 20px 0; }
+  .pricing-hero h1 { font-size: 34px; }
+  .compare-head .feature-col, .compare-row .row-label { padding-left: 12px; padding-right: 12px; }
+  .compare-head .plan-col, .compare-row .row-cell { padding-left: 8px; padding-right: 8px; }
+}
+</style>
+</head>
+<body class="pf-page">
+<nav class="toolbar">
+  <a class="logo" href="index.html">
+    <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+    <span class="logo-text">PublicForumAI</span>
+  </a>
+  <div class="nav-links">
+    <a href="flower.html">Flow</a>
+    <a href="casewriter.html">Casewriter</a>
+    <a href="setup.html">Practice Round</a>
+    <a href="login.html?next=%2Frounds.html" data-nav="myrounds">My Rounds</a>
+    <a href="modules.html">Training</a>
+    <a href="pricing.html" aria-current="page">Pricing</a>
+  </div>
+  <div id="authSlot"><a href="login.html?next=%2Fpricing.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+</nav>
+
+<div class="pricing-shell">
+  <main class="pricing-main">
+    <div class="pricing-hero">
+      <h1>Free to practice. $9.99 a month for unlimited.</h1>
+      <p>Flowing, casewriting, and the training modules are free for every debater. In order to keep it that way, we added premium, which removes the round limit and puts real, linked evidence in your rounds.</p>
+    </div>
+
+    <div class="plan-grid">
+      <div class="plan-card plan-card--free">
+        <div class="plan-head">
+          <div class="plan-name-row">
+            <h2>Free</h2>
+          </div>
+          <div class="plan-price-row">
+            <span class="plan-price">$0</span>
+            <span class="plan-per">forever</span>
+          </div>
+          <p class="plan-blurb">Everything a debater needs to prepare on their own.</p>
+        </div>
+        <div class="plan-features">
+          <div class="plan-feature"><span class="dot"></span><span>3 full practice rounds a month</span></div>
+          <div class="plan-feature"><span class="dot"></span><span>Unlimited AI Flow drills</span></div>
+          <div class="plan-feature"><span class="dot"></span><span>AI Casewriter, middle and high school</span></div>
+          <div class="plan-feature"><span class="dot"></span><span>All 15 training modules</span></div>
+          <div class="plan-feature"><span class="dot"></span><span>Tech and lay judge feedback</span></div>
+        </div>
+        <div class="plan-cta-wrap" id="freeCtaWrap">
+          <a class="plan-cta plan-cta--free" id="freeCta" href="login.html?next=%2Fpricing.html">Create an account</a>
+        </div>
+      </div>
+
+      <div class="plan-card plan-card--premium">
+        <div class="plan-head">
+          <div class="plan-name-row">
+            <h2>Premium</h2>
+            <span class="plan-star" title="Most picked">★</span>
+          </div>
+          <div class="plan-price-row">
+            <span class="plan-price">$9.99</span>
+            <span class="plan-per">per month</span>
+          </div>
+          <p class="plan-blurb">For debaters in season who run rounds every week.</p>
+        </div>
+        <div class="plan-features">
+          <div class="plan-feature"><span class="dot"></span><span>Unlimited practice rounds</span></div>
+          <div class="plan-feature"><span class="dot"></span><span>Real sources in your rounds: genuine evidence with working links</span></div>
+          <div class="plan-feature"><span class="dot"></span><span>Unlimited case generation</span></div>
+          <div class="plan-feature"><span class="dot"></span><span>Every round and ballot kept</span></div>
+          <div class="plan-feature"><span class="dot"></span><span>Everything in Free</span></div>
+        </div>
+        <div class="plan-cta-wrap">
+          <a class="plan-cta plan-cta--premium" id="premiumCta" href="login.html?next=%2Fpricing.html">Upgrade to Premium</a>
+        </div>
+      </div>
+    </div>
+
+    <section class="compare-section">
+      <h2>What each plan includes</h2>
+      <div class="compare-table">
+        <div class="compare-head">
+          <span class="feature-col">Feature</span>
+          <span class="plan-col">Free</span>
+          <span class="plan-col">Premium</span>
+        </div>
+        <div class="compare-row">
+          <span class="row-label">Full AI practice rounds</span>
+          <span class="row-cell">3 / month</span>
+          <span class="row-cell">Unlimited</span>
+        </div>
+        <div class="compare-row">
+          <span class="row-label">Real sourced evidence with links</span>
+          <span class="row-cell row-cell--off">–</span>
+          <span class="row-cell">Yes</span>
+        </div>
+        <div class="compare-row">
+          <span class="row-label">AI Flow drills</span>
+          <span class="row-cell">Unlimited</span>
+          <span class="row-cell">Unlimited</span>
+        </div>
+        <div class="compare-row">
+          <span class="row-label">Generated cases</span>
+          <span class="row-cell">5 / month</span>
+          <span class="row-cell">Unlimited</span>
+        </div>
+        <div class="compare-row">
+          <span class="row-label">Training modules</span>
+          <span class="row-cell">All 15</span>
+          <span class="row-cell">All 15</span>
+        </div>
+        <div class="compare-row">
+          <span class="row-label">Tech and lay judge feedback</span>
+          <span class="row-cell">Yes</span>
+          <span class="row-cell">Yes</span>
+        </div>
+        <div class="compare-row">
+          <span class="row-label">Saved rounds and ballots</span>
+          <span class="row-cell">30 days</span>
+          <span class="row-cell">Kept</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section">
+      <h2>Billing questions</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <h3>What does "real sources" mean?</h3>
+          <p>In Premium rounds the AI argues from genuine retrieved evidence and gives you the link for each card, so you can open the source, read it in context, and cut it yourself. Free rounds still run the full format, but the AI argues without attached citations.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Will the free tools ever go away?</h3>
+          <p>No. Flowing, casewriting, and the training modules stay free. Premium exists for debaters who run rounds constantly and want sourced evidence.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Can I cancel anytime?</h3>
+          <p>Yes. Cancel whenever and you keep Premium until the end of the billing period, then fall back to the free plan. Rounds you already saved stay in your account.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Is this allowed in real rounds?</h3>
+          <p>These tools are for practice. Cases and evidence generated here should be verified and cut by you before they go anywhere near a live round.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pf-footer">
+    <div class="pf-footer-cols">
+      <div class="pf-footer-brand">
+        <a class="pf-footer-logo" href="index.html">
+          <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+          <span>PublicForumAI</span>
+        </a>
+        <p class="pf-footer-tag">Empowering debaters through AI</p>
+      </div>
+      <div class="pf-footer-contact">
+        <h4>Contact Us</h4>
+        <a class="pf-footer-email" href="mailto:support@publicforumai.com">support@publicforumai.com</a>
+        <div class="pf-footer-or"><span></span><span class="pf-footer-or-label">OR</span><span></span></div>
+        <form id="feedbackForm" class="pf-footer-form">
+          <input name="from_email" placeholder="Your email" required="" type="email"/>
+          <textarea name="message" placeholder="Your feedback" required="" rows="3"></textarea>
+          <button type="submit">Submit Feedback</button>
+          <p class="pf-form-status" id="feedbackStatus" role="status" hidden></p>
+        </form>
+      </div>
+      <div class="pf-footer-social">
+        <h4>Follow Us</h4>
+        <div class="pf-footer-links">
+          <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="https://www.youtube.com/@PublicForumAI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" rel="noopener">Reddit</a>
+        </div>
+      </div>
+    </div>
+    <div class="pf-footer-bottom-wrap">
+      <div class="pf-footer-bottom">
+        <span>© 2026 PublicForumAI. All rights reserved.</span>
+        <span>Not for use in live rounds.</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<div class="pf-modal-backdrop" id="contactModal" hidden>
+  <div class="pf-modal pf-upsell" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle">
+    <div class="pf-upsell-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+    </div>
+    <h2 class="pf-upsell-title" id="contactModalTitle">Premium is rolling out</h2>
+    <p class="pf-upsell-body">We are setting up Premium accounts by hand while billing is finished. Email us at <a href="mailto:support@publicforumai.com">support@publicforumai.com</a> and we will get you upgraded.</p>
+    <div class="pf-upsell-actions">
+      <button type="button" class="pf-btn-ghost" id="contactModalClose">Not now</button>
+      <a class="pf-btn-primary" href="mailto:support@publicforumai.com">Email support</a>
+    </div>
+    <p class="contact-modal-alt">Or <button type="button" id="contactModalFormLink">use the feedback form</button> at the bottom of this page.</p>
+  </div>
+</div>
+
+<script>
+// Feedback form: inline status messages, no dialogs.
+(function () {
+  var form = document.getElementById('feedbackForm');
+  var status = document.getElementById('feedbackStatus');
+  if (!form || !status) return;
+
+  function showStatus(message, ok) {
+    status.textContent = message;
+    status.classList.remove('ok', 'err');
+    status.classList.add(ok ? 'ok' : 'err');
+    status.hidden = false;
+  }
+
+  try {
+    if (window.emailjs) emailjs.init('wgsczkr19C1FrKtLj');
+  } catch (e) { /* handled on submit */ }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!window.emailjs) {
+      showStatus('The feedback service did not load. Please email us directly instead.', false);
+      return;
+    }
+
+    var btn = form.querySelector('button');
+    status.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    function done() {
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
+    }
+
+    emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
+      .then(function () {
+        form.reset();
+        showStatus('Thanks! Your feedback was sent.', true);
+        done();
+      }, function (error) {
+        showStatus('Something went wrong and your feedback was not sent. Please try again, or email us directly.', false);
+        console.error('Error:', error);
+        done();
+      });
+  });
+})();
+</script>
+
+<script src="auth.js"></script>
+<script src="sanitize.js"></script>
+<script src="gate.js"></script>
+<script src="api.js"></script>
+<script>
+// Plan-aware CTAs. Signed out: both CTAs go to login.html (default markup).
+// Signed-in free: Free card shows a current-plan state and the Premium CTA
+// opens the honest rollout contact modal. Premium: the Premium card shows the
+// current-plan state and the Free CTA is hidden. Snapshot paints first (plan
+// may be stale); pfMe() reconciles.
+(function () {
+  var freeCtaWrap = document.getElementById('freeCtaWrap');
+  var premiumCta = document.getElementById('premiumCta');
+  var modal = document.getElementById('contactModal');
+  var modalClose = document.getElementById('contactModalClose');
+  var modalFormLink = document.getElementById('contactModalFormLink');
+
+  function openModal() {
+    modal.hidden = false;
+    modalClose.focus();
+  }
+  function closeModal() {
+    modal.hidden = true;
+  }
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
+  modalFormLink.addEventListener('click', function () {
+    closeModal();
+    var form = document.getElementById('feedbackForm');
+    if (!form) return;
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var email = form.querySelector('input[name="from_email"]');
+    if (email) setTimeout(function () { email.focus({ preventScroll: true }); }, 400);
+  });
+
+  function currentPlanEl() {
+    var el = document.createElement('span');
+    el.className = 'plan-cta plan-cta--current';
+    el.setAttribute('aria-disabled', 'true');
+    el.textContent = 'Your current plan';
+    return el;
+  }
+
+  var applied = null;
+  function applyPlan(plan) {
+    if (plan === applied) return;
+    applied = plan;
+    if (plan === 'premium') {
+      freeCtaWrap.style.display = 'none';
+      var current = currentPlanEl();
+      current.id = 'premiumCta';
+      premiumCta.replaceWith(current);
+      premiumCta = current;
+    } else {
+      // Signed-in free user.
+      freeCtaWrap.style.display = '';
+      var freeCurrent = currentPlanEl();
+      freeCurrent.id = 'freeCta';
+      document.getElementById('freeCta').replaceWith(freeCurrent);
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'plan-cta plan-cta--premium';
+      btn.id = 'premiumCta';
+      btn.textContent = 'Upgrade to Premium';
+      btn.addEventListener('click', openModal);
+      premiumCta.replaceWith(btn);
+      premiumCta = btn;
+    }
+  }
+
+  var snap = null;
+  try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
+  if (!snap || !snap.uid) return; // signed out: keep login links
+
+  applyPlan(snap.plan === 'premium' ? 'premium' : 'free');
+
+  document.addEventListener('pfai:me', function (e) {
+    var me = e.detail;
+    if (me) applyPlan(me.plan === 'premium' ? 'premium' : 'free');
+  });
+  if (window.pfMe) pfMe().catch(function () { /* snapshot state stands */ });
+})();
+</script>
+</body>
+</html>

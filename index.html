@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -12,23 +11,25 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 </script>
 
 <!-- Google tag (gtag.js) -->
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
 <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-ERE3HL6LKB');
-    </script>
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
+</script>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Free AI Tools for Public Forum Debate | PublicForumAI</title>
 <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
 <link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="/site.webmanifest" rel="manifest"/>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <link rel="stylesheet" href="toolbar.css"/>
+<link rel="stylesheet" href="pf-theme.css"/>
 <script>
 /* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
 (function () {
@@ -44,1269 +45,733 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     painted = true;
     obs.disconnect();
     var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
-    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
-    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
-    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
-      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
-    slot.querySelector('.user-avatar-initials').textContent = initials;
-    slot.querySelector('.user-name').textContent = '@' + name;
+    var initials = name.slice(0, 2).toUpperCase() || '?';
+    var premium = snap.plan === 'premium';
+    var planLabel = premium ? 'Premium' : 'Free plan';
+    slot.innerHTML = '<div class="user-menu-wrap">' +
+      '<button class="pf-avatar-btn' + (premium ? ' premium' : '') + '" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span class="pf-avatar-initials"></span>' +
+      (premium ? '<span class="pf-avatar-star">★</span>' : '') +
+      '</button></div>';
+    slot.querySelector('.pf-avatar-initials').textContent = initials;
+    slot.querySelector('.pf-avatar-btn').title = name + ' · ' + planLabel;
+    var myRounds = document.querySelectorAll('a[data-nav="myrounds"]');
+    for (var i = 0; i < myRounds.length; i++) myRounds[i].setAttribute('href', 'rounds.html');
   }
   var obs = new MutationObserver(paint);
   obs.observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener('DOMContentLoaded', paint);
 })();
 </script>
-<script>
-/* Progressive enhancement flag: scroll-reveal styles only apply when JS runs,
-   so no-JS visitors always see every section. */
-document.documentElement.classList.add('js');
-</script>
 <style>
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: linear-gradient(180deg, #75bfff, #0015a1, #5ab2ff, #0015a1, #012962, #000000);
-            text-align: center;
-            color: #e0f4ff;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ===== Hero ===== */
-        /* toolbar.css gives body 64px top padding for the fixed bar; the header's
-           own margin adds the rest of the breathing room (~96px effective). */
-        header {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 0 20px;
-            margin: 32px auto 40px;
-        }
-
-        header .hero-title {
-            display: block;
-            box-sizing: border-box;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 28px 24px;
-            text-align: center;
-            font-size: clamp(1.4rem, 2vw + 0.9rem, 2.5rem);
-            font-weight: 800;
-            line-height: 1.25;
-            letter-spacing: 0.2px;
-            color: #c8e7ff;
-            background: linear-gradient(145deg, rgba(10, 35, 66, 0.9), rgba(10, 35, 66, 0.6)) padding-box,
-                        linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb) border-box;
-            border: 3px solid transparent;
-            border-radius: 16px;
-            box-shadow: 0 0 30px rgba(125, 211, 252, 0.18),
-                        inset 0 0 12px rgba(125, 211, 252, 0.08);
-            backdrop-filter: blur(6px);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-            text-wrap: pretty;
-        }
-
-        header .hero-title::after {
-            content: '';
-            display: block;
-            width: 150px;
-            height: 3px;
-            margin: 12px auto 0;
-            border-radius: 999px;
-            background: linear-gradient(90deg, #7dd3fc, rgba(125, 211, 252, 0));
-            opacity: 0.9;
-        }
-
-        @media (min-width: 1600px) {
-            header .hero-title { max-width: 1550px; }
-        }
-
-        @media (max-width: 768px) {
-            header {
-                margin: 26px auto 30px;
-            }
-
-            header .hero-title {
-                padding: 16px 14px;
-            }
-        }
-
-        /* ===== Scroll indicator ===== */
-        .scroll-indicator {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            animation: bounce 2s infinite;
-            color: #7dd3fc;
-            font-size: 2rem;
-            opacity: 0.9;
-            cursor: pointer;
-            z-index: 900;
-            transition: opacity 0.3s ease;
-        }
-
-        .scroll-indicator.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translate(-50%, 0); }
-            40% { transform: translate(-50%, -15px); }
-            60% { transform: translate(-50%, -7px); }
-        }
-
-        /* ===== Buttons container ===== */
-        .container {
-            position: relative;
-            box-sizing: border-box;
-            text-align: center;
-            padding: 40px 50px;
-            border-radius: 20px;
-            background: linear-gradient(180deg, #0a2342, #0d3a6a) padding-box,
-                        linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb) border-box;
-            border: 3px solid transparent;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(8px);
-            width: 90%;
-            max-width: 1000px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 28px 20px;
-            }
-        }
-
-        .container-note {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid #7dd3fc;
-            box-shadow: inset 0 0 30px rgba(125, 211, 252, 0.08);
-            border-radius: 12px;
-            padding: 16px 18px;
-            margin: 0 0 30px;
-            color: #cfeaff;
-        }
-
-        .container-note p {
-            margin: 0;
-            max-width: 720px;
-            line-height: 1.6;
-            font-size: 1rem;
-        }
-
-        .container-note .device-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 999px;
-            border: 1px solid rgba(252, 211, 77, 0.6);
-            background: rgba(120, 80, 0, 0.22);
-            font-size: 0.9rem;
-            color: #ffedc2;
-            text-align: center;
-        }
-
-        /* The pill warns small-screen users, so it hides on desktop, not on phones. */
-        @media (min-width: 1025px) {
-            .container-note .device-pill { display: none; }
-        }
-
-        .button-wrapper {
-            display: flex;
-            justify-content: space-between;
-            gap: clamp(20px, 4vw, 60px);
-            flex-wrap: nowrap;
-        }
-
-        .button {
-            box-sizing: border-box;
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            width: 250px;
-            min-height: 150px;
-            font-size: 1rem;
-            color: #fff;
-            background: linear-gradient(145deg, #0EA5E9, #0369A1);
-            border: 2px solid rgba(125, 211, 252, 0.8);
-            border-radius: 15px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.25);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 200%;
-            height: 100%;
-            background: linear-gradient(120deg, rgba(255, 255, 255, 0.1), transparent, rgba(255, 255, 255, 0.1));
-            transform: skewX(-45deg);
-            transition: all 0.4s ease;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .button:hover::before {
-            left: 100%;
-            transition: all 0.6s ease;
-        }
-
-        .button:hover {
-            background: linear-gradient(145deg, #0369A1, #075985);
-            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
-            transform: translateY(-3px);
-        }
-
-        .button span {
-            position: relative;
-            z-index: 2;
-        }
-
-        .button .title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            padding-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #e0f4ff;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .button .title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 2px;
-            background: #7AE7C7;
-            opacity: 0.6;
-            transition: all 0.3s ease;
-        }
-
-        .button:hover .title::after {
-            width: 60px;
-            opacity: 1;
-        }
-
-        .button .description {
-            font-size: 1rem;
-            color: #c0e4ff;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-            opacity: 0.9;
-            transition: opacity 0.2s ease;
-        }
-
-        .button:hover .description {
-            opacity: 1;
-        }
-
-        .button .note {
-            font-size: 0.9rem;
-            color: #c0e4ff;
-            font-style: italic;
-            margin-top: 8px;
-            opacity: 0.85;
-        }
-
-        /* Keep the page's big-button rules out of the toolbar's SIGN IN pill;
-           toolbar.css owns that geometry. */
-        nav.toolbar #authSlot .button.signin { min-height: 0; }
-        nav.toolbar #authSlot .button.signin .title { margin-bottom: 0; padding-bottom: 0; }
-        nav.toolbar #authSlot .button.signin .title::after { content: none; }
-
-        /* Featured button: same fill, gradient border, gentle pulse */
-        .button.full-ai {
-            border: 3px solid transparent;
-            background-image: linear-gradient(145deg, #0EA5E9, #0369A1),
-                              linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            color: #e0f4ff;
-            animation: gentle-glow 2s ease-in-out infinite;
-        }
-
-        .button.full-ai:hover {
-            background-image: linear-gradient(145deg, #0369A1, #075985),
-                              linear-gradient(135deg, #00f3ff, #7dd3fc, #2563eb);
-            box-shadow: 0 0 28px rgba(125, 211, 252, 0.35);
-            transform: translateY(-3px);
-        }
-
-        @keyframes gentle-glow {
-            0%, 100% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.2); }
-            50% { box-shadow: 0 0 35px rgba(59, 130, 246, 0.3); }
-        }
-
-        .button.full-ai .title {
-            animation: text-glow 2s ease-in-out infinite;
-        }
-
-        @keyframes text-glow {
-            0%, 100% { text-shadow: 0 0 10px rgba(125, 211, 252, 0.8); }
-            50% { text-shadow: 0 0 20px rgba(125, 211, 252, 1); }
-        }
-
-        /* New2Debate button (purple call-to-action) */
-        .button.orange {
-            background: linear-gradient(145deg, #7B68EE, #5A4FCF);
-            border: 2px solid #A78BFA;
-            box-shadow: 0 4px 20px rgba(123, 104, 238, 0.3);
-            width: min(500px, 90vw);
-            min-height: 0;
-            height: 50px;
-            padding: 0 16px;
-        }
-
-        .button.orange:hover {
-            background: linear-gradient(145deg, #5A4FCF, #483D8B);
-            box-shadow: 0 6px 25px rgba(123, 104, 238, 0.4);
-        }
-
-        .center-button {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-            box-sizing: border-box;
-            padding: 0 20px;
-            margin: 28px 0 80px;
-        }
-
-        @media (max-width: 768px) {
-            .button-wrapper {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 20px;
-            }
-
-            .button {
-                width: 100%;
-            }
-
-            .center-button {
-                margin: 24px 0 60px;
-            }
-        }
-
-        /* ===== Below-the-fold section ===== */
-        #ai-page {
-            position: relative;
-            box-sizing: border-box;
-            padding: 80px 20px;
-            background: #0A2342;
-            color: #e0e0e0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 20px;
-            overflow: hidden;
-            max-width: 95%;
-            margin: 20px auto;
-            scroll-margin-top: 80px;
-        }
-
-        @media (max-width: 768px) {
-            #ai-page {
-                padding: 50px 14px;
-            }
-        }
-
-        /* Scroll-reveal only when JS is running; otherwise everything is visible. */
-        @media (prefers-reduced-motion: no-preference) {
-            html.js #ai-page {
-                opacity: 0;
-                transform: translateY(50px);
-                transition: all 1s ease;
-            }
-
-            html.js #ai-page.active {
-                opacity: 1;
-                transform: translateY(0);
-            }
-
-            html.js .tutorial-section,
-            html.js .about-section,
-            html.js .mission-statement {
-                opacity: 0;
-                transform: translateY(30px);
-                transition: all 0.6s ease-out;
-            }
-
-            html.js .tutorial-section.visible,
-            html.js .about-section.visible,
-            html.js .mission-statement.visible {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .ai-content {
-            max-width: 1200px;
-            width: 90%;
-        }
-
-        .ai-logo {
-            width: 80px;
-            height: 80px;
-            filter: drop-shadow(0 0 15px rgba(125, 211, 252, 0.6));
-        }
-
-        /* Tutorial video */
-        .tutorial-section {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 20px;
-            background: rgba(10, 35, 66, 0.9);
-            border-radius: 15px;
-            border: 1px solid #7dd3fc;
-            margin: 0 auto 60px;
-        }
-
-        .tutorial-section h2 {
-            color: #7dd3fc;
-            font-size: 2rem;
-            margin: 0 0 20px;
-            text-align: center;
-        }
-
-        .video-wrapper {
-            width: 80%;
-            margin: 0 auto 10px;
-            aspect-ratio: 16 / 9;
-            border-radius: 10px;
-            border: 2px solid #7dd3fc;
-            overflow: hidden;
-            box-sizing: border-box;
-        }
-
-        .video-wrapper iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .video-wrapper {
-                width: 100%;
-            }
-        }
-
-        /* About */
-        .about-section {
-            box-sizing: border-box;
-            padding: 40px;
-            background: rgba(10, 35, 66, 0.95);
-            border-radius: 15px;
-            margin: 40px 0;
-        }
-
-        .about-section h2 {
-            color: #7dd3fc;
-            text-align: center;
-            font-size: 2.2rem;
-            margin-bottom: 40px;
-            text-shadow: 0 0 15px rgba(125, 211, 252, 0.3);
-        }
-
-        .about-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .about-card {
-            padding: 25px;
-            border-radius: 12px;
-            background: rgba(18, 54, 92, 0.8);
-            border: 1px solid #7dd3fc;
-            transition: transform 0.3s ease;
-        }
-
-        .about-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .about-card h3 {
-            color: #7dd3fc;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-
-        .about-card p {
-            color: #c0e4ff;
-            font-size: 1rem;
-            line-height: 1.6;
-        }
-
-        .center-card {
-            grid-column: 1 / -1;
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        @media (max-width: 768px) {
-            .about-section {
-                padding: 25px;
-            }
-
-            .about-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .about-card {
-                padding: 20px;
-            }
-
-            .center-card {
-                grid-column: auto;
-            }
-        }
-
-        /* FAQ */
-        .ai-faq h3 {
-            font-size: 1.8rem;
-            color: #2dd4bf;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .faq-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-        }
-
-        .faq-item {
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid #7AE7C7;
-            transition: transform 0.3s ease;
-        }
-
-        .faq-item:hover {
-            transform: translateY(-5px);
-        }
-
-        .faq-item h4 {
-            color: #7dd3fc;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-
-        .faq-item p {
-            line-height: 1.6;
-            font-size: 0.95rem;
-            color: #c0e4ff;
-        }
-
-        /* Mission */
-        .mission-statement {
-            text-align: center;
-            margin: 40px 0 60px;
-            padding: 30px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            background: rgba(10, 35, 66, 0.9);
-            border: 1px solid #7AE7C7;
-        }
-
-        .mission-statement h2 {
-            font-size: 2.2rem;
-            color: #7dd3fc;
-            margin-bottom: 25px;
-            text-shadow: 0 0 15px rgba(125, 211, 252, 0.4);
-        }
-
-        .mission-statement p {
-            font-size: 1.2rem;
-            line-height: 1.8;
-            max-width: 800px;
-            margin: 0 auto;
-            color: #e0f4ff;
-        }
-
-        @media (max-width: 768px) {
-            .mission-statement h2 {
-                font-size: 1.8rem;
-            }
-
-            .ai-faq h3 {
-                font-size: 1.5rem;
-            }
-
-            .faq-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Journey */
-        .journey-section {
-            box-sizing: border-box;
-            padding: 40px;
-            background: rgba(10, 35, 66, 0.95);
-            border-radius: 15px;
-            margin: 40px 0;
-            border: 1px solid #7AE7C7;
-            position: relative;
-        }
-
-        .journey-content {
-            display: flex;
-            gap: 40px;
-            align-items: flex-start;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .text-content {
-            flex: 1;
-            text-align: left;
-            position: relative;
-            z-index: 1;
-        }
-
-        .text-content h2,
-        .text-content h3 {
-            text-align: left;
-            color: #7dd3fc;
-            margin-bottom: 1rem;
-        }
-
-        .journey-content p {
-            color: #e0f4ff;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            max-width: 800px;
-            margin: 0 auto 30px;
-        }
-
-        .journey-image {
-            flex: 0 0 400px;
-            text-align: center;
-            position: relative;
-        }
-
-        .floating-debate {
-            width: 400px;
-            max-width: 100%;
-            height: auto;
-            aspect-ratio: 1 / 1;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #7dd3fc;
-            box-shadow: 0 0 30px rgba(125, 211, 252, 0.3);
-            position: relative;
-            z-index: 2;
-            animation: pulse-glow 7s ease-in-out infinite;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { filter: drop-shadow(0 0 10px rgba(125, 211, 252, 0.3)); }
-            50% { filter: drop-shadow(0 0 20px rgba(125, 211, 252, 0.6)); }
-        }
-
-        .vision-content {
-            width: 100%;
-            margin: 40px auto 0;
-            padding: 20px 0;
-            border-top: 2px solid #7dd3fc33;
-            text-align: center;
-        }
-
-        .vision-content h3 {
-            font-size: 1.8rem;
-            color: #7dd3fc;
-            margin-bottom: 20px;
-        }
-
-        .vision-content p {
-            color: #e0f4ff;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            margin: 0 auto;
-        }
-
-        @media (max-width: 1200px) {
-            .journey-content {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .journey-image {
-                flex: none;
-                order: -1;
-            }
-
-            .text-content {
-                text-align: center;
-            }
-
-            .text-content h2,
-            .text-content h3 {
-                text-align: center;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .journey-section {
-                padding: 25px;
-            }
-
-            .journey-content {
-                gap: 24px;
-            }
-
-            .journey-content p {
-                font-size: 1rem;
-            }
-
-            .floating-debate {
-                width: 250px;
-            }
-
-            .vision-content {
-                margin-top: 20px;
-            }
-
-            .vision-content h3 {
-                font-size: 1.5rem;
-            }
-
-            .vision-content p {
-                font-size: 1rem;
-            }
-        }
-
-        /* ===== Footer ===== */
-        .site-footer {
-            box-sizing: border-box;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
-            color: #7dd3fc;
-            padding: 40px 20px;
-            margin-top: 50px;
-            border-top: 1px solid rgba(0, 255, 255, 0.2);
-            width: 100%;
-        }
-
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin: 0 auto;
-            gap: 30px;
-        }
-
-        .footer-column {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .footer-column h4 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #7dd3fc;
-            padding-bottom: 5px;
-        }
-
-        .site-footer .logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            text-decoration: none;
-        }
-
-        .site-footer .logo img {
-            height: 40px;
-            filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
-        }
-
-        .site-footer .logo-text {
-            color: #7dd3fc;
-            font-size: 1.4rem;
-            font-weight: 600;
-            text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
-            letter-spacing: 0.5px;
-        }
-
-        .feedback-form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 500px;
-            margin: 15px auto 0;
-        }
-
-        .feedback-form input,
-        .feedback-form textarea {
-            box-sizing: border-box;
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #7dd3fc;
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #e0f4ff;
-            font-family: inherit;
-        }
-
-        .feedback-form textarea {
-            height: 100px;
-            resize: vertical;
-        }
-
-        .feedback-form button {
-            background: linear-gradient(135deg, #7dd3fc, #0066cc);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: transform 0.3s ease;
-        }
-
-        .feedback-form button:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-
-        .feedback-form button:disabled {
-            opacity: 0.7;
-            cursor: default;
-        }
-
-        .form-status {
-            margin: 4px 0 0;
-            font-size: 0.95rem;
-            line-height: 1.4;
-        }
-
-        .form-status.ok {
-            color: #7AE7C7;
-        }
-
-        .form-status.err {
-            color: #ffb4a8;
-        }
-
-        .or-separator {
-            color: #7dd3fc;
-            margin: 15px 0;
-            display: flex;
-            align-items: center;
-            text-align: center;
-            gap: 10px;
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-
-        .or-separator::before,
-        .or-separator::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #7dd3fc;
-        }
-
-        .plain-email {
-            color: #7dd3fc;
-            text-decoration: none;
-            overflow-wrap: anywhere;
-        }
-
-        .plain-email:hover {
-            color: #00c4d6;
-            text-decoration: underline;
-        }
-
-        .social-links {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .social-link {
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
-
-        .social-link.linkedin { color: #6cb2f7; }
-        .social-link.youtube { color: #ff6b6b; }
-        .social-link.reddit { color: #ff8b57; }
-
-        .social-link.linkedin:hover {
-            background: rgba(10, 102, 194, 0.15);
-            text-shadow: 0 0 10px rgba(10, 102, 194, 0.4);
-        }
-
-        .social-link.youtube:hover {
-            background: rgba(255, 0, 0, 0.12);
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
-        }
-
-        .social-link.reddit:hover {
-            background: rgba(255, 69, 0, 0.12);
-            text-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
-        }
-
-        .footer-bottom {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(0, 255, 255, 0.1);
-        }
-
-        @media (max-width: 768px) {
-            .footer-content {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-
-            .footer-column {
-                width: 100%;
-            }
-
-            .social-links {
-                align-items: center;
-            }
-        }
-    </style>
+/* ===== Hero ===== */
+.home-hero {
+  background: linear-gradient(180deg, #0A1F3C 0%, var(--pf-bg) 100%);
+  border-bottom: 1px solid #14304F;
+}
+
+.home-hero-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 74px 28px 64px;
+  text-align: center;
+}
+
+.home-hero h1 {
+  margin: 0;
+  font-size: 44px;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+  color: var(--pf-heading);
+  text-wrap: balance;
+}
+
+.home-hero-sub {
+  margin: 18px auto 0;
+  font-size: 18px;
+  line-height: 1.55;
+  color: #9FC4E2;
+  max-width: 40em;
+}
+
+.device-pill-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.device-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid #24587F;
+  border-radius: 20px;
+  font-size: 12.5px;
+  color: #8FB6D4;
+}
+
+.device-pill svg {
+  color: var(--pf-accent);
+  flex: none;
+}
+
+/* ===== Tool cards ===== */
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+  margin-top: 44px;
+  align-items: stretch;
+  text-align: left;
+}
+
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  padding: 26px 24px;
+  background: var(--pf-surface-sunken);
+  border: 1px solid #1C3E63;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.tool-card:hover {
+  border-color: var(--pf-accent);
+  background: var(--pf-surface);
+}
+
+.tool-card--featured {
+  background: var(--pf-blue-deep);
+  border-color: var(--pf-border-strong);
+}
+
+.tool-card--featured:hover {
+  border-color: var(--pf-accent);
+  background: var(--pf-blue-deep-hover);
+}
+
+.tool-card .tool-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--pf-heading);
+}
+
+.tool-card .tool-desc {
+  margin-top: 9px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #9FC4E2;
+}
+
+.tool-card--featured .tool-desc { color: #C5DCF0; }
+
+.tool-card .tool-cta {
+  margin-top: auto;
+  padding-top: 20px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--pf-accent);
+}
+
+/* ===== New2Debate button ===== */
+.n2d-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.n2d-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 28px;
+  background: rgba(214, 138, 42, 0.12);
+  border: 1px solid var(--pf-gold-border);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.n2d-btn:hover {
+  border-color: var(--pf-gold);
+  background: rgba(214, 138, 42, 0.2);
+}
+
+.n2d-btn .n2d-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--pf-gold-text);
+}
+
+.n2d-btn .n2d-sub {
+  font-size: 14px;
+  color: #C6A06A;
+}
+
+/* ===== Section shell ===== */
+.home-section {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 72px 28px 0;
+}
+
+.home-section--last { padding-bottom: 84px; }
+
+.home-section h2.section-title {
+  margin: 0 0 24px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--pf-heading);
+}
+
+/* ===== What we just improved ===== */
+.improved-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.improved-head .new-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: 3px;
+  background: var(--pf-blue);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.improved-head h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--pf-heading);
+}
+
+.improved-intro {
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #9FC4E2;
+  max-width: 44em;
+}
+
+.improved-intro a {
+  color: var(--pf-accent);
+  text-decoration: underline;
+}
+
+.improved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 14px;
+}
+
+.improved-card {
+  padding: 20px 22px;
+  background: var(--pf-surface-sunken);
+  border: 1px solid #1C3E63;
+  border-radius: 10px;
+}
+
+.improved-card h3 {
+  margin: 0 0 7px;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #E4F1FF;
+}
+
+.improved-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #9FC4E2;
+  text-wrap: pretty;
+}
+
+/* ===== Video tutorial ===== */
+.video-title {
+  margin: 0 0 22px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pf-accent);
+  text-align: center;
+}
+
+.video-frame {
+  border: 1px solid #24587F;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #040F1F;
+  aspect-ratio: 16 / 9;
+}
+
+.video-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* ===== Premium strip ===== */
+.premium-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 24px 30px;
+  background: var(--pf-surface-sunken);
+  border: 1px solid #1C3E63;
+  border-radius: 10px;
+}
+
+.premium-strip-copy {
+  flex: 1 1 340px;
+  min-width: 0;
+}
+
+.premium-strip h2 {
+  margin: 0 0 7px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--pf-heading);
+}
+
+.premium-strip p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #9FC4E2;
+  max-width: 44em;
+}
+
+.premium-strip-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 22px;
+  flex: none;
+  background: var(--pf-blue);
+  border: 1px solid var(--pf-selected-border);
+  border-radius: 6px;
+  color: #FFFFFF;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.3s ease;
+}
+
+.premium-strip-btn:hover {
+  border-color: var(--pf-accent);
+  color: #FFFFFF;
+}
+
+/* ===== Mission statement ===== */
+.mission-card {
+  padding: 38px 40px;
+  background: linear-gradient(135deg, #0C2444 0%, #0A1C36 100%);
+  border: 1px solid #24587F;
+  border-radius: 10px;
+}
+
+.mission-card h2 {
+  margin: 0 0 18px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pf-accent);
+}
+
+.mission-card p {
+  margin: 0;
+  font-family: var(--pf-font-serif);
+  font-size: 19px;
+  line-height: 1.6;
+  color: #DCEEFB;
+  max-width: 44em;
+  text-wrap: pretty;
+}
+
+/* ===== FAQ accordion ===== */
+.faq-list { border-top: 1px solid #1C3E63; }
+
+.faq-item { border-bottom: 1px solid #1C3E63; }
+
+.faq-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  padding: 18px 4px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.faq-toggle .faq-q {
+  font-size: 16.5px;
+  font-weight: 600;
+  color: #DCEEFB;
+  transition: color 0.3s ease;
+}
+
+.faq-toggle:hover .faq-q { color: #FFFFFF; }
+
+.faq-toggle .faq-sign {
+  flex: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--pf-accent);
+}
+
+.faq-item .faq-a {
+  margin: 0;
+  padding: 0 4px 20px;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: #9FC4E2;
+  max-width: 52em;
+  text-wrap: pretty;
+}
+
+/* ===== About cards ===== */
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+}
+
+.about-card {
+  padding: 24px;
+  background: var(--pf-surface-sunken);
+  border: 1px solid #1C3E63;
+  border-radius: 10px;
+}
+
+.about-card .about-eyebrow {
+  font-family: var(--pf-font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pf-accent);
+  margin-bottom: 10px;
+}
+
+.about-card p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: #9FC4E2;
+  text-wrap: pretty;
+}
+</style>
 </head>
-<body>
+<body class="pf-page">
 <nav class="toolbar">
-<a class="logo" href="index.html">
-<img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
-<span class="logo-text">PublicForumAI</span>
-</a>
-<div class="nav-links"><a href="flower.html">AI Flow</a>
-<a href="setup.html">AI Practice Round</a>
-<a href="casewriter.html">AI Casewriter</a>
-<a href="modules.html">Training Modules</a>
-</div>
-<div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+  <a class="logo" href="index.html">
+    <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+    <span class="logo-text">PublicForumAI</span>
+  </a>
+  <div class="nav-links">
+    <a href="flower.html">Flow</a>
+    <a href="casewriter.html">Casewriter</a>
+    <a href="setup.html">Practice Round</a>
+    <a href="login.html?next=%2Frounds.html" data-nav="myrounds">My Rounds</a>
+    <a href="modules.html">Training</a>
+    <a href="pricing.html">Pricing</a>
+  </div>
+  <div id="authSlot"><a href="login.html?next=%2Findex.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
 </nav>
-<header>
-<a class="scroll-indicator" href="#ai-page" aria-label="Scroll down to learn more">
-<i class="fas fa-chevron-down"></i>
-</a>
-<h1 class="hero-title">Debate Smarter with AI: Free PF Cases, Flows &amp; Practice Rounds</h1>
-</header>
-<!-- Container for the three primary buttons -->
-<div class="container">
-<div class="container-note" role="note" aria-label="How to use these tools">
-<p>
-    This website helps Public Forum (PF) debate students practice for rounds using free tools powered by artificial intelligence.
-  </p>
-<span class="device-pill"><i class="fa-solid fa-desktop"></i> Please use a computer or large screen</span>
-</div>
-<div class="button-wrapper">
-<a class="button" href="flower.html">
-<span class="title">AI Flow</span>
-<span class="description">Flow speeches in real-time with speech recognition</span>
-</a>
-<a class="button full-ai" href="setup.html">
-<span class="title">Full AI Practice Round</span>
-<span class="description">Take a full practice round against the AI</span>
-<span class="note">(includes real-time flowing and speech recognition)</span>
-</a>
-<a class="button" href="casewriter.html">
-<span class="title">AI Case-writer</span>
-<span class="description">Generate constructive cases in seconds</span>
-</a>
-</div>
-</div>
-<!-- New2Debate button is now outside of the container -->
-<div class="center-button">
-<a id="new2debateBtn" class="button orange" href="modules.html">
-<span class="title">New2Debate</span>
-</a>
-</div>
-<section id="ai-page">
-<div class="ai-content">
-<section class="tutorial-section">
-<h2>Video Tutorial</h2>
-<div class="video-wrapper">
-<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" loading="lazy" src="https://www.youtube.com/embed/c61rg8KffEE" title="YouTube video player">
-</iframe>
-</div>
-<div class="about-section">
-<h2>About Our Tools at PublicForumAI</h2>
-<div class="about-grid">
-<div class="about-card">
-<h3>AI Flow</h3>
-<p>Pick the speech, and use voice recognition to flow debates automatically with PF
-                            structure, helping you track arguments and improve round strategy.</p>
-</div>
-<div class="about-card">
-<h3>AI Practice Round</h3>
-<p>Engage in a full PF debate against an AI. Record your speeches while the AI flows and
-                            generates responses in real time, following the standard PF format. You can choose the
-                            level of difficulty and receive detailed feedback with results at the end of each round,
-                            highlighting your strengths and areas for improvement.</p>
-</div>
-<div class="about-card">
-<h3>AI Casewriter</h3>
-<p>Instantly generate structured cases with evidence for any topic and side, teaching you
-                            how to craft stronger arguments and contentions. We offer both a middle school and high
-                            school feature.</p>
-</div>
-<div class="about-card center-card">
-<h3>New2Debate</h3>
-<p>New to PF? Our beginner-friendly guide covers 6 key PF concepts. Even if you're familiar
-                            with these fundamentals, our content will help deepen your understanding and enhance
-                            your performance. All tools are 100% free and built specifically for Public Forum
-                            debate.</p>
-</div>
-</div>
-</div>
+
+<section class="home-hero">
+  <div class="home-hero-inner">
+    <h1>Debate Smarter with AI: Free PF Cases, Flows &amp; Practice Rounds</h1>
+    <p class="home-hero-sub">This website helps Public Forum (PF) debate students practice for rounds using free tools powered by artificial intelligence.</p>
+
+    <div class="device-pill-row">
+      <span class="device-pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.5 3h-19A1.5 1.5 0 0 0 1 4.5v11A1.5 1.5 0 0 0 2.5 17h7.25l-.4 2.4H7a.8.8 0 0 0 0 1.6h10a.8.8 0 0 0 0-1.6h-2.35l-.4-2.4h7.25a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 21.5 3zm-.5 11.5H3v-10h18v10z"></path></svg>
+        Please use a computer or large screen
+      </span>
+    </div>
+
+    <div class="tool-grid">
+      <a class="tool-card" href="flower.html">
+        <span class="tool-title">AI Flow</span>
+        <span class="tool-desc">Flow speeches in real time with speech recognition.</span>
+        <span class="tool-cta">Open AI Flow →</span>
+      </a>
+      <a class="tool-card tool-card--featured" href="setup.html">
+        <span class="tool-title">Full AI Practice Round</span>
+        <span class="tool-desc">Take a full practice round against the AI, with real-time flowing and a judge ballot at the end.</span>
+        <span class="tool-cta">Set up a round →</span>
+      </a>
+      <a class="tool-card" href="casewriter.html">
+        <span class="tool-title">AI Case-writer</span>
+        <span class="tool-desc">Generate constructive cases with evidence in seconds.</span>
+        <span class="tool-cta">Write a case →</span>
+      </a>
+    </div>
+
+    <div class="n2d-row">
+      <!-- New2Debate is a plain link; modules.html enforces its own sign-in gate. -->
+      <a class="n2d-btn" href="modules.html">
+        <span class="n2d-title">New2Debate</span>
+        <span class="n2d-sub">Start here if PF is new to you</span>
+      </a>
+    </div>
+  </div>
 </section>
-<div class="ai-faq">
-<h3>AI System FAQs</h3>
-<div class="faq-grid">
-<div class="faq-item">
-<h4>How does the AI work?</h4>
-<p>Our hybrid architecture combines several large language models and web search APIs that are
-                            fed example cases and combined through natural language processing techniques.</p>
-</div>
-<div class="faq-item">
-<h4>Is This Cheating?</h4>
-<p>No. Our AI tools are not meant to be used in real rounds, and will not generate links to
-                            sources in rebuttal and summary for this reason. PublicForumAI is meant to help users
-                            prepare for rounds through real debate experience that can be accessed without human
-                            opponents anywhere, at any time.</p>
-</div>
-<div class="faq-item">
-<h4>Can I receive feedback after my round?</h4>
-<p>Yes, you will receive structured AI feedback and a chosen "winner" upon completing a full
-                            practice round. You also have the option to choose between a tech and a lay judge, though we
-                            often find the feedback from the AI tech judge to be more helpful.</p>
-</div>
-<div class="faq-item">
-<h4>Is there a crossfire feature?</h4>
-<p>While it is definitely possible, we do not yet have a crossfire feature that would be fast
-                            enough to replicate a real round. However, it's in the works!</p>
-</div>
-<div class="faq-item">
-<h4>How long will a round take?</h4>
-<p>The full practice round feature takes roughly the same amount of time as any PF round, just without crossfire. So, around 35 minutes with prep time.</p>
-</div>
-<div class="faq-item">
-<h4>What if I'm new to debate and not good enough to debate the AI?</h4>
-<p>We offer features meant to help debaters of all levels improve, including our new2debate and our middle school and high school levels.</p>
-</div>
-</div>
-</div>
-<div class="mission-statement">
-<img alt="PublicForumAI logo" class="ai-logo" src="android-chrome-192x192.png"/>
-<h2>Mission Statement</h2>
-<p>PublicForumAI is dedicated to making public forum debate more accessible. We provide resources and
-                    guidance to help debaters of all levels improve, especially those without access to traditional
-                    support. Our goal is to equip students with the skills and confidence to succeed in debate.</p>
-</div>
-<div class="content-section">
-<div class="journey-section">
-<div class="journey-content">
-<div class="text-content">
-<h2>Our Journey</h2>
-<p>Beginning in early 2024, during my sophomore year, it started as a basic script with
-                                countless flaws and plenty of room for improvement. It then became part of a computer
-                                science class project, and I made slight improvements. However, as the months went on, I
-                                worked on significantly improving the code and the "PF structure." By March 2025, I
-                                made
-                                major improvements to the website, enhanced the algorithm, and greatly boosted its
-                                overall
-                                quality. I partnered with another student on Horace Mann's debate team familiar with
-                                entrepreneurship to significantly increase accessibility and promote PublicForumAI to
-                                debaters around the country. Now, we plan to continue making improvements and focus on
-                                increasing our reach.</p>
-</div>
-<div class="journey-image">
-<img alt="AI vs Human Debate" class="floating-debate" src="ai_debate.png"/>
-</div>
-</div>
-<!-- Move vision-content outside journey-content -->
-<div class="vision-content">
-<h3>Vision</h3>
-<p>We are committed to improving. The PublicForumAI team plans to partner with schools and
-                            debate camps to better tailor our services to student needs. Additionally, we plan to
-                            create a mobile app for the website. Any feedback is welcome. You can reach us on our
-                            Reddit page or by email, with all contact information in the footer.</p>
-</div>
-</div>
-</div>
-</div>
+
+<section class="home-section">
+  <div class="improved-head">
+    <span class="new-badge">New</span>
+    <h2>What we just improved</h2>
+  </div>
+  <p class="improved-intro">PublicForumAI was just rebuilt end to end, starting with the parts debaters told us were weakest. With stronger capabilities and more users, we added <a href="pricing.html">Premium</a> for the best experience to keep the core free.</p>
+  <div class="improved-grid">
+    <div class="improved-card">
+      <h3>Significantly better speeches</h3>
+      <p>Cases and every speech in a round were tested extensively and powered with stronger models, along with the flowing and feedback around them.</p>
+    </div>
+    <div class="improved-card">
+      <h3>Actual linked evidence for Premium</h3>
+      <p>Citations no longer fail or point at invented sources. With Premium, evidence throughout all speeches are backed up.</p>
+    </div>
+    <div class="improved-card">
+      <h3>Save and switch rounds</h3>
+      <p>Leave a round unfinished, start another, pick either back up.</p>
+    </div>
+  </div>
 </section>
-<footer class="site-footer">
-<div class="footer-content">
-<!-- Brand Section -->
-<div class="footer-column">
-<a class="logo" href="index.html">
-<img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
-<span class="logo-text">PublicForumAI</span>
-</a>
-</div>
-<!-- Contact Section -->
-<div class="footer-column">
-<h4>Contact Us</h4>
-<p><a class="plain-email" href="mailto:arda_altintepe@horacemann.org">arda_altintepe@horacemann.org</a>
-</p>
-<div class="or-separator">OR</div>
-<div class="feedback-form">
-<form id="feedbackForm">
-<input name="from_email" placeholder="Your email" required="" type="email"/>
-<textarea name="message" placeholder="Your feedback" required=""></textarea>
-<button type="submit">Submit Feedback</button>
-<p class="form-status" id="feedbackStatus" role="status" hidden></p>
-</form>
-</div>
-</div>
-<!-- Social Links -->
-<div class="footer-column">
-<h4>Follow Us</h4>
-<div class="social-links">
-<a class="social-link linkedin" href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" rel="noopener">
-<i class="fab fa-linkedin"></i> LinkedIn
-                    </a>
-<a class="social-link youtube" href="https://www.youtube.com/@PublicForumAI" target="_blank" rel="noopener">
-<i class="fab fa-youtube"></i> YouTube
-                    </a>
-<a class="social-link reddit" href="https://www.reddit.com/r/PublicForumAI/" target="_blank" rel="noopener">
-<i class="fab fa-reddit-alien"></i> Reddit
-                    </a>
-</div>
-</div>
-</div>
-<!-- Copyright -->
-<div class="footer-bottom">
-<p>© 2025 PublicForumAI. All rights reserved.</p>
-</div>
+
+<section class="home-section">
+  <h2 class="video-title">Video Tutorial</h2>
+  <div class="video-frame">
+    <iframe src="https://www.youtube.com/embed/c61rg8KffEE" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="home-section">
+  <div class="premium-strip">
+    <div class="premium-strip-copy">
+      <h2>Free to practice. $9.99 a month for unlimited.</h2>
+      <p>Premium removes the round limit and puts real sourced evidence, with working links, into your rounds.</p>
+    </div>
+    <a class="premium-strip-btn" href="pricing.html">Compare plans</a>
+  </div>
+</section>
+
+<section class="home-section">
+  <div class="mission-card">
+    <h2>Mission Statement</h2>
+    <p>PublicForumAI is dedicated to making public forum debate more accessible. We provide resources and guidance to help debaters of all levels improve, especially those without access to traditional support. Our goal is to equip students with the skills and confidence to succeed in debate.</p>
+  </div>
+</section>
+
+<section class="home-section">
+  <h2 class="section-title">Questions debaters ask</h2>
+  <div class="faq-list" id="faqList">
+    <div class="faq-item">
+      <button class="faq-toggle" type="button" aria-expanded="false">
+        <span class="faq-q">How does the AI work?</span>
+        <span class="faq-sign" aria-hidden="true">+</span>
+      </button>
+      <p class="faq-a" hidden>Our hybrid architecture combines several large language models and web search APIs that are fed example cases and combined through natural language processing techniques.</p>
+    </div>
+    <div class="faq-item">
+      <button class="faq-toggle" type="button" aria-expanded="false">
+        <span class="faq-q">Is this cheating?</span>
+        <span class="faq-sign" aria-hidden="true">+</span>
+      </button>
+      <p class="faq-a" hidden>No. Our AI tools are not meant to be used in real rounds, and will not generate links to sources in rebuttal and summary for this reason. PublicForumAI is meant to help users prepare for rounds through real debate experience that can be accessed without human opponents anywhere, at any time.</p>
+    </div>
+    <div class="faq-item">
+      <button class="faq-toggle" type="button" aria-expanded="false">
+        <span class="faq-q">Can I receive feedback after my round?</span>
+        <span class="faq-sign" aria-hidden="true">+</span>
+      </button>
+      <p class="faq-a" hidden>Yes, you will receive structured AI feedback and a chosen "winner" upon completing a full practice round. You also have the option to choose between a tech and a lay judge, though we often find the feedback from the AI tech judge to be more helpful.</p>
+    </div>
+    <div class="faq-item">
+      <button class="faq-toggle" type="button" aria-expanded="false">
+        <span class="faq-q">Is there a crossfire feature?</span>
+        <span class="faq-sign" aria-hidden="true">+</span>
+      </button>
+      <p class="faq-a" hidden>While it is definitely possible, we do not yet have a crossfire feature that would be fast enough to replicate a real round. However, it's in the works.</p>
+    </div>
+    <div class="faq-item">
+      <button class="faq-toggle" type="button" aria-expanded="false">
+        <span class="faq-q">How long will a round take?</span>
+        <span class="faq-sign" aria-hidden="true">+</span>
+      </button>
+      <p class="faq-a" hidden>The full practice round feature takes roughly the same amount of time as any PF round, just without crossfire. So, around 35 minutes with prep time.</p>
+    </div>
+    <div class="faq-item">
+      <button class="faq-toggle" type="button" aria-expanded="false">
+        <span class="faq-q">What if I'm new to debate and not good enough to debate the AI?</span>
+        <span class="faq-sign" aria-hidden="true">+</span>
+      </button>
+      <p class="faq-a" hidden>We offer features meant to help debaters of all levels improve, including New2Debate and our middle school and high school levels.</p>
+    </div>
+  </div>
+</section>
+
+<section class="home-section home-section--last">
+  <h2 class="section-title">About PublicForumAI</h2>
+  <div class="about-grid">
+    <div class="about-card">
+      <div class="about-eyebrow">Built by debaters</div>
+      <p>PublicForumAI was started in 2024 by students on a high school debate team in New York City, and was built to cater to the experiences of others like them in Public Forum debate.</p>
+    </div>
+    <div class="about-card">
+      <div class="about-eyebrow">Purpose-built for PF</div>
+      <p>Every tool follows the standard Public Forum structure, from the speech order in a practice round to the way a ballot is written.</p>
+    </div>
+    <div class="about-card">
+      <div class="about-eyebrow">What is next</div>
+      <p>We are working with schools and debate camps to tailor the platform to how programs actually train, and building a mobile app. Your feedback as a debater is what helps us become the best product we can be.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="pf-footer">
+  <div class="pf-footer-cols">
+    <div class="pf-footer-brand">
+      <a class="pf-footer-logo" href="index.html">
+        <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+        <span>PublicForumAI</span>
+      </a>
+      <p class="pf-footer-tag">Empowering debaters through AI</p>
+    </div>
+    <div class="pf-footer-contact">
+      <h4>Contact Us</h4>
+      <a class="pf-footer-email" href="mailto:support@publicforumai.com">support@publicforumai.com</a>
+      <div class="pf-footer-or"><span></span><span class="pf-footer-or-label">OR</span><span></span></div>
+      <form id="feedbackForm" class="pf-footer-form">
+        <input name="from_email" placeholder="Your email" required="" type="email"/>
+        <textarea name="message" placeholder="Your feedback" required="" rows="3"></textarea>
+        <button type="submit">Submit Feedback</button>
+        <p class="pf-form-status" id="feedbackStatus" role="status" hidden></p>
+      </form>
+    </div>
+    <div class="pf-footer-social">
+      <h4>Follow Us</h4>
+      <div class="pf-footer-links">
+        <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://www.youtube.com/@PublicForumAI" target="_blank" rel="noopener">YouTube</a>
+        <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" rel="noopener">Reddit</a>
+      </div>
+    </div>
+  </div>
+  <div class="pf-footer-bottom-wrap">
+    <div class="pf-footer-bottom">
+      <span>© 2026 PublicForumAI. All rights reserved.</span>
+      <span>Not for use in live rounds.</span>
+    </div>
+  </div>
 </footer>
+
 <script>
-        // Scroll-reveal + scroll indicator. The indicator itself is a plain
-        // anchor to #ai-page; html { scroll-behavior: smooth } handles the glide.
-        (function () {
-            var aiPage = document.getElementById('ai-page');
-            var scrollIndicator = document.querySelector('.scroll-indicator');
-            var sections = document.querySelectorAll('.tutorial-section, .about-section, .mission-statement');
+// Feedback form: inline status messages, no dialogs.
+(function () {
+  var form = document.getElementById('feedbackForm');
+  var status = document.getElementById('feedbackStatus');
+  if (!form || !status) return;
 
-            function revealEverything() {
-                if (aiPage) aiPage.classList.add('active');
-                sections.forEach(function (el) { el.classList.add('visible'); });
-            }
+  function showStatus(message, ok) {
+    status.textContent = message;
+    status.classList.remove('ok', 'err');
+    status.classList.add(ok ? 'ok' : 'err');
+    status.hidden = false;
+  }
 
-            if (!('IntersectionObserver' in window)) {
-                revealEverything();
-                return;
-            }
+  try {
+    if (window.emailjs) emailjs.init('wgsczkr19C1FrKtLj');
+  } catch (e) { /* handled on submit */ }
 
-            if (aiPage) {
-                new IntersectionObserver(function (entries) {
-                    entries.forEach(function (entry) {
-                        if (entry.isIntersecting) {
-                            aiPage.classList.add('active');
-                            if (scrollIndicator) scrollIndicator.classList.add('hidden');
-                        } else if (scrollIndicator) {
-                            scrollIndicator.classList.remove('hidden');
-                        }
-                    });
-                }, { threshold: 0.05 }).observe(aiPage);
-            }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
 
-            var revealObserver = new IntersectionObserver(function (entries) {
-                entries.forEach(function (entry) {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                        revealObserver.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.1 });
-            sections.forEach(function (el) { revealObserver.observe(el); });
-        })();
+    if (!window.emailjs) {
+      showStatus('The feedback service did not load. Please email us directly instead.', false);
+      return;
+    }
 
-        // Feedback form: inline status messages, no dialogs.
-        (function () {
-            var form = document.getElementById('feedbackForm');
-            var status = document.getElementById('feedbackStatus');
-            if (!form || !status) return;
+    var btn = form.querySelector('button');
+    status.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
 
-            function showStatus(message, ok) {
-                status.textContent = message;
-                status.classList.remove('ok', 'err');
-                status.classList.add(ok ? 'ok' : 'err');
-                status.hidden = false;
-            }
+    function done() {
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
+    }
 
-            try {
-                if (window.emailjs) emailjs.init('wgsczkr19C1FrKtLj');
-            } catch (e) { /* handled on submit */ }
+    emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
+      .then(function () {
+        form.reset();
+        showStatus('Thanks! Your feedback was sent.', true);
+        done();
+      }, function (error) {
+        showStatus('Something went wrong and your feedback was not sent. Please try again, or email us directly.', false);
+        console.error('Error:', error);
+        done();
+      });
+  });
+})();
+</script>
 
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
+<script src="auth.js"></script>
+<script src="sanitize.js"></script>
+<script src="gate.js"></script>
+<script src="api.js"></script>
+<script>
+// FAQ accordion: one item open at a time, +/- sign toggles.
+(function () {
+  var list = document.getElementById('faqList');
+  if (!list) return;
+  var items = list.querySelectorAll('.faq-item');
 
-                if (!window.emailjs) {
-                    showStatus('The feedback service did not load. Please email us directly instead.', false);
-                    return;
-                }
+  function setOpen(item, open) {
+    var btn = item.querySelector('.faq-toggle');
+    var sign = item.querySelector('.faq-sign');
+    var answer = item.querySelector('.faq-a');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    sign.textContent = open ? '–' : '+';
+    answer.hidden = !open;
+  }
 
-                var btn = form.querySelector('button');
-                status.hidden = true;
-                btn.disabled = true;
-                btn.textContent = 'Sending...';
-
-                function done() {
-                    btn.disabled = false;
-                    btn.textContent = 'Submit Feedback';
-                }
-
-                emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
-                    .then(function () {
-                        form.reset();
-                        showStatus('Thanks! Your feedback was sent.', true);
-                        done();
-                    }, function (error) {
-                        showStatus('Something went wrong and your feedback was not sent. Please try again, or email us directly.', false);
-                        console.error('Error:', error);
-                        done();
-                    });
-            });
-        })();
-    </script>
-
-<!-- New2Debate is a plain link; modules.html enforces its own sign-in gate. -->
-<script defer src="auth.js"></script></body>
+  for (var i = 0; i < items.length; i++) {
+    (function (item) {
+      item.querySelector('.faq-toggle').addEventListener('click', function () {
+        var wasOpen = item.querySelector('.faq-toggle').getAttribute('aria-expanded') === 'true';
+        for (var j = 0; j < items.length; j++) setOpen(items[j], false);
+        if (!wasOpen) setOpen(item, true);
+      });
+    })(items[i]);
+  }
+})();
+</script>
+</body>
 </html>

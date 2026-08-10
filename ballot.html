@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com; media-src 'self' blob:; connect-src 'self' https://pf-ai-debater-24c5902c1a88.herokuapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.emailjs.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://apis.google.com https://publicforumai.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.emailjs.com"/>
+<meta name="referrer" content="strict-origin-when-cross-origin"/>
+<script>
+/* Clickjacking guard. frame-ancestors is ignored in <meta> and GitHub Pages
+   cannot send X-Frame-Options, so hide the page first, then try to break out. */
+if (self !== top) { document.documentElement.style.display = 'none'; try { top.location = self.location; } catch (e) {} }
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
+</script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Judge Ballot | PublicForumAI</title>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<link rel="stylesheet" href="toolbar.css"/>
+<link rel="stylesheet" href="pf-theme.css"/>
+<script>
+/* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
+(function () {
+  var snap = null;
+  try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
+  if (!snap || !snap.uid) return;
+  document.documentElement.classList.add('pfai-signed-in');
+  var painted = false;
+  function paint() {
+    if (painted) return;
+    var slot = document.getElementById('authSlot');
+    if (!slot) return;
+    painted = true;
+    obs.disconnect();
+    var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
+    var initials = name.slice(0, 2).toUpperCase() || '?';
+    var premium = snap.plan === 'premium';
+    var planLabel = premium ? 'Premium' : 'Free plan';
+    slot.innerHTML = '<div class="user-menu-wrap">' +
+      '<button class="pf-avatar-btn' + (premium ? ' premium' : '') + '" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span class="pf-avatar-initials"></span>' +
+      (premium ? '<span class="pf-avatar-star">★</span>' : '') +
+      '</button></div>';
+    slot.querySelector('.pf-avatar-initials').textContent = initials;
+    slot.querySelector('.pf-avatar-btn').title = name + ' · ' + planLabel;
+    var myRounds = document.querySelectorAll('a[data-nav="myrounds"]');
+    for (var i = 0; i < myRounds.length; i++) myRounds[i].setAttribute('href', 'rounds.html');
+  }
+  var obs = new MutationObserver(paint);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('DOMContentLoaded', paint);
+})();
+</script>
+
+<style>
+  /* Judge ballot page. Values from Round Feedback.dc.html; tokens from pf-theme. */
+  [hidden] { display: none !important; }
+  .ballot-wrap {
+    max-width: 1240px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 36px 32px 80px;
+    box-sizing: border-box;
+    flex: 1;
+  }
+  .ballot-back { font-size: 13.5px; color: var(--pf-text-muted); text-decoration: none; }
+  .ballot-back:hover { color: var(--pf-accent); }
+  .pf-page a.ballot-back { color: var(--pf-text-muted); }
+  .pf-page a.ballot-back:hover { color: var(--pf-accent); }
+
+  .ballot-cols {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
+    margin-top: 22px;
+  }
+  .ballot-main { flex: 2 1 560px; min-width: 0; }
+  .ballot-side {
+    flex: 1 1 300px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 96px;
+  }
+
+  .ballot-card {
+    background: var(--pf-surface);
+    border: 1px solid var(--pf-border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .ballot-head { padding: 30px 40px; border-bottom: 1px solid var(--pf-border-subtle); }
+  .ballot-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .ballot-eyebrow {
+    font-family: var(--pf-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pf-text-muted);
+  }
+  .judge-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 11px;
+    border: 1px solid var(--pf-selected-border);
+    background: var(--pf-selected);
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pf-accent);
+  }
+  .ballot-topic {
+    margin: 0;
+    font-family: var(--pf-font-serif);
+    font-size: 27px;
+    line-height: 1.35;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+  }
+  .ballot-meta {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    font-size: 13.5px;
+    color: var(--pf-text-muted);
+  }
+
+  .ballot-decision {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 40px;
+    background: var(--pf-surface-raised);
+    border-bottom: 1px solid var(--pf-border-subtle);
+    flex-wrap: wrap;
+  }
+  .ballot-decision[hidden] { display: none; }
+  .decision-label {
+    font-family: var(--pf-font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pf-text-muted);
+    margin-bottom: 6px;
+  }
+  .decision-winner { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .decision-winner.is-user { color: var(--pf-accent); }
+  .decision-winner.is-ai { color: var(--pf-ai); }
+  .decision-note {
+    margin: 0;
+    flex: 1 1 280px;
+    min-width: 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--pf-text-muted);
+    max-width: 38em;
+  }
+
+  .ballot-body { padding: 8px 40px 34px; }
+  .ballot-group { padding-top: 28px; }
+  .ballot-group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--pf-border-subtle);
+  }
+  .ballot-group-num {
+    font-family: var(--pf-font-mono);
+    font-size: 12px;
+    color: var(--pf-accent);
+  }
+  .ballot-group-head h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--pf-heading);
+  }
+  .ballot-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--pf-border-row);
+  }
+  .ballot-item h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--pf-text); }
+  .ballot-item .ballot-item-body {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.65;
+    color: #C6D9EC;
+    max-width: 46em;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+  }
+
+  /* Lay ballots and legacy tech ballots render as one prose block. */
+  .ballot-prose {
+    padding: 28px 0 6px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: #C6D9EC;
+    max-width: 52em;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+  }
+
+  .ballot-notice { padding: 34px 0 10px; max-width: 40em; }
+  .ballot-notice h2 { margin: 0 0 8px; font-size: 18px; font-weight: 700; color: var(--pf-heading); }
+  .ballot-notice p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--pf-text-muted); }
+
+  .side-card {
+    background: var(--pf-surface);
+    border: 1px solid var(--pf-border);
+    border-radius: 6px;
+    padding: 22px;
+  }
+  .side-card-label {
+    font-family: var(--pf-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pf-text-muted);
+    margin-bottom: 14px;
+  }
+  .side-actions { display: flex; flex-direction: column; gap: 10px; }
+  .act-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    background: var(--pf-blue);
+    color: #FFFFFF;
+    border-radius: 3px;
+    font-size: 14.5px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .pf-page a.act-primary { color: #FFFFFF; }
+  .act-quiet {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    background: var(--pf-surface);
+    border: 1px solid var(--pf-border);
+    border-radius: 3px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--pf-text);
+    cursor: pointer;
+    text-decoration: none;
+    font-family: var(--pf-font);
+    transition: border-color 0.3s ease;
+  }
+  .pf-page a.act-quiet { color: var(--pf-text); }
+  .act-quiet:hover { border-color: var(--pf-text); }
+  .act-quiet:disabled {
+    border-color: var(--pf-disabled-border);
+    color: var(--pf-disabled-text);
+    cursor: not-allowed;
+  }
+
+  .judge-note {
+    margin: 0 0 14px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--pf-text-muted);
+  }
+  .judge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .judge-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 0;
+    background: var(--pf-surface-sunken);
+    border: 1px solid var(--pf-border);
+    border-radius: 3px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--pf-text);
+  }
+  .judge-pill.is-used { background: var(--pf-selected); border-color: var(--pf-selected-border); }
+
+  .retention-card {
+    border: 1px solid var(--pf-menu-border);
+    background: #132A45;
+    border-radius: 4px;
+    padding: 16px 18px;
+  }
+  .retention-card[hidden] { display: none; }
+  .retention-title { font-size: 13px; font-weight: 600; color: #9FD3F5; margin-bottom: 5px; }
+  .retention-body { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--pf-text-muted); }
+  .retention-body a { color: var(--pf-accent); text-decoration: underline; }
+
+  @media (max-width: 720px) {
+    .ballot-wrap { padding: 24px 18px 60px; }
+    .ballot-head, .ballot-decision { padding-left: 22px; padding-right: 22px; }
+    .ballot-body { padding-left: 22px; padding-right: 22px; }
+    .ballot-side { position: static; }
+  }
+</style>
+</head>
+<body class="pf-page">
+  <nav class="toolbar">
+    <a class="logo" href="index.html">
+      <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+      <span class="logo-text">PublicForumAI</span>
+    </a>
+    <div class="nav-links">
+      <a href="flower.html">Flow</a>
+      <a href="casewriter.html">Casewriter</a>
+      <a href="setup.html">Practice Round</a>
+      <a href="login.html?next=%2Frounds.html" data-nav="myrounds">My Rounds</a>
+      <a href="modules.html">Training</a>
+      <a href="pricing.html">Pricing</a>
+    </div>
+    <div id="authSlot"><a href="login.html?next=%2Fballot.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+  </nav>
+
+  <div class="ballot-wrap">
+    <a class="ballot-back" href="rounds.html">← Back to your rounds</a>
+
+    <div class="ballot-cols">
+      <div class="ballot-main">
+        <div class="ballot-card">
+          <div class="ballot-head">
+            <div class="ballot-head-row">
+              <span class="ballot-eyebrow">Judge ballot</span>
+              <span class="judge-chip" id="judgeChip" hidden></span>
+            </div>
+            <h1 class="ballot-topic" id="ballotTopic">Loading ballot…</h1>
+            <div class="ballot-meta" id="ballotMeta"></div>
+          </div>
+
+          <div class="ballot-decision" id="decisionBlock" hidden>
+            <div style="flex:none">
+              <div class="decision-label">Decision</div>
+              <div class="decision-winner" id="decisionWinner"></div>
+            </div>
+            <p class="decision-note">The AI picks a winner for practice. Treat it as one judge's read of the round, not a verdict on your ability.</p>
+          </div>
+
+          <div class="ballot-body" id="ballotBody"></div>
+        </div>
+      </div>
+
+      <aside class="ballot-side">
+        <div class="side-card">
+          <div class="side-card-label">Actions</div>
+          <div class="side-actions">
+            <a class="act-primary" id="actOpenFlow" href="rounds.html">Open the full flow</a>
+            <button type="button" class="act-quiet" id="actDownload">Download ballot</button>
+            <a class="act-quiet" id="actRunAgain" href="setup.html">Run this topic again</a>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <div class="side-card-label">Judge type</div>
+          <p class="judge-note">Tech judges give structured feedback per speech. Lay judges reward persuasive storytelling.</p>
+          <div class="judge-grid">
+            <span class="judge-pill" id="judgePillTech">Tech</span>
+            <span class="judge-pill" id="judgePillLay">Lay</span>
+          </div>
+        </div>
+
+        <div class="retention-card" id="retentionCard">
+          <div class="retention-title">Ballots are kept for 30 days on the free plan</div>
+          <p class="retention-body">Premium keeps every round and adds real sourced evidence to your rounds. <a href="pricing.html">See plans</a></p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="pf-footer">
+    <div class="pf-footer-cols">
+      <div class="pf-footer-brand">
+        <a class="pf-footer-logo" href="index.html">
+          <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+          <span>PublicForumAI</span>
+        </a>
+        <p class="pf-footer-tag">Empowering debaters through AI</p>
+      </div>
+      <div class="pf-footer-contact">
+        <h4>Contact Us</h4>
+        <a class="pf-footer-email" href="mailto:support@publicforumai.com">support@publicforumai.com</a>
+        <div class="pf-footer-or"><span></span><span class="pf-footer-or-label">OR</span><span></span></div>
+        <form id="feedbackForm" class="pf-footer-form">
+          <input name="from_email" placeholder="Your email" required="" type="email"/>
+          <textarea name="message" placeholder="Your feedback" required="" rows="3"></textarea>
+          <button type="submit">Submit Feedback</button>
+          <p class="pf-form-status" id="feedbackStatus" role="status" hidden></p>
+        </form>
+      </div>
+      <div class="pf-footer-social">
+        <h4>Follow Us</h4>
+        <div class="pf-footer-links">
+          <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="https://www.youtube.com/@PublicForumAI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" rel="noopener">Reddit</a>
+        </div>
+      </div>
+    </div>
+    <div class="pf-footer-bottom-wrap">
+      <div class="pf-footer-bottom">
+        <span>© 2026 PublicForumAI. All rights reserved.</span>
+        <span>Not for use in live rounds.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+// Feedback form: inline status messages, no dialogs.
+(function () {
+  var form = document.getElementById('feedbackForm');
+  var status = document.getElementById('feedbackStatus');
+  if (!form || !status) return;
+
+  function showStatus(message, ok) {
+    status.textContent = message;
+    status.classList.remove('ok', 'err');
+    status.classList.add(ok ? 'ok' : 'err');
+    status.hidden = false;
+  }
+
+  try {
+    if (window.emailjs) emailjs.init('wgsczkr19C1FrKtLj');
+  } catch (e) { /* handled on submit */ }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!window.emailjs) {
+      showStatus('The feedback service did not load. Please email us directly instead.', false);
+      return;
+    }
+
+    var btn = form.querySelector('button');
+    status.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    function done() {
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
+    }
+
+    emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
+      .then(function () {
+        form.reset();
+        showStatus('Thanks! Your feedback was sent.', true);
+        done();
+      }, function (error) {
+        showStatus('Something went wrong and your feedback was not sent. Please try again, or email us directly.', false);
+        console.error('Error:', error);
+        done();
+      });
+  });
+})();
+  </script>
+
+  <script src="auth.js"></script>
+  <script src="sanitize.js"></script>
+  <script src="gate.js"></script>
+  <script src="api.js"></script>
+  <script>
+    function getParam(name){ return new URL(location.href).searchParams.get(name); }
+
+    // Fallback if sanitize.js failed to load: escape everything.
+    function localSanitize(text){
+      return String(text == null ? '' : text)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+        .replace(/\n/g, '<br>');
+    }
+
+    // Pre-migration rounds stored raw HTML snapshots. Convert those to the
+    // plain text + **bold** format pfSanitize renders, so old ballots stay
+    // readable instead of showing literal tags.
+    function legacyToText(s){
+      s = String(s);
+      if (!/<\/?(div|p|br|strong|b|em|i|u|span|li|ul|ol|h[1-6]|a)\b/i.test(s)) return s;
+      s = s.replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h[1-6])>/gi, '\n');
+      s = s.replace(/<\/?(strong|b)>/gi, '**');
+      s = s.replace(/<[^>]+>/g, '');
+      s = s.replace(/&nbsp;/gi, ' ').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
+           .replace(/&quot;/gi, '"').replace(/&#39;/g, "'").replace(/&amp;/gi, '&');
+      return s;
+    }
+
+    function sanitize(text){
+      var s = legacyToText(text);
+      return (typeof window.pfSanitize === 'function') ? window.pfSanitize(s) : localSanitize(s);
+    }
+
+    function plainText(text){
+      return legacyToText(text == null ? '' : text).replace(/\*\*/g, '').replace(/\r/g, '').trim();
+    }
+
+    // Server rounds date themselves with savedAt in Unix seconds; rounds saved
+    // on the device use timestamp in milliseconds.
+    function toDate(value){
+      if (value === null || value === undefined || value === '') return null;
+      var n = (typeof value === 'number') ? value : NaN;
+      if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) n = Number(value);
+      if (Number.isFinite(n)) return new Date(n < 1e12 ? n * 1000 : n);
+      var d = new Date(value);
+      return isNaN(d) ? null : d;
+    }
+
+    // The DebateFeedback fields the backend builds before flattening, grouped
+    // the way the ballot shows them. First-turn rounds have no
+    // rebuttal_frontline; missing fields are simply skipped.
+    var BALLOT_GROUPS = [
+      { n: '01', title: 'Rebuttal', fields: [
+        ['rebuttal_frontline', 'Frontline'],
+        ['rebuttal_attack', 'Attack']
+      ] },
+      { n: '02', title: 'Summary', fields: [
+        ['summary_frontline', 'Frontline'],
+        ['summary_attack', 'Attack'],
+        ['summary_extension_or_collapse', 'Extension or collapse'],
+        ['summary_weighing', 'Weighing']
+      ] },
+      { n: '03', title: 'Final Focus', fields: [
+        ['final_focus_extension', 'Extension'],
+        ['final_focus_weighing', 'Weighing']
+      ] }
+    ];
+
+    function normSide(value){
+      var s = String(value || '').trim();
+      if (/^aff/i.test(s)) return 'Aff';
+      if (/^neg/i.test(s)) return 'Neg';
+      return '';
+    }
+    function sideLabel(side){ return side === 'Aff' ? 'Affirmative' : side === 'Neg' ? 'Negative' : ''; }
+
+    function showPageMessage(title, msg){
+      document.getElementById('ballotTopic').textContent = title;
+      document.getElementById('ballotMeta').textContent = '';
+      var body = document.getElementById('ballotBody');
+      body.textContent = '';
+      var wrap = document.createElement('div');
+      wrap.className = 'ballot-notice';
+      var p = document.createElement('p');
+      p.textContent = msg;
+      wrap.appendChild(p);
+      body.appendChild(wrap);
+    }
+
+    // Everything the download button needs, filled in during render.
+    var downloadLines = null;
+
+    function renderBallot(round, id){
+      var meta = round.meta || {};
+      var topic = meta.debateTopic || round.topic || 'Practice Round';
+      var side = normSide(meta.selectedSide || round.side);
+      var turn = String(meta.selectedTurn || round.turn || '').trim();
+      var skill = String(meta.selectedSkill || round.skill || '').trim();
+      var judge = String(meta.judgeType || round.judgeType || '').trim().toLowerCase();
+      var dt = toDate(round.finishedAt || round.savedAt || round.timestamp || round.createdAt);
+
+      document.getElementById('ballotTopic').textContent = topic;
+      document.title = 'Judge Ballot | PublicForumAI';
+
+      var metaParts = [];
+      if (dt) metaParts.push(dt.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }));
+      if (side) metaParts.push('You debated ' + sideLabel(side));
+      if (/^first$/i.test(turn)) metaParts.push('Spoke first');
+      else if (/^second$/i.test(turn)) metaParts.push('Spoke second');
+      if (/^high/i.test(skill)) metaParts.push('High school');
+      else if (/^mid/i.test(skill)) metaParts.push('Middle school');
+      var metaHost = document.getElementById('ballotMeta');
+      metaHost.textContent = '';
+      metaParts.forEach(function (part) {
+        var span = document.createElement('span');
+        span.textContent = part;
+        metaHost.appendChild(span);
+      });
+
+      // Judge chip + sidebar indicator.
+      var chip = document.getElementById('judgeChip');
+      if (judge === 'tech' || judge === 'lay') {
+        chip.textContent = judge === 'tech' ? 'Tech judge' : 'Lay judge';
+        chip.hidden = false;
+        document.getElementById(judge === 'tech' ? 'judgePillTech' : 'judgePillLay').classList.add('is-used');
+      }
+
+      // Sidebar links.
+      document.getElementById('actOpenFlow').href = 'round.html?id=' + encodeURIComponent(id);
+      var again = 'setup.html?topic=' + encodeURIComponent(topic);
+      if (side) again += '&side=' + encodeURIComponent(side);
+      if (turn) again += '&turn=' + encodeURIComponent(turn);
+      if (skill) again += '&skill=' + encodeURIComponent(skill);
+      document.getElementById('actRunAgain').href = again;
+
+      // Decision. The server normalizes the winner to "user"/"ai"; the
+      // structured feedback object carries the raw one-word winner as a
+      // fallback. Shown only when known.
+      var structured = null;
+      if (round.feedbackStructured && typeof round.feedbackStructured === 'object') structured = round.feedbackStructured;
+      else if (round.feedback && typeof round.feedback === 'object') structured = round.feedback;
+
+      var who = (round.winner === 'user' || round.winner === 'ai') ? round.winner : null;
+      if (!who && structured && side) {
+        var w = normSide(structured.winner);
+        if (w) who = (w === side) ? 'user' : 'ai';
+      }
+      var winnerSide = null;
+      if (who && side) winnerSide = (who === 'user') ? side : (side === 'Aff' ? 'Neg' : 'Aff');
+      if (who && winnerSide) {
+        var winnerEl = document.getElementById('decisionWinner');
+        winnerEl.textContent = sideLabel(winnerSide);
+        winnerEl.classList.add(who === 'user' ? 'is-user' : 'is-ai');
+        document.getElementById('decisionBlock').hidden = false;
+      }
+
+      // Ballot body: expired notice, grouped tech sections from the
+      // structured feedback object, or the stored feedback string as prose.
+      // Flow and feedback strings are never parsed into invented structure.
+      var body = document.getElementById('ballotBody');
+      body.textContent = '';
+      var feedbackText = (typeof round.feedback === 'string' && round.feedback.trim()) ? round.feedback
+        : (typeof round.Feedback === 'string' && round.Feedback.trim()) ? round.Feedback : '';
+
+      downloadLines = ['Judge ballot', topic, metaParts.join(' · ')];
+      if (who && winnerSide) downloadLines.push('', 'Decision: ' + sideLabel(winnerSide));
+
+      if (round.feedbackExpired) {
+        var notice = document.createElement('div');
+        notice.className = 'ballot-notice';
+        var h = document.createElement('h2');
+        h.textContent = 'This ballot has expired';
+        var p = document.createElement('p');
+        p.textContent = 'Free plan ballots are kept for 30 days after the round finishes. Upgrade to Premium to keep every ballot. ';
+        var a = document.createElement('a');
+        a.href = 'pricing.html';
+        a.textContent = 'See plans';
+        p.appendChild(a);
+        notice.appendChild(h);
+        notice.appendChild(p);
+        body.appendChild(notice);
+        document.getElementById('actDownload').disabled = true;
+        return;
+      }
+
+      var rendered = false;
+      if (judge !== 'lay' && structured) {
+        BALLOT_GROUPS.forEach(function (group) {
+          var items = group.fields.filter(function (f) {
+            return typeof structured[f[0]] === 'string' && structured[f[0]].trim() !== '';
+          });
+          if (!items.length) return;
+          rendered = true;
+          var section = document.createElement('div');
+          section.className = 'ballot-group';
+          var head = document.createElement('div');
+          head.className = 'ballot-group-head';
+          var num = document.createElement('span');
+          num.className = 'ballot-group-num';
+          num.textContent = group.n;
+          var title = document.createElement('h2');
+          title.textContent = group.title;
+          head.appendChild(num);
+          head.appendChild(title);
+          section.appendChild(head);
+          downloadLines.push('', group.n + ' ' + group.title);
+          items.forEach(function (f) {
+            var item = document.createElement('div');
+            item.className = 'ballot-item';
+            var label = document.createElement('h3');
+            label.textContent = f[1];
+            var text = document.createElement('p');
+            text.className = 'ballot-item-body';
+            text.innerHTML = sanitize(structured[f[0]]);
+            item.appendChild(label);
+            item.appendChild(text);
+            section.appendChild(item);
+            downloadLines.push('', f[1], plainText(structured[f[0]]));
+          });
+          body.appendChild(section);
+        });
+      }
+
+      if (!rendered && feedbackText) {
+        var prose = document.createElement('div');
+        prose.className = 'ballot-prose';
+        prose.innerHTML = sanitize(feedbackText);
+        body.appendChild(prose);
+        downloadLines.push('', plainText(feedbackText));
+        rendered = true;
+      }
+
+      if (!rendered) {
+        var empty = document.createElement('div');
+        empty.className = 'ballot-notice';
+        var eh = document.createElement('h2');
+        eh.textContent = 'No ballot yet';
+        var ep = document.createElement('p');
+        ep.textContent = 'This round has not been judged yet. Open the full flow to finish the round and generate feedback.';
+        empty.appendChild(eh);
+        empty.appendChild(ep);
+        body.appendChild(empty);
+        document.getElementById('actDownload').disabled = true;
+      }
+    }
+
+    document.getElementById('actDownload').addEventListener('click', function () {
+      if (!downloadLines) return;
+      var blob = new Blob([downloadLines.join('\n') + '\n'], { type: 'text/plain' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'pf-ballot.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (typeof ensureFirebase === 'function') { await ensureFirebase(); }
+      if (typeof onAuth !== 'function') return;
+
+      // Hide the retention note for premium accounts; missing plan data
+      // means free.
+      try {
+        if (typeof window.pfMe === 'function') {
+          window.pfMe().then(function (me) {
+            if (me && me.plan === 'premium') document.getElementById('retentionCard').hidden = true;
+          }).catch(function () {});
+        }
+      } catch (e) {}
+
+      let decided = false;
+      onAuth(async (user) => {
+        if (decided) return;
+        decided = true;
+
+        if (!user) {
+          // Carry the full path and query so ?round= survives the login round-trip.
+          const next = encodeURIComponent(location.pathname + location.search);
+          window.location.href = 'login.html?next=' + next;
+          return;
+        }
+
+        const id = getParam('round') || getParam('id');
+        if (!id) {
+          showPageMessage('No ballot selected', 'Open a ballot from your rounds page.');
+          return;
+        }
+
+        // Server copy first; localStorage keeps pre-migration rounds readable.
+        let round = null;
+        if (typeof window.pfFetch === 'function') {
+          try {
+            // quiet: a 404 is the ordinary answer for a round that only exists
+            // on this device, and the fallback below renders it either way.
+            const res = await window.pfFetch('/rounds/' + encodeURIComponent(id), null, { method: 'GET', quiet: true });
+            round = await res.json();
+            if (round && round.round) round = round.round;
+          } catch (e) { round = null; }
+        }
+        const localRounds = (typeof getRoundsForUser === 'function') ? getRoundsForUser(user.uid) : [];
+        const localRound = localRounds.find(r => r.id === id) || null;
+        if (!round) {
+          round = localRound;
+        } else if (localRound) {
+          // Fill whatever the account copy left empty from the copy this
+          // device still holds, except the retention flag's cleared feedback.
+          Object.keys(localRound).forEach(function (k) {
+            if (round.feedbackExpired && (k === 'feedback' || k === 'Feedback')) return;
+            const v = round[k];
+            if (v === undefined || v === null || v === '') round[k] = localRound[k];
+          });
+        }
+
+        if (!round) {
+          showPageMessage('Ballot not found', 'This round may have been deleted, or the link is wrong. Your saved rounds are listed on your rounds page.');
+          return;
+        }
+        renderBallot(round, id);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -80,15 +80,217 @@ function pfHash(str) {
     return h.toString(36);
 }
 
+/* ===== Derived cell state: borders, labels, locks, and the glow =============
+   Two sheets of four cells each. 'my' is the user's sheet (their case plus
+   the AI answering it); 'ai' is the AI's sheet. Column order per sheet:
+   0 Case, 1 Rebuttal, 2 Summary, 3 Final Focus. A cell is done when its
+   content exists (the same predicate checkRoundCompletion uses); listening
+   and generating are transient flags set around the existing call sites. */
+
+var PF_BUSY = { my: [null, null, null, null], ai: [null, null, null, null] };
+
+var PF_SHEET_COLS = {
+    my: ['transcriptionContention', 'RebuttalAI', 'SummaryUser', 'FinalFocusAI'],
+    ai: ['AIContention', 'RebuttalUser', 'SummaryAI', 'ffUser']
+};
+var PF_PRIMARY = {
+    my: ['recordButtonContention', 'GenerateAIRebuttal', 'recordButtonSummary', 'GenerateAIFF'],
+    ai: ['GenerateAIContention', 'recordButtonRebuttal', 'GenerateAISummary', 'recordButtonFF']
+};
+var PF_SPEAK = {
+    my: { 1: 'speakAIRebuttal', 3: 'SpeakAIFF' },
+    ai: { 0: 'SpeakAIContention', 2: 'SpeakAISummary' }
+};
+var PF_IS_RECORD = { my: [true, false, true, false], ai: [false, true, false, true] };
+
+function pfCellDone(sheet, i) {
+    if (sheet === 'my') {
+        if (i === 0) return fullTranscriptionContention !== '';
+        if (i === 1) return document.getElementById('AIRebuttalText').innerHTML !== '';
+        if (i === 2) return fullTranscriptionSummary !== '';
+        return document.getElementById('AIFFText').innerHTML !== '';
+    }
+    if (i === 0) return document.getElementById('AIContentionText').innerHTML !== '';
+    if (i === 1) return fullTranscriptionRebuttal !== '';
+    if (i === 2) return document.getElementById('AISummaryText').innerHTML !== '';
+    return fullTranscriptionFF !== '';
+}
+
+function pfCellState(sheet, i) {
+    return PF_BUSY[sheet][i] || (pfCellDone(sheet, i) ? 'done' : 'empty');
+}
+
+function pfCellBusy(sheet, i, state) {
+    PF_BUSY[sheet][i] = state;
+    pfRoundUIRefresh();
+}
+
+function pfCellIdle(sheet, i) {
+    PF_BUSY[sheet][i] = null;
+    pfRoundUIRefresh();
+}
+
+// Only one recording runs at a time, so a mic failure can safely clear every
+// listening flag without knowing which cell asked for the mic.
+function pfClearListening() {
+    ['my', 'ai'].forEach(function (sheet) {
+        for (var i = 0; i < 4; i++) {
+            if (PF_BUSY[sheet][i] === 'listening') PF_BUSY[sheet][i] = null;
+        }
+    });
+    pfRoundUIRefresh();
+}
+
+/* pfNextSpeech(cells, youFirst) -> { sheet: 'my'|'ai', i: 0..3 } or null.
+   cells = { my: [s0,s1,s2,s3], ai: [s0,s1,s2,s3] } where each entry is the
+   cell state and 'done' means that speech is flowed. Columns per sheet:
+   0 Case, 1 Rebuttal, 2 Summary, 3 Final Focus. 'my' is the user's sheet
+   (the user's case plus the AI answering it); 'ai' is the AI's sheet.
+   youFirst is true when the user speaks first. When resuming a server
+   draft, build cells by marking a slot 'done' when its content field is
+   non-empty, 'empty' otherwise, then recompute the glow from this. */
+function pfNextSpeech(cells, youFirst) {
+  var seq = youFirst
+    ? [['my', 0], ['ai', 0], ['ai', 1], ['my', 1], ['my', 2], ['ai', 2], ['ai', 3], ['my', 3]]
+    : [['ai', 0], ['my', 0], ['my', 1], ['ai', 1], ['ai', 2], ['my', 2], ['my', 3], ['ai', 3]];
+  for (var k = 0; k < seq.length; k++) {
+    var sheet = seq[k][0], i = seq[k][1];
+    if (cells[sheet][i] !== 'done') return { sheet: sheet, i: i };
+  }
+  return null;
+}
+
+function pfIsFree() {
+    return window.__pfPlan === 'free';
+}
+
+function pfRedoBlocked(sheet, i) {
+    return pfIsFree() && pfCellDone(sheet, i);
+}
+
+// 16px padlock pinned outside the button's layout, so it never grows.
+var PF_LOCK_SVG = '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
+
+function pfLockBadge(btn, on) {
+    if (!btn) return;
+    var badge = btn.querySelector('.pf-lock-badge');
+    if (on && !badge) {
+        badge = document.createElement('span');
+        badge.className = 'pf-lock-badge';
+        badge.title = 'Premium feature';
+        // Static SVG only, no dynamic content.
+        badge.innerHTML = PF_LOCK_SVG;
+        btn.appendChild(badge);
+    }
+    if (!on && badge) badge.remove();
+}
+
+// Repaints everything the cell states drive: column border tints, the
+// Record/Generate/Redo labels, free-plan lock badges, and the single glow.
+function pfRoundUIRefresh() {
+    var cells = { my: [], ai: [] };
+    ['my', 'ai'].forEach(function (sheet) {
+        for (var i = 0; i < 4; i++) {
+            var st = pfCellState(sheet, i);
+            cells[sheet][i] = st;
+
+            var col = document.getElementById(PF_SHEET_COLS[sheet][i]);
+            if (col) col.setAttribute('data-state', st);
+
+            var btn = document.getElementById(PF_PRIMARY[sheet][i]);
+            if (btn) {
+                var locked = pfRedoBlocked(sheet, i) && !PF_BUSY[sheet][i];
+                // Never clobber an in-flight 'Stop' label or a 429 countdown.
+                if (!PF_BUSY[sheet][i] && !btn.dataset.pfCooldown) {
+                    var base = PF_IS_RECORD[sheet][i] ? 'Record' : 'Generate';
+                    btn.textContent = (st === 'done') ? 'Redo' : base;
+                }
+                btn.classList.toggle('pf-locked', locked);
+                pfLockBadge(btn, locked);
+            }
+
+            var speakId = PF_SPEAK[sheet][i];
+            if (speakId) pfLockBadge(document.getElementById(speakId), pfIsFree());
+        }
+    });
+
+    // Exactly one button glows: the next speech in the round. When it lives
+    // on the sheet the user is not looking at, Toggle glows instead. Nothing
+    // glows while that speech is already listening or generating.
+    var glowing = document.querySelectorAll('.glowing');
+    for (var g = 0; g < glowing.length; g++) glowing[g].classList.remove('glowing');
+    var youFirst = document.getElementById('selectedTurn').textContent === 'First';
+    var next = pfNextSpeech(cells, youFirst);
+    if (next && !PF_BUSY[next.sheet][next.i]) {
+        var visibleSheet = ToggleisSelectedSide ? 'my' : 'ai';
+        if (next.sheet === visibleSheet) {
+            var target = document.getElementById(PF_PRIMARY[next.sheet][next.i]);
+            if (target) target.classList.add('glowing');
+        } else {
+            toggleFlowButton.classList.add('glowing');
+        }
+    }
+}
+
+function pfShowBallotLink() {
+    var link = document.getElementById('ballotLink');
+    if (link && window.__currentRoundId) {
+        link.href = 'ballot.html?round=' + encodeURIComponent(window.__currentRoundId);
+        link.hidden = false;
+    }
+}
+
+/* ===== Draft persistence to the account ====================================
+   Speech content is persisted server-side by the speech endpoints themselves
+   (every payload carries roundId), so the debounced PATCH only carries the
+   judge choice. Sending the page's innerHTML copies of AI speeches would trip
+   the server's free-plan redo guard, which compares against the raw strings
+   it stored itself. */
+var __draftPatchTimer = null;
+var __draftPatchDisabled = false;
+
+function scheduleDraftPatch() {
+    if (__draftPatchDisabled || !window.__currentRoundId) return;
+    if (typeof window.pfRoundPatch !== 'function') return;
+    clearTimeout(__draftPatchTimer);
+    __draftPatchTimer = setTimeout(flushDraftPatch, 2000);
+}
+
+function flushDraftPatch() {
+    clearTimeout(__draftPatchTimer);
+    __draftPatchTimer = null;
+    if (__draftPatchDisabled || !window.__currentRoundId) return;
+    if (typeof window.pfRoundPatch !== 'function') return;
+    var jt = (typeof judgeType === 'string' && judgeType) ? judgeType : 'tech';
+    pfRoundPatch(window.__currentRoundId, { judgeType: jt },
+        { page: 'Flow', quiet: true, noUpsell: true })
+        .catch(function (err) {
+            // 404: not a server draft (legacy local round). 409: finished.
+            // Either way, stop patching; localStorage still has everything.
+            if (err && (err.status === 404 || err.status === 409)) __draftPatchDisabled = true;
+        });
+}
+
+window.addEventListener('beforeunload', flushDraftPatch);
+document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') flushDraftPatch();
+});
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Parse URL parameters
+    // Parse URL parameters. The legacy long names are canonical; the short
+    // names are accepted so a setup page emitting the contract's short form
+    // still lands in a valid round.
     const params = new URLSearchParams(window.location.search);
 
     // Get all parameters
-    const selectedSide = params.get('selectedSide');
-    const selectedTurn = params.get('selectedTurn');
-    const selectedSkill = params.get('selectedSkill');
-    debateTopic = params.get('debateTopic');
+    const selectedSide = params.get('selectedSide') || params.get('side');
+    const selectedTurn = params.get('selectedTurn') || params.get('turn');
+    const selectedSkill = params.get('selectedSkill') || params.get('skill');
+    debateTopic = params.get('debateTopic') || params.get('topic');
+
+    // Server draft id: the round's identity across devices and reloads.
+    const roundIdParam = params.get('round');
+    if (roundIdParam) window.__currentRoundId = roundIdParam;
 
     // A round needs all four settings; anything else goes back to setup.
     const validRound =
@@ -107,26 +309,21 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('selectedSkill').textContent = selectedSkill;
     const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
 
+    // The Settings dropdown shows the same settings in full words.
+    pfSetText('settingsTopic', debateTopic);
+    pfSetText('settingsSide', pfFullSide(selectedSide));
+    pfSetText('settingsTurn', selectedTurn);
+    pfSetText('settingsLevel', selectedSkill === 'middle' ? 'Middle School' : 'High School');
 
     // Check if the user is the second speaker
     if (selectedTurn.toLowerCase() === 'second') {
-        // Add a CSS class to shift the transcriptionContention div to the right
         document.getElementById('transcriptionContention').classList.add('second-speaker');
         ToggleisSelectedSide = false;
         toggleFlowButton.textContent = 'Toggle ' + selectedSide;
-        generateButtonAI.classList.add('glowing');
-
-
     } else {
-
-
         ToggleisSelectedSide = true;
         toggleFlowButton.textContent = 'Toggle ' + nonselectedSide;
-        recordButtonC.classList.add('glowing');
     }
-
-
-
 
     updateFlowValues(selectedSide, nonselectedSide);
 
@@ -141,18 +338,211 @@ document.addEventListener('DOMContentLoaded', function () {
             // high-school round on the same topic are different rounds.
             __savedRoundKey = 'savedRound::' + user.uid + '::' +
                 pfHash(debateTopic + '|' + selectedSide + '|' + selectedTurn + '|' + selectedSkill);
-            restoreSavedRound(selectedSide, nonselectedSide);
+            initRoundState(selectedSide, nonselectedSide);
         });
     });
 
 });
 
-function restoreSavedRound(selectedSide, nonselectedSide) {
+function pfSetText(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text || '';
+}
+
+function pfFullSide(side) {
+    return side === 'Aff' ? 'Affirmative' : 'Negative';
+}
+
+// Resume order: local saved state first (it carries the rendered flow HTML
+// the server never sees), then the server draft on top (it is the source of
+// truth for transcripts, AI speeches, feedback, and judge choice). Fresh
+// entries without a draft id start a server draft so the speech endpoints,
+// which require an owned draft, have one to write into.
+async function initRoundState(selectedSide, nonselectedSide) {
+    var expectedId = window.__currentRoundId || null;
+    restoreSavedRound(selectedSide, nonselectedSide, expectedId);
+
+    var id = window.__currentRoundId;
+    if (id && expectedId && typeof window.pfRound === 'function') {
+        window.__pfServerDraft = true;
+        try {
+            var doc = await pfRound(id, { page: 'Flow', quiet: true });
+            applyServerRound(doc, selectedSide, nonselectedSide);
+        } catch (e) {
+            console.error('Could not load this round from your account:', e);
+        }
+    } else if (!id) {
+        ensureServerDraft();
+    } else {
+        // A locally minted id (r_...): make sure the server has a copy, since
+        // every speech endpoint now writes into the server draft.
+        try {
+            var round = Object.assign({}, captureState(), { id: id, meta: currentRoundMeta() });
+            syncRoundToServer(round);
+        } catch (e) { /* localStorage still has the round */ }
+    }
+
+    loadPlanUI();
+    loadDraftList();
+    pfRoundUIRefresh();
+}
+
+function ensureServerDraft() {
+    if (window.__currentRoundId || typeof window.pfRoundStart !== 'function') return;
+    var side = document.getElementById('selectedSide').textContent;
+    var turn = document.getElementById('selectedTurn').textContent;
+    var skill = document.getElementById('selectedSkill').textContent;
+    pfRoundStart({ topic: getDebateTopicSafe(), side: side, turn: turn, skill: skill },
+        { page: 'Flow', quiet: true })
+        .then(function (res) {
+            if (!res || !res.id) return;
+            window.__currentRoundId = res.id;
+            window.__pfServerDraft = true;
+            if (res.doc && res.doc.evidenceMode) window.__pfEvidenceMode = res.doc.evidenceMode;
+            saveRound();
+            try {
+                var u = new URL(location.href);
+                u.searchParams.set('round', res.id);
+                history.replaceState(null, '', u);
+            } catch (e) { }
+            loadDraftList();
+        })
+        .catch(function (e) {
+            // Quota or network: the upsell/toast already fired from pfFetch.
+            console.error('Could not start a server draft for this round:', e);
+        });
+}
+
+// Overlay the server draft onto the page. Local HTML wins where it exists
+// (it was pfSanitize output when saved); server strings fill the gaps and
+// are sanitized again on render.
+function applyServerRound(doc, selectedSide, nonselectedSide) {
+    if (!doc || typeof doc !== 'object') return;
+    function renderInto(elId, raw) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        if (el.innerHTML === '' && typeof raw === 'string' && raw.trim() !== '') {
+            el.innerHTML = '<p>' + pfSanitize(raw) + '</p>';
+        }
+    }
+    if (typeof doc.transcription === 'string' && doc.transcription) fullTranscriptionContention = doc.transcription;
+    if (typeof doc.transcriptionR === 'string' && doc.transcriptionR) fullTranscriptionRebuttal = doc.transcriptionR;
+    if (typeof doc.transcriptionS === 'string' && doc.transcriptionS) fullTranscriptionSummary = doc.transcriptionS;
+    if (typeof doc.transcriptionF === 'string' && doc.transcriptionF) fullTranscriptionFF = doc.transcriptionF;
+
+    renderInto('AIContentionText', doc.AICase);
+    renderInto('AIRebuttalText', doc.AIRebuttal);
+    renderInto('AISummaryText', doc.AISummary);
+    renderInto('AIFFText', doc.AIFinalFocus);
+
+    if (doc.judgeType === 'tech' || doc.judgeType === 'lay') selectJudgeType(doc.judgeType);
+
+    var feed = document.getElementById('feedback-content');
+    if (feed && feed.textContent.trim() === '' && typeof doc.feedback === 'string' && doc.feedback.trim() !== '') {
+        var html = pfSanitize(doc.feedback);
+        if ((doc.judgeType || judgeType) === 'tech') html = html.replace('Decision:', '<br>Decision:');
+        feed.innerHTML = '<p>' + html + '</p>';
+        pfShowBallotLink();
+    }
+    if (doc.evidenceMode) window.__pfEvidenceMode = doc.evidenceMode;
+
+    saveRound();
+    updateResultsVisibility();
+    pfRoundUIRefresh();
+}
+
+// Plan-aware chrome: quota label, simulated-evidence note, lock badges.
+// Client gates are UX only; the server enforces every one of them.
+function loadPlanUI() {
+    if (typeof window.pfMe !== 'function') return;
+    pfMe().then(function (me) {
+        if (!me) return;
+        window.__pfPlan = me.plan === 'premium' ? 'premium' : 'free';
+        var quota = document.getElementById('switchQuota');
+        if (quota) {
+            if (window.__pfPlan === 'premium') {
+                quota.textContent = 'Unlimited';
+            } else {
+                var used = (me.usage && me.usage.roundsStarted) || 0;
+                var cap = (me.limits && me.limits.roundsPerMonth) || 3;
+                quota.textContent = used + ' of ' + cap + ' this month';
+            }
+        }
+        var note = document.getElementById('evidenceNote');
+        if (note) note.hidden = window.__pfPlan !== 'free';
+        pfRoundUIRefresh();
+    }).catch(function () { /* plan stays unknown; server still enforces */ });
+}
+
+// Other unfinished rounds, one click away in the Settings dropdown. The
+// summaries lack the skill setting, so switching fetches the full draft
+// first and navigates with the complete parameter set.
+function loadDraftList() {
+    if (typeof window.pfRounds !== 'function') return;
+    pfRounds({ page: 'Flow', quiet: true }).then(function (data) {
+        var rounds = (data && data.rounds) || (Array.isArray(data) ? data : []);
+        var drafts = rounds.filter(function (r) {
+            return r && r.status === 'draft' && r.id && r.id !== window.__currentRoundId;
+        });
+        var section = document.getElementById('switchRoundSec');
+        var list = document.getElementById('draftList');
+        if (!section || !list) return;
+        list.textContent = '';
+        if (!drafts.length) { section.hidden = true; return; }
+        drafts.forEach(function (d) {
+            var item = document.createElement('a');
+            item.className = 'draft-item';
+            item.href = '#';
+            var topic = document.createElement('span');
+            topic.className = 'draft-topic';
+            topic.textContent = d.topic || 'Practice Round';
+            var meta = document.createElement('span');
+            meta.className = 'draft-meta';
+            var bar = document.createElement('span');
+            bar.className = 'draft-bar';
+            var fill = document.createElement('span');
+            var done = typeof d.speechesDone === 'number' ? d.speechesDone : 0;
+            fill.style.width = Math.round((done / 8) * 100) + '%';
+            bar.appendChild(fill);
+            var count = document.createElement('span');
+            count.className = 'draft-count';
+            count.textContent = done + '/8';
+            meta.appendChild(bar);
+            meta.appendChild(count);
+            item.appendChild(topic);
+            item.appendChild(meta);
+            item.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                pfRound(d.id, { page: 'Flow' }).then(function (doc) {
+                    var qs = new URLSearchParams({
+                        round: d.id,
+                        debateTopic: (doc && doc.topic) || d.topic || '',
+                        selectedSide: (doc && doc.side) || d.side || '',
+                        selectedTurn: (doc && doc.turn) || d.turn || '',
+                        selectedSkill: (doc && doc.skill) || ''
+                    });
+                    location.href = 'Flow.html?' + qs.toString();
+                }).catch(function () {
+                    if (window.pfToast) pfToast('Could not open that round. Please try again.', { kind: 'error' });
+                });
+            });
+            list.appendChild(item);
+        });
+        section.hidden = false;
+    }).catch(function () { /* the dropdown just has no Switch round section */ });
+}
+
+function restoreSavedRound(selectedSide, nonselectedSide, expectedId) {
     const savedState = localStorage.getItem(__savedRoundKey);
     if (!savedState) return; // No saved data
 
     let state;
     try { state = JSON.parse(savedState); } catch (e) { return; }
+
+    // Arriving with a server draft id: the local copy only applies when it is
+    // the same round. A different id on the same settings is a different
+    // draft, and mixing the two would show one round's flows over another's.
+    if (expectedId && state.roundId && state.roundId !== expectedId) return;
 
     // Restore text content
     document.getElementById('AIContentionText').innerHTML = state.AICase || '';
@@ -183,13 +573,21 @@ function restoreSavedRound(selectedSide, nonselectedSide) {
     __roundSavedToProfile = !!state.savedToProfile;
     // Reusing the saved id keeps one round identity across reloads, so feedback
     // updates the right round and the server gem award stays deduplicated.
-    if (state.roundId) window.__currentRoundId = state.roundId;
+    if (state.roundId && !window.__currentRoundId) window.__currentRoundId = state.roundId;
+
+    if (state.judgeType === 'tech' || state.judgeType === 'lay') selectJudgeType(state.judgeType);
+    // textContent, not innerHTML: old saves may carry a stray HTML comment.
+    if (document.getElementById('feedback-content').textContent.trim() !== '') pfShowBallotLink();
 
     updateResultsVisibility()
+    // Resume recomputes the glow from the restored state; the old page left
+    // the initial turn-based glow in place, which pointed at the wrong speech.
+    pfRoundUIRefresh();
     console.log('Round auto-loaded!');
 }
 AISummaryGenerateB.addEventListener('click', async () => {
     if (!isSummarying) {
+        if (pfRedoBlocked('ai', 2)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
@@ -209,6 +607,7 @@ AISummaryGenerateB.addEventListener('click', async () => {
 });
 AISummarySpeakB.addEventListener('click', async () => {
     if (!isSpeakingS) {
+        if (pfIsFree()) { if (window.pfUpsell) pfUpsell('speak'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         AISummarySpeakB.textContent = 'Stop';
         startSpeakingS();
@@ -221,6 +620,7 @@ AISummarySpeakB.addEventListener('click', async () => {
 });
 AIFFGenerateB.addEventListener('click', async () => {
     if (!isFFing) {
+        if (pfRedoBlocked('my', 3)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
@@ -241,6 +641,7 @@ AIFFGenerateB.addEventListener('click', async () => {
 });
 AIFFSpeakB.addEventListener('click', async () => {
     if (!isSpeakingF) {
+        if (pfIsFree()) { if (window.pfUpsell) pfUpsell('speak'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         AIFFSpeakB.textContent = 'Stop';
         startSpeakingF();
@@ -253,6 +654,7 @@ AIFFSpeakB.addEventListener('click', async () => {
 });
 generateButtonAI.addEventListener('click', async () => {
     if (!isGenerating) {
+        if (pfRedoBlocked('ai', 0)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
@@ -268,6 +670,7 @@ generateButtonAI.addEventListener('click', async () => {
 });
 GenerateAIRebuttalB.addEventListener('click', async () => {
     if (!isRebutting) {
+        if (pfRedoBlocked('my', 1)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
@@ -285,6 +688,7 @@ GenerateAIRebuttalB.addEventListener('click', async () => {
 });
 speakButtonAI.addEventListener('click', async () => {
     if (!isSpeaking) {
+        if (pfIsFree()) { if (window.pfUpsell) pfUpsell('speak'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         speakButtonAI.textContent = 'Stop';
         startSpeaking();
@@ -297,6 +701,7 @@ speakButtonAI.addEventListener('click', async () => {
 });
 AIRebuttalButton.addEventListener('click', async () => {
     if (!isSpeakingR) {
+        if (pfIsFree()) { if (window.pfUpsell) pfUpsell('speak'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
         AIRebuttalButton.textContent = 'Stop';
         startSpeakingR();
@@ -526,12 +931,12 @@ async function startSpeakingR() {
     }
 }
 async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
-    generateButtonAI.classList.remove('glowing');
     fullAIContentionRaw = '';
     const caseElement = document.getElementById('AIContentionText');
     const previousCase = caseElement.innerHTML;
     let caseGenerated = false;
     caseElement.innerHTML = '';
+    pfCellBusy('ai', 0, 'generating');
     document.querySelector('#AIContention .loading').style.display = 'block';
     // Update text within AIContention's loading
     document.querySelector('#AIContention .text10').textContent = 'Generating Case (~15s)';
@@ -541,6 +946,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
         // First API call to generate AI case
         const response1 = await pfFetch('/generate_ai_case', {
             json: {
+                roundId: pfCurrentRoundId(),
                 debateTopic: debateTopic,
                 nonselectedSide: nonselectedSide,
                 selectedSkill: selectedSkill
@@ -562,27 +968,31 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
             caseElement.innerHTML = "<p>" + pfSanitize(plainCase) + "</p>";
         }
 
+        // Real sources are a Premium feature; free rounds run on simulated
+        // evidence and never call /get_sources (the server rejects it anyway).
+        const wantSources = window.__pfPlan === 'premium' && window.__pfEvidenceMode !== 'simulated';
+        if (wantSources) {
+            // Update loading text
+            document.querySelector('#AIContention .text10').textContent = 'Finding Sources (~10s)';
 
-        // Update loading text
-        document.querySelector('#AIContention .text10').textContent = 'Finding Sources (~10s)';
+
+            // Second API call to get sources
+            const response2 = await pfFetch('/get_sources', {
+                json: {
+                    AICase: AICase
+                }
+            }, { page: 'Flow', button: generateButtonAI, label: 'Generate' });
 
 
-        // Second API call to get sources
-        const response2 = await pfFetch('/get_sources', {
-            json: {
-                AICase: AICase
+            const data2 = await response2.json();
+            const modifiedAICase = data2.AICase;
+
+
+            // Display the AI case with sources, keeping the sourceless one if the
+            // sourced version came back empty.
+            if (typeof modifiedAICase === 'string' && modifiedAICase.trim() !== '') {
+                caseElement.innerHTML = "<p>" + pfSanitize(modifiedAICase) + "</p>";
             }
-        }, { page: 'Flow', button: generateButtonAI, label: 'Generate' });
-
-
-        const data2 = await response2.json();
-        const modifiedAICase = data2.AICase;
-
-
-        // Display the AI case with sources, keeping the sourceless one if the
-        // sourced version came back empty.
-        if (typeof modifiedAICase === 'string' && modifiedAICase.trim() !== '') {
-            caseElement.innerHTML = "<p>" + pfSanitize(modifiedAICase) + "</p>";
         }
     } catch (error) {
         console.error('Error processing user input:', error);
@@ -596,16 +1006,8 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
         document.querySelector('#AIContention .loading').style.display = 'none';
         generateButtonAI.textContent = 'Generate';
         isGenerating = false;
-        const selectedTurn = document.getElementById('selectedTurn').textContent;
         saveRound()
-        if (selectedTurn == "First") {
-            recordButtonR.classList.add('glowing');
-        }
-        if (selectedTurn == "Second") {
-            toggleFlowButton.classList.add('glowing');
-            recordButtonC.classList.add('glowing');
-        }
-
+        pfCellIdle('ai', 0);
     }
 }
 
@@ -613,10 +1015,6 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
 toggleFlowButton.addEventListener('click', () => {
     const selectedSide = document.getElementById('selectedSide').textContent;
     const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
-    if (toggleFlowButton.classList.contains('glowing')) {
-        toggleFlowButton.classList.remove('glowing')
-    }
-
 
     if (!ToggleisSelectedSide) {
         toggleFlowButton.textContent = 'Toggle ' + nonselectedSide;
@@ -626,64 +1024,34 @@ toggleFlowButton.addEventListener('click', () => {
         ToggleisSelectedSide = false;
     }
     updateFlowValues(selectedSide, nonselectedSide);
+    saveRound();
 });
 function updateFlowValues(selectedSide, nonselectedSide) {
+    const flow1 = document.getElementById('Flow1');
+    // The bar title names the sheet on screen: blue for Aff, red for Neg.
+    // This is the one place color follows the side, per the design.
+    const visibleSide = ToggleisSelectedSide ? selectedSide : nonselectedSide;
+    flow1.textContent = pfFullSide(visibleSide) + ' Flow';
+    flow1.style.color = (visibleSide === 'Aff') ? '#7DD3FC' : '#F49C97';
+
+    // Only the Case columns name a side, and those never change: the user's
+    // case is always their side, the AI's case always the other. (Two spans
+    // share the #Flow2 id; querying within each column reaches both.)
+    document.getElementById('transcriptionContention').querySelector('#Flow2').textContent = selectedSide;
+    document.getElementById('AIContention').querySelector('#Flow2').textContent = nonselectedSide;
+
     if (ToggleisSelectedSide) {
-        if (selectedSide === 'Aff') {
-            document.getElementById('Flow1').textContent = selectedSide + 'irmative Flow';
-        } else {
-            document.getElementById('Flow1').textContent = selectedSide + 'ative Flow';
-        }
-
-
-
-
-        document.getElementById('Flow2').textContent = selectedSide;
-        // Update the other occurrence of Flow2
-        const otherFlow2Element = document.getElementById('AIContention').querySelector('#Flow2');
-        otherFlow2Element.textContent = nonselectedSide;
-
-
-
-
-
-
-
-
-
-
-        UserFlowDiv.style.display = 'block'; // Show the transcriptionContention div
+        UserFlowDiv.style.display = 'flex'; // Show the user's sheet
         AIFlowDiv.style.display = 'none';
     } else {
-        if (selectedSide === 'Aff') {
-            document.getElementById('Flow1').textContent = nonselectedSide + 'ative Flow';
-        } else {
-            document.getElementById('Flow1').textContent = nonselectedSide + 'irmative Flow';
-        }
-
-
-
-
-        document.getElementById('Flow2').textContent = nonselectedSide;
-        // Update the other occurrence of Flow2
-        const otherFlow2Element = document.getElementById('transcriptionContention').querySelector('#Flow2');
-        otherFlow2Element.textContent = selectedSide;
-
-
-
-
-
-
-
-
-
-
-        UserFlowDiv.style.display = 'none'; // Hide the transcriptionContention div
-        AIFlowDiv.style.display = 'block';
+        UserFlowDiv.style.display = 'none'; // Hide the user's sheet
+        AIFlowDiv.style.display = 'flex';
     }
+    pfRoundUIRefresh();
 }
 recordButtonC.addEventListener('click', async () => {
     if (!isRecordingC) { // If not currently recording, start recording
+        if (pfRedoBlocked('my', 0)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
         startRecording();
         recordButtonC.textContent = 'Stop'; // Change button text to "Stop"
@@ -697,6 +1065,7 @@ recordButtonC.addEventListener('click', async () => {
 });
 recordButtonR.addEventListener('click', async () => {
     if (!isRecordingR) { // If not currently recording, start recording
+        if (pfRedoBlocked('ai', 1)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
         startRecordingR();
         recordButtonR.textContent = 'Stop'; // Change button text to "Stop"
@@ -710,6 +1079,7 @@ recordButtonR.addEventListener('click', async () => {
 });
 recordButtonS.addEventListener('click', async () => {
     if (!isRecordingS) { // If not currently recording, start recording
+        if (pfRedoBlocked('my', 2)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
         startRecordingS();
         recordButtonS.textContent = 'Stop'; // Change button text to "Stop"
@@ -723,6 +1093,7 @@ recordButtonS.addEventListener('click', async () => {
 });
 recordButtonF.addEventListener('click', async () => {
     if (!isRecordingF) { // If not currently recording, start recording
+        if (pfRedoBlocked('ai', 3)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
         startRecordingF();
         recordButtonF.textContent = 'Stop'; // Change button text to "Stop"
@@ -744,8 +1115,9 @@ async function startRecording() {
     // Visualization setup
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth / 4;
-    canvas.height = window.innerHeight;
+    const flowCol = canvas.closest('.flow-col');
+    canvas.width = flowCol ? Math.max(flowCol.clientWidth - 28, 120) : 300;
+    canvas.height = 120;
 
 
     try {
@@ -763,13 +1135,13 @@ async function startRecording() {
         source.connect(analyser);
 
 
-        // Remove record button glow
-        recordButtonC.classList.remove('glowing');
+        // Mark the cell as listening; the border tint and glow follow.
+        pfCellBusy('my', 0, 'listening');
 
 
         // Visualization animation
         function draw() {
-            requestAnimationFrame(draw);
+            animationFrame = requestAnimationFrame(draw);
             analyser.getByteFrequencyData(dataArray);
 
 
@@ -778,11 +1150,11 @@ async function startRecording() {
 
             const cylinderWidth = 3;
             const spacing = cylinderWidth;
-            const centerY = (canvas.height / 2) - (window.innerWidth / 10);
+            const centerY = canvas.height / 2;
 
 
             // Right side visualization
-            let xRight = (canvas.width / 2) - (window.innerWidth / 90);
+            let xRight = canvas.width / 2 + 2;
             for (let i = 0; i < bufferLength; i++) {
                 const barHeight = dataArray[i] / 4;
                 ctx.fillStyle = `rgb(53, 121, 246)`;
@@ -814,7 +1186,7 @@ async function startRecording() {
             ctx.scale(-1, 1);
 
 
-            let xLeft = 1 / 90 * window.innerWidth;
+            let xLeft = 2;
             for (let i = 0; i < bufferLength; i++) {
                 const barHeight = dataArray[i] / 4;
                 ctx.fillStyle = `rgb(53, 121, 246)`;
@@ -861,7 +1233,8 @@ async function startRecording() {
 
     } catch (err) {
         console.error('Error accessing audio stream:', err);
-        // Handle microphone access errors here
+        // Mic denied or unavailable: drop the listening state again.
+        pfClearListening();
     }
 }
 async function startRecordingR() {
@@ -874,8 +1247,9 @@ async function startRecordingR() {
     // Visualization setup
     const canvas = document.getElementById('visualizer1');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth / 4;
-    canvas.height = window.innerHeight;
+    const flowCol = canvas.closest('.flow-col');
+    canvas.width = flowCol ? Math.max(flowCol.clientWidth - 28, 120) : 300;
+    canvas.height = 120;
 
 
     try {
@@ -893,13 +1267,13 @@ async function startRecordingR() {
         source.connect(analyser);
 
 
-        // Remove record button glow
-        recordButtonR.classList.remove('glowing');
+        // Mark the cell as listening; the border tint and glow follow.
+        pfCellBusy('ai', 1, 'listening');
 
 
         // Visualization animation
         function draw() {
-            requestAnimationFrame(draw);
+            animationFrame = requestAnimationFrame(draw);
             analyser.getByteFrequencyData(dataArray);
 
 
@@ -908,11 +1282,11 @@ async function startRecordingR() {
 
             const cylinderWidth = 3;
             const spacing = cylinderWidth;
-            const centerY = (canvas.height / 2) - (window.innerWidth / 10);
+            const centerY = canvas.height / 2;
 
 
             // Right side visualization
-            let xRight = (canvas.width / 2) - (window.innerWidth / 90);
+            let xRight = canvas.width / 2 + 2;
             for (let i = 0; i < bufferLength; i++) {
                 const barHeight = dataArray[i] / 4;
                 ctx.fillStyle = `rgb(53, 121, 246)`;
@@ -944,7 +1318,7 @@ async function startRecordingR() {
             ctx.scale(-1, 1);
 
 
-            let xLeft = 1 / 90 * window.innerWidth;
+            let xLeft = 2;
             for (let i = 0; i < bufferLength; i++) {
                 const barHeight = dataArray[i] / 4;
                 ctx.fillStyle = `rgb(53, 121, 246)`;
@@ -992,7 +1366,8 @@ async function startRecordingR() {
 
     } catch (err) {
         console.error('Error accessing audio stream:', err);
-        // Handle microphone access errors here
+        // Mic denied or unavailable: drop the listening state again.
+        pfClearListening();
     }
 }
 async function startRecordingS() {
@@ -1005,8 +1380,9 @@ async function startRecordingS() {
     // Visualization setup
     const canvas = document.getElementById('visualizer2');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth / 4;
-    canvas.height = window.innerHeight;
+    const flowCol = canvas.closest('.flow-col');
+    canvas.width = flowCol ? Math.max(flowCol.clientWidth - 28, 120) : 300;
+    canvas.height = 120;
 
 
     try {
@@ -1024,13 +1400,13 @@ async function startRecordingS() {
         source.connect(analyser);
 
 
-        // Remove record button glow
-        recordButtonS.classList.remove('glowing');
+        // Mark the cell as listening; the border tint and glow follow.
+        pfCellBusy('my', 2, 'listening');
 
 
         // Visualization animation
         function draw() {
-            requestAnimationFrame(draw);
+            animationFrame = requestAnimationFrame(draw);
             analyser.getByteFrequencyData(dataArray);
 
 
@@ -1039,11 +1415,11 @@ async function startRecordingS() {
 
             const cylinderWidth = 3;
             const spacing = cylinderWidth;
-            const centerY = (canvas.height / 2) - (window.innerWidth / 10);
+            const centerY = canvas.height / 2;
 
 
             // Right side visualization
-            let xRight = (canvas.width / 2) - (window.innerWidth / 90);
+            let xRight = canvas.width / 2 + 2;
             for (let i = 0; i < bufferLength; i++) {
                 const barHeight = dataArray[i] / 4;
                 ctx.fillStyle = `rgb(53, 121, 246)`;
@@ -1075,7 +1451,7 @@ async function startRecordingS() {
             ctx.scale(-1, 1);
 
 
-            let xLeft = 1 / 90 * window.innerWidth;
+            let xLeft = 2;
             for (let i = 0; i < bufferLength; i++) {
                 const barHeight = dataArray[i] / 4;
                 ctx.fillStyle = `rgb(53, 121, 246)`;
@@ -1123,7 +1499,8 @@ async function startRecordingS() {
 
     } catch (err) {
         console.error('Error accessing audio stream:', err);
-        // Handle microphone access errors here
+        // Mic denied or unavailable: drop the listening state again.
+        pfClearListening();
     }
 }
 
@@ -1138,8 +1515,9 @@ async function startRecordingF() {
     // Visualization setup
     const canvas = document.getElementById('visualizer3');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth / 4;
-    canvas.height = window.innerHeight;
+    const flowCol = canvas.closest('.flow-col');
+    canvas.width = flowCol ? Math.max(flowCol.clientWidth - 28, 120) : 300;
+    canvas.height = 120;
 
 
     try {
@@ -1157,13 +1535,13 @@ async function startRecordingF() {
         source.connect(analyser);
 
 
-        // Remove record button glow
-        recordButtonF.classList.remove('glowing');
+        // Mark the cell as listening; the border tint and glow follow.
+        pfCellBusy('ai', 3, 'listening');
 
 
         // Visualization animation
         function draw() {
-            requestAnimationFrame(draw);
+            animationFrame = requestAnimationFrame(draw);
             analyser.getByteFrequencyData(dataArray);
 
 
@@ -1172,11 +1550,11 @@ async function startRecordingF() {
 
             const cylinderWidth = 3;
             const spacing = cylinderWidth;
-            const centerY = (canvas.height / 2) - (window.innerWidth / 10);
+            const centerY = canvas.height / 2;
 
 
             // Right side visualization
-            let xRight = (canvas.width / 2) - (window.innerWidth / 90);
+            let xRight = canvas.width / 2 + 2;
             for (let i = 0; i < bufferLength; i++) {
                 const barHeight = dataArray[i] / 4;
                 ctx.fillStyle = `rgb(53, 121, 246)`;
@@ -1208,7 +1586,7 @@ async function startRecordingF() {
             ctx.scale(-1, 1);
 
 
-            let xLeft = 1 / 90 * window.innerWidth;
+            let xLeft = 2;
             for (let i = 0; i < bufferLength; i++) {
                 const barHeight = dataArray[i] / 4;
                 ctx.fillStyle = `rgb(53, 121, 246)`;
@@ -1256,7 +1634,8 @@ async function startRecordingF() {
 
     } catch (err) {
         console.error('Error accessing audio stream:', err);
-        // Handle microphone access errors here
+        // Mic denied or unavailable: drop the listening state again.
+        pfClearListening();
     }
 }
 
@@ -1275,12 +1654,14 @@ async function stopRecording() {
                 // Hide loading and show error message
 
                 transcriptionResultC.innerHTML = 'Please record a full public forum debate case';
+                pfCellIdle('my', 0);
 
                 // Cleanup audio resources
                 audioStream.getTracks().forEach(track => track.stop());
                 return; // Exit early without backend request
             }
 
+            pfCellBusy('my', 0, 'generating');
             document.querySelector('.loading0U').style.display = 'block';
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
 
@@ -1299,19 +1680,10 @@ async function stopRecording() {
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscription(transcript, debateTopic, selectedSide);
 
-                // UI handling remains the same
-                const selectedTurn = document.getElementById('selectedTurn').textContent;
-                if (selectedTurn === "Second") {
-                    GenerateAIRebuttalB.classList.add('glowing');
-                } else if (selectedTurn === "First") {
-                    toggleFlowButton.classList.add('glowing');
-                    generateButtonAI.classList.add('glowing');
-                }
-
             } catch (error) {
                 console.error('Transcription error:', error);
                 document.querySelector('.loading0U').style.display = 'none';
-                // Handle error state
+                pfCellIdle('my', 0);
             }
 
             audioStream.getTracks().forEach(track => track.stop());
@@ -1340,11 +1712,13 @@ async function stopRecordingR() {
 
                 transcriptionResultR.innerHTML = 'Please record a full public forum debate rebuttal';
                 saveRound()
+                pfCellIdle('ai', 1);
                 // Cleanup audio resources
                 audioStream.getTracks().forEach(track => track.stop());
                 return; // Exit early without backend request
             }
 
+            pfCellBusy('ai', 1, 'generating');
             document.querySelector('.loading1U').style.display = 'block';
             // Create audio blob
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -1367,20 +1741,10 @@ async function stopRecordingR() {
                 processTranscriptionR(transcript, debateTopic, selectedSide);
                 saveRound()
 
-                // Handle UI elements
-                const selectedTurn = document.getElementById('selectedTurn').textContent;
-                if (selectedTurn === "Second") {
-                    AISummaryGenerateB.classList.add('glowing');
-                } else if (selectedTurn === "First") {
-                    toggleFlowButton.classList.add('glowing');
-                    GenerateAIRebuttalB.classList.add('glowing');
-                }
-
-
             } catch (error) {
                 console.error('Transcription error:', error);
                 document.querySelector('.loading1U').style.display = 'none';
-                // Handle error state here
+                pfCellIdle('ai', 1);
             }
 
 
@@ -1404,11 +1768,13 @@ async function stopRecordingS() {
 
                 transcriptionResultS.innerHTML = 'Please record a full public forum debate summary';
                 saveRound()
+                pfCellIdle('my', 2);
                 // Cleanup audio resources
                 audioStream.getTracks().forEach(track => track.stop());
                 return; // Exit early without backend request
             }
 
+            pfCellBusy('my', 2, 'generating');
             document.querySelector('.loading2U').style.display = 'block';
 
             // Create audio blob
@@ -1431,20 +1797,10 @@ async function stopRecordingS() {
                 processTranscriptionS(transcript, debateTopic, selectedSide);
                 saveRound()
 
-                // Handle UI elements
-                const selectedTurn = document.getElementById('selectedTurn').textContent;
-                if (selectedTurn === "Second") {
-                    AIFFGenerateB.classList.add('glowing');
-                } else if (selectedTurn === "First") {
-                    toggleFlowButton.classList.add('glowing');
-                    AISummaryGenerateB.classList.add('glowing');
-                }
-
-
             } catch (error) {
                 console.error('Transcription error:', error);
                 document.querySelector('.loading2U').style.display = 'none';
-                // Handle error state here
+                pfCellIdle('my', 2);
             }
 
 
@@ -1469,10 +1825,12 @@ async function stopRecordingF() {
 
                 transcriptionResultF.innerHTML = 'Please record a full public forum debate final focus';
                 saveRound()
+                pfCellIdle('ai', 3);
                 // Cleanup audio resources
                 audioStream.getTracks().forEach(track => track.stop());
                 return; // Exit early without backend request
             }
+            pfCellBusy('ai', 3, 'generating');
             document.querySelector('.loading3U').style.display = 'block';
 
             // Create audio blob
@@ -1493,23 +1851,12 @@ async function stopRecordingF() {
                 fullTranscriptionFF = transcript;
                 const selectedSide = document.getElementById('selectedSide').textContent;
                 processTranscriptionF(transcript, debateTopic, selectedSide);
-
-
-                // Handle UI elements
-                const selectedTurn = document.getElementById('selectedTurn').textContent;
-                if (selectedTurn === "Second") {
-                    saveRound()
-                } else if (selectedTurn === "First") {
-                    toggleFlowButton.classList.add('glowing');
-                    AIFFGenerateB.classList.add('glowing');
-                    saveRound()
-                }
-
+                saveRound()
 
             } catch (error) {
                 console.error('Transcription error:', error);
                 document.querySelector('.loading3U').style.display = 'none';
-                // Handle error state here
+                pfCellIdle('ai', 3);
             }
 
 
@@ -1529,6 +1876,7 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
     try {
         const response = await pfFetch('/processC', {
             json: {
+                roundId: pfCurrentRoundId(),
                 transcription: transcription,
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
@@ -1549,6 +1897,7 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
         console.error('Failed to process transcription:', error);
     } finally {
         document.querySelector('.loadingU').style.display = 'none';
+        pfCellIdle('my', 0);
     }
 }
 
@@ -1558,6 +1907,7 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
     // Send the transcription to your Python backend for processing
     pfFetch('/processR', {
         json: {
+            roundId: pfCurrentRoundId(),
             transcriptionR: transcriptionR,
             debateTopic: debateTopic,
             selectedSide: selectedSide,
@@ -1579,7 +1929,7 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
         .finally(() => {
             // Hide the loading animation
             document.querySelector('.loadingRU').style.display = 'none';
-
+            pfCellIdle('ai', 1);
         });
 }
 function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
@@ -1588,6 +1938,7 @@ function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
     // Send the transcription to your Python backend for processing
     pfFetch('/processS', {
         json: {
+            roundId: pfCurrentRoundId(),
             transcriptionS: transcriptionS,
             debateTopic: debateTopic,
             selectedSide: selectedSide,
@@ -1612,6 +1963,7 @@ function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
         .finally(() => {
             // Hide the loading animation
             document.querySelector('.loadingSU').style.display = 'none';
+            pfCellIdle('my', 2);
         });
 }
 function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
@@ -1622,6 +1974,7 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
     transcriptionResultF.textContent = '';
     pfFetch('/processF', {
         json: {
+            roundId: pfCurrentRoundId(),
             transcriptionF: transcriptionF,
             debateTopic: debateTopic,
             selectedSide: selectedSide,
@@ -1646,22 +1999,26 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
             // Hide the loading animation
             document.querySelector('.loadingFFU').style.display = 'none';
 
+            // Results-visibility timing asymmetry is intentional: when the
+            // user speaks Second their FF flow is the round's last render.
             if (selectedTurn == 'Second') {
                 updateResultsVisibility()
             }
             saveRound()
+            pfCellIdle('ai', 3);
         });
 }
 function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, selectedSkill) {
     const selectedTurn = document.getElementById('selectedTurn').textContent;
     fullAIRebuttal = ''; // Reset full AI rebuttal
-    GenerateAIRebuttalB.classList.remove('glowing');
+    pfCellBusy('my', 1, 'generating');
     document.querySelector('.loadingRA').style.display = 'block';
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
         pfFetch('/secondrebuttal', {
             json: {
+                roundId: pfCurrentRoundId(),
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -1688,14 +2045,15 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
                 // Hide the loading animation
                 document.querySelector('.loadingRA').style.display = 'none';
                 GenerateAIRebuttalB.textContent = 'Generate';
-                recordButtonS.classList.add('glowing');
+                isRebutting = false;
                 saveRound()
-
+                pfCellIdle('my', 1);
             });
     }
     if (selectedTurn == "Second") {
         pfFetch('/firstrebuttal', {
             json: {
+                roundId: pfCurrentRoundId(),
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -1720,10 +2078,9 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
                 // Hide the loading animation
                 document.querySelector('.loadingRA').style.display = 'none';
                 GenerateAIRebuttalB.textContent = 'Generate';
-                toggleFlowButton.classList.add('glowing');
-                recordButtonR.classList.add('glowing');
+                isRebutting = false;
                 saveRound()
-
+                pfCellIdle('my', 1);
             });
     }
 
@@ -1731,13 +2088,14 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
 }
 function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, AICase, AIRebuttal) {
     const selectedTurn = document.getElementById('selectedTurn').textContent;
-    AISummaryGenerateB.classList.remove('glowing');
+    pfCellBusy('ai', 2, 'generating');
     document.querySelector('.loadingSA').style.display = 'block';
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
         pfFetch('/secondsummary', {
             json: {
+                roundId: pfCurrentRoundId(),
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -1768,14 +2126,15 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
                 // Hide the loading animation
                 document.querySelector('.loadingSA').style.display = 'none';
                 AISummaryGenerateB.textContent = 'Generate';
-                recordButtonF.classList.add('glowing');
+                isSummarying = false;
                 saveRound()
-
+                pfCellIdle('ai', 2);
             });
     }
     if (selectedTurn == "Second") {
         pfFetch('/firstsummary', {
             json: {
+                roundId: pfCurrentRoundId(),
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -1805,20 +2164,20 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
                 // Hide the loading animation
                 document.querySelector('.loadingSA').style.display = 'none';
                 AISummaryGenerateB.textContent = 'Generate';
-                toggleFlowButton.classList.add('glowing');
-                recordButtonS.classList.add('glowing');
+                isSummarying = false;
                 saveRound()
-
+                pfCellIdle('ai', 2);
             });
     }
 
 
 }
 function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, AICase, AIRebuttal, AISummary) {
-    AIFFGenerateB.classList.remove('glowing');
+    pfCellBusy('my', 3, 'generating');
     document.querySelector('.loadingFFA').style.display = 'block';
     pfFetch('/finalfocus', {
         json: {
+            roundId: pfCurrentRoundId(),
             debateTopic: debateTopic,
             selectedSide: selectedSide,
             nonselectedSide: nonselectedSide,
@@ -1848,18 +2207,16 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
             // Hide the loading animation
             document.querySelector('.loadingFFA').style.display = 'none';
             AIFFGenerateB.textContent = 'Generate';
+            isFFing = false;
             const selectedTurn = document.getElementById('selectedTurn').textContent;
             saveRound()
-            if (selectedTurn == "Second") {
-                toggleFlowButton.classList.add('glowing');
-                recordButtonF.classList.add('glowing');
-                saveRound()
-            }
-            else {
+            // Results-visibility timing asymmetry is intentional: when the
+            // user speaks First, the AI's FF is the round's last render.
+            if (selectedTurn != "Second") {
                 updateResultsVisibility()
                 saveRound()
-
             }
+            pfCellIdle('my', 3);
         });
 }
 function stopGeneratingAISummary() {
@@ -1902,6 +2259,8 @@ function captureState() {
         toggle: ToggleisSelectedSide,
         savedToProfile: __roundSavedToProfile,
         skill: document.getElementById('selectedSkill')?.textContent?.trim() || '',
+        judgeType: (typeof judgeType === 'string' && judgeType) ? judgeType : 'tech',
+        updatedAt: Date.now(),
         roundId: window.__currentRoundId || null
     };
     return state;
@@ -1910,13 +2269,25 @@ function saveRound() {
     if (!__savedRoundKey) return; // No signed-in user resolved yet
     const state = captureState();
     localStorage.setItem(__savedRoundKey, JSON.stringify(state));
-
+    // Speech content reaches the server through the speech endpoints (every
+    // payload carries roundId); the debounced PATCH keeps judgeType in step.
+    scheduleDraftPatch();
 }
 function clearSavedRound() {
     if (__savedRoundKey) localStorage.removeItem(__savedRoundKey);
     localStorage.removeItem('savedRound'); // Old single-key format
+    __draftPatchDisabled = true;
+    clearTimeout(__draftPatchTimer);
 
-    location.reload(); // Optional: Reload the page to reset the state
+    // Delete the server draft too (best effort; quota is not refunded), then
+    // send the user to set up their next round.
+    var id = window.__currentRoundId;
+    var done = function () { location.href = 'setup.html'; };
+    if (id && typeof window.pfRoundDelete === 'function') {
+        pfRoundDelete(id, { page: 'Flow', quiet: true, noUpsell: true }).then(done, done);
+    } else {
+        done();
+    }
 }
 
 // Add to JavaScript
@@ -1935,6 +2306,7 @@ function selectJudgeType(type) {
         document.querySelectorAll('.judge-btn').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-type') === type);
         });
+        saveRound();
     }
 
 }
@@ -1978,8 +2350,12 @@ function toServerRound(round) {
 }
 
 // Best-effort copy to the account. The round is already in localStorage, so a
-// failure here costs the student nothing on this device.
+// failure here costs the student nothing on this device. Server-draft rounds
+// never take this path: their content is persisted by the speech endpoints,
+// and a legacy full save would overwrite the draft's status and evidence
+// mode with this page's rendered-HTML copies.
 function syncRoundToServer(round) {
+  if (window.__pfServerDraft) return;
   if (typeof window.pfFetch !== 'function') return;
   if (!round || !round.id) return;
   try {
@@ -2113,6 +2489,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
                     "</p>";
                 saveRound()
                 saveFeedbackToProfile();
+                pfShowBallotLink();
             })
             .catch(error => {
                 console.error('Error processing user input:', error);
@@ -2152,6 +2529,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
                 document.getElementById('feedback-content').innerHTML = "<p>" + pfSanitize(LayFeedback) + "</p>";
                 saveRound()
                 saveFeedbackToProfile();
+                pfShowBallotLink();
             })
             .catch(error => {
                 console.error('Error processing user input:', error);

@@ -1,8 +1,10 @@
-// api.js — single fetch path to the PublicForumAI backend.
+// api.js: single fetch path to the PublicForumAI backend.
 // Attaches the Firebase ID token when signed in and maps the backend error
-// contract to UI: 401/403 -> gate flow or verify notice, 429 -> cooldown or
-// daily-capacity notice, network failure -> retryable toast. pfFetch resolves
-// with the Response only on 2xx; every handled error throws a PfApiError.
+// contract to UI: 401/403 -> gate flow or verify notice, 402 -> plan upsell
+// or quota notice, 429 -> cooldown or daily-capacity notice, network failure
+// -> retryable toast. pfFetch resolves with the Response only on 2xx; every
+// handled error throws a PfApiError. Also exports pfMe (cached /me), the
+// draft-round helpers, and the shared pfUpsell modal.
 (function () {
   var DEFAULT_BASE = "https://pf-ai-debater-24c5902c1a88.herokuapp.com";
 
@@ -162,6 +164,19 @@
       throw PfApiError("email_unverified", 403);
     }
 
+    // Plan gates. The backend uses 402 so the existing 403 auth branches stay
+    // untouched; the plan_required check also accepts 403 defensively.
+    if ((response.status === 402 || response.status === 403) && code === "plan_required") {
+      if (!opts.noUpsell) pfUpsell(payload && payload.feature);
+      throw PfApiError("plan_required", response.status, { feature: payload && payload.feature });
+    }
+
+    if (response.status === 402 && code === "quota_exhausted") {
+      var scope402 = (payload && payload.scope) === "cases" ? "cases" : "rounds";
+      if (!opts.noUpsell) pfUpsell("quota_" + scope402, { resetAt: payload && payload.resetAt });
+      throw PfApiError("quota_exhausted", 402, { scope: scope402, resetAt: payload && payload.resetAt });
+    }
+
     if (response.status === 429) {
       var retryAfter = Number(payload && payload.retry_after);
       if (!Number.isFinite(retryAfter) || retryAfter <= 0) {
@@ -185,7 +200,221 @@
     throw PfApiError("http_error", response.status);
   }
 
+  // ---- upsell modal ---------------------------------------------------------
+  // pfUpsell(feature) shows the shared Premium modal (styles in pf-theme.css,
+  // shell copied from the Practice Round design). Copy titles and bodies for
+  // speak/redo come verbatim from the design; the rest follow the README's
+  // gated-feature list. All dynamic values go in through textContent.
+  var UPSELL_COPY = {
+    speak: {
+      title: "Hearing the AI speak is Premium",
+      body: "Premium reads every AI speech aloud so you can flow it in real time, the way you would in a real round."
+    },
+    redo: {
+      title: "Redoing a speech is Premium",
+      body: "On the free plan each speech is flowed once, the way a real round works. Premium lets you re-record and regenerate any speech as many times as you want."
+    },
+    contentions: {
+      title: "Choosing the contention count is Premium",
+      body: "Free plan cases use 2 contentions. Premium lets you change this."
+    },
+    real_evidence: {
+      title: "Real sources are Premium",
+      body: "Evidence in free rounds is simulated: the citations look realistic, but they are made up. Premium can use real linked sources you can check."
+    },
+    rounds: {
+      title: "Unlimited rounds are Premium",
+      body: "The free plan includes 3 practice rounds a month. Premium removes the cap."
+    },
+    cases: {
+      title: "Unlimited cases are Premium",
+      body: "The free plan includes 5 cases a month. Premium removes the cap."
+    },
+    quota_rounds: {
+      title: "You have used your 3 free rounds this month",
+      body: "Rounds you start count toward this, finished or not. Premium removes the cap."
+    },
+    quota_cases: {
+      title: "You have used your 5 free cases this month",
+      body: "Premium removes the cap and lets you generate as many cases as you want."
+    }
+  };
+
+  function fmtResetDate(resetAt) {
+    var secs = Number(resetAt);
+    if (!Number.isFinite(secs) || secs <= 0) return "";
+    try {
+      return new Date(secs * 1000).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+    } catch (e) { return ""; }
+  }
+
+  function pfUpsell(feature, opts) {
+    opts = opts || {};
+    try {
+      var existing = document.getElementById("pfai-upsell");
+      if (existing) existing.remove();
+
+      var copy = UPSELL_COPY[feature] || {
+        title: "This is a Premium feature",
+        body: "Premium removes the free plan's limits."
+      };
+
+      var backdrop = document.createElement("div");
+      backdrop.id = "pfai-upsell";
+      backdrop.className = "pf-modal-backdrop";
+
+      var modal = document.createElement("div");
+      modal.className = "pf-modal pf-upsell";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "pfai-upsell-title");
+
+      var icon = document.createElement("div");
+      icon.className = "pf-upsell-icon";
+      // Static padlock SVG, no dynamic content.
+      icon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
+
+      var title = document.createElement("h2");
+      title.className = "pf-upsell-title";
+      title.id = "pfai-upsell-title";
+      title.textContent = copy.title;
+
+      var body = document.createElement("p");
+      body.className = "pf-upsell-body";
+      var bodyText = copy.body;
+      var resetDate = fmtResetDate(opts.resetAt);
+      if (resetDate) bodyText += " Your free quota resets on " + resetDate + ".";
+      body.textContent = bodyText;
+
+      var actions = document.createElement("div");
+      actions.className = "pf-upsell-actions";
+
+      var dismiss = document.createElement("button");
+      dismiss.type = "button";
+      dismiss.className = "pf-btn-ghost";
+      dismiss.textContent = "Not now";
+
+      var cta = document.createElement("a");
+      cta.className = "pf-btn-primary";
+      cta.href = "pricing.html";
+      cta.textContent = "See Premium";
+
+      actions.appendChild(dismiss);
+      actions.appendChild(cta);
+      modal.appendChild(icon);
+      modal.appendChild(title);
+      modal.appendChild(body);
+      modal.appendChild(actions);
+      backdrop.appendChild(modal);
+      document.body.appendChild(backdrop);
+
+      function close() {
+        backdrop.remove();
+        document.removeEventListener("keydown", onKey);
+      }
+      function onKey(e) { if (e.key === "Escape") close(); }
+      dismiss.addEventListener("click", close);
+      backdrop.addEventListener("click", function (e) { if (e.target === backdrop) close(); });
+      document.addEventListener("keydown", onKey);
+      dismiss.focus();
+    } catch (e) {}
+  }
+
+  // ---- /me cache --------------------------------------------------------------
+  // pfMe() resolves the current user's /me JSON (plan, usage, limits, gems...).
+  // Cached in memory and localStorage (pfai_me::<uid>) for 5 minutes; cleared
+  // on sign-out by auth.js (which removes pfai_me:: keys and fires
+  // pfai:signedout). pfMe({fresh:true}) bypasses the cache. Resolves null when
+  // signed out. On success the plan lands in the auth snapshot via
+  // pfaiUpdatePlan, which repaints the header slot, and a pfai:me event fires
+  // for quota meters.
+  var ME_TTL_MS = 5 * 60 * 1000;
+  var mePromise = null, meAt = 0, meUid = null;
+
+  function currentUid() {
+    try {
+      if (window._auth && window._auth.currentUser) return window._auth.currentUser.uid;
+    } catch (e) {}
+    try {
+      var snap = JSON.parse(localStorage.getItem("pfai_auth_snapshot"));
+      return (snap && snap.uid) || null;
+    } catch (e) { return null; }
+  }
+
+  function meStorageKey(uid) { return "pfai_me::" + uid; }
+
+  function meInvalidate() { mePromise = null; meAt = 0; meUid = null; }
+  document.addEventListener("pfai:signedout", meInvalidate);
+
+  function announceMe(me) {
+    try { if (me && window.pfaiUpdatePlan) pfaiUpdatePlan(me.plan === "premium" ? "premium" : "free"); } catch (e) {}
+    try { document.dispatchEvent(new CustomEvent("pfai:me", { detail: me })); } catch (e) {}
+  }
+
+  async function pfMe(opts) {
+    opts = opts || {};
+    var uid = currentUid();
+    if (!uid) return null;
+
+    var now = Date.now();
+    if (!opts.fresh) {
+      if (mePromise && meUid === uid && now - meAt < ME_TTL_MS) return mePromise;
+      try {
+        var cached = JSON.parse(localStorage.getItem(meStorageKey(uid)));
+        if (cached && cached.at && now - cached.at < ME_TTL_MS && cached.me) {
+          meUid = uid; meAt = cached.at; mePromise = Promise.resolve(cached.me);
+          return mePromise;
+        }
+      } catch (e) {}
+    }
+
+    meUid = uid;
+    meAt = now;
+    mePromise = (async function () {
+      var response = await pfFetch("/me", null, { method: "GET", quiet: true });
+      var me = await response.json();
+      try { localStorage.setItem(meStorageKey(uid), JSON.stringify({ at: Date.now(), me: me })); } catch (e) {}
+      announceMe(me);
+      return me;
+    })();
+    mePromise.catch(function () { if (meUid === uid) meInvalidate(); });
+    return mePromise;
+  }
+
+  // ---- draft rounds -------------------------------------------------------------
+  // Thin wrappers over the contract endpoints. pfFetch defaults to POST, so
+  // every read/update passes an explicit method. Callers may pass pfFetch opts
+  // (page, saveState, quiet, button, label) as the last argument.
+  function pfRoundStart(data, opts) {
+    return pfFetch("/rounds/start", { json: data }, opts).then(function (r) {
+      meInvalidate(); // the monthly round quota just moved
+      return r.json();
+    });
+  }
+  function pfRoundPatch(id, patch, opts) {
+    return pfFetch("/rounds/" + encodeURIComponent(id), { json: patch }, Object.assign({ method: "PATCH" }, opts))
+      .then(function (r) { return r.json(); });
+  }
+  function pfRoundDelete(id, opts) {
+    return pfFetch("/rounds/" + encodeURIComponent(id), null, Object.assign({ method: "DELETE" }, opts));
+  }
+  function pfRounds(opts) {
+    return pfFetch("/rounds", null, Object.assign({ method: "GET" }, opts)).then(function (r) { return r.json(); });
+  }
+  function pfRound(id, opts) {
+    return pfFetch("/rounds/" + encodeURIComponent(id), null, Object.assign({ method: "GET" }, opts))
+      .then(function (r) { return r.json(); });
+  }
+
   window.pfFetch = pfFetch;
   window.pfToast = pfToast;
   window.pfCooldown = pfCooldown;
+  window.pfUpsell = pfUpsell;
+  window.pfMe = pfMe;
+  window.pfMeInvalidate = meInvalidate;
+  window.pfRoundStart = pfRoundStart;
+  window.pfRoundPatch = pfRoundPatch;
+  window.pfRoundDelete = pfRoundDelete;
+  window.pfRounds = pfRounds;
+  window.pfRound = pfRound;
 })();

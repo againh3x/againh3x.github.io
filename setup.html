@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com; media-src 'self' blob:; connect-src 'self' https://pf-ai-debater-24c5902c1a88.herokuapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.emailjs.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://apis.google.com https://publicforumai.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.emailjs.com"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
 <script>
@@ -10,22 +10,26 @@
 if (self !== top) { document.documentElement.style.display = 'none'; try { top.location = self.location; } catch (e) {} }
 </script>
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-ERE3HL6LKB');
-  </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Public Forum Debate AI Practice Round</title>
-  <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
-  <link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
-  <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
+</script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Public Forum Debate AI Practice Round</title>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <link rel="stylesheet" href="toolbar.css"/>
+<link rel="stylesheet" href="pf-theme.css"/>
 <script>
 /* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
 (function () {
@@ -41,12 +45,18 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     painted = true;
     obs.disconnect();
     var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
-    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
-    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
-    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
-      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
-    slot.querySelector('.user-avatar-initials').textContent = initials;
-    slot.querySelector('.user-name').textContent = '@' + name;
+    var initials = name.slice(0, 2).toUpperCase() || '?';
+    var premium = snap.plan === 'premium';
+    var planLabel = premium ? 'Premium' : 'Free plan';
+    slot.innerHTML = '<div class="user-menu-wrap">' +
+      '<button class="pf-avatar-btn' + (premium ? ' premium' : '') + '" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span class="pf-avatar-initials"></span>' +
+      (premium ? '<span class="pf-avatar-star">★</span>' : '') +
+      '</button></div>';
+    slot.querySelector('.pf-avatar-initials').textContent = initials;
+    slot.querySelector('.pf-avatar-btn').title = name + ' · ' + planLabel;
+    var myRounds = document.querySelectorAll('a[data-nav="myrounds"]');
+    for (var i = 0; i < myRounds.length; i++) myRounds[i].setAttribute('href', 'rounds.html');
   }
   var obs = new MutationObserver(paint);
   obs.observe(document.documentElement, { childList: true, subtree: true });
@@ -54,539 +64,996 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 })();
 </script>
 
-  <style>
-    /* Basic reset */
-    *, *::before, *::after { box-sizing: border-box; }
-    h1, h2, h3, p, input, button { margin: 0; }
+<style>
+  [hidden] { display: none !important; }
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(180deg, #b4dcff, #3589dd, #1858b3, #06294d);
-      color: #333;
-      margin: 0;
-      padding: 0 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
+  .setup-main {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 28px 32px 72px;
+    box-sizing: border-box;
+  }
+  .setup-main h1 {
+    margin: 0 0 22px;
+    font-size: 32px;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+  }
 
-    main {
-      width: 100%;
-      max-width: 700px;
-      margin-top: 30px;
-      padding: 30px;
-      border-radius: 20px;
-      background: linear-gradient(180deg, #b4dcff, #085eb3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      backdrop-filter: blur(12px);
-      position: relative;
-      overflow: visible;
-    }
-    main::before {
-      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(45deg, transparent 25%, rgba(255, 255, 255, 0.1) 50%, transparent 75%);
-      pointer-events: none;
-    }
+  /* Notice shown when Flow.html bounces a round link back here */
+  .setup-notice {
+    display: flex;
+    gap: 12px;
+    padding: 14px 18px;
+    margin-bottom: 28px;
+    background: #132A45;
+    border: 1px solid #2F5A85;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #9FD3F5;
+  }
+  .setup-notice .notice-lead { font-weight: 700; }
 
-    section {
-      margin-bottom: 40px;
-      padding: 25px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.6);
-      text-align: center;
-      transition: transform 0.3s ease;
-      position: relative;
-      overflow: visible;
-    }
-    section:hover { transform: translateY(-3px); }
+  .setup-cols {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: flex-start;
+  }
+  .setup-form {
+    flex: 2 1 520px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
 
-    h2, h3 {
-      font-size: 1.8rem; color: #1a1f4b; margin-bottom: 15px; font-weight: 700;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); position: relative; display: inline-block; padding-bottom: 5px;
-    }
-    h2::after, h3::after {
-      content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-      width: 60px; height: 3px; background: linear-gradient(90deg, #0066cc 0%, #00f3ff 100%); border-radius: 2px;
-    }
+  /* Numbered form sections */
+  .setup-section {
+    background: var(--pf-surface);
+    border: 1px solid var(--pf-border);
+    border-radius: 6px;
+    padding: 28px 30px;
+  }
+  .setup-section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .setup-section-head .pf-section-num { font-size: 12px; letter-spacing: 0; }
+  .setup-section-title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--pf-text);
+  }
+  .setup-section-sub {
+    margin: 0 0 16px 30px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--pf-text-muted);
+    max-width: 46em;
+  }
+  .setup-section-sub em {
+    font-family: var(--pf-font-serif);
+    font-size: 15.5px;
+    color: var(--pf-text-2);
+  }
+  .setup-section-body { margin-left: 30px; }
+  .setup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 12px;
+  }
 
-    label {
-      font-size: 1rem; color: #555;
-      display: inline-flex; align-items: center; justify-content: center;
-    }
-    .label-row {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      flex-wrap: wrap; margin-bottom: 5px;
-    }
-    .heading-row {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      flex-wrap: wrap; margin-bottom: 10px;
-    }
-    .heading-row h3 { margin-bottom: 0; }
+  .setup-section .pf-input { border-radius: 3px; font-size: 15.5px; }
+  .setup-section .pf-input:focus { border-color: var(--pf-accent); background: var(--pf-surface); }
+  .missing-input { border-color: var(--pf-ai-bright) !important; }
 
-    input[type="text"] {
-      width: 100%; padding: 12px; margin: 15px 0 5px;
-      border: 2px solid #0066cc; border-radius: 10px; font-size: 1rem; color: #333;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    input[type="text"]:focus { border-color: #004d99; box-shadow: 0 0 10px rgba(0, 77, 153, 0.7); outline: none; }
-    .missing-input { border-color: #d92f3d !important; }
+  .setup-topic-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--pf-text-muted);
+  }
+  .setup-topic-meta .topic-count { font-family: var(--pf-font-mono); }
 
-    /* Base button look */
-    button {
-      padding: 15px 25px; font-size: 1.2rem; color: #fff; background-color: #0066cc;
-      border: none; border-radius: 10px; cursor: pointer; margin: 10px;
-      transition: transform 0.2s, box-shadow 0.3s;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      position: relative; overflow: hidden;
-    }
-    button:active { background-color: #004d99; transform: translateY(0); box-shadow: 0 0 15px rgba(0, 77, 153, 1), 0 4px 6px rgba(0, 0, 0, 0.3); }
-    button:focus-visible, input[type="text"]:focus-visible {
-      outline: 3px solid #7df9ff; outline-offset: 2px;
-    }
+  /* Sidebar */
+  .setup-aside {
+    flex: 1 1 330px;
+    min-width: 0;
+    position: sticky;
+    top: 96px;
+  }
+  @media (max-width: 900px) {
+    .setup-aside { position: static; }
+  }
 
-    /* The three choice rows share one layout */
-    .choice-buttons {
-      display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 14px; margin-top: 15px;
-    }
-    .choice-buttons button {
-      margin: 0; flex: 0 1 200px; min-width: 140px;
-      padding: 12px 20px; border-radius: 8px; font-weight: 600; letter-spacing: 0.5px;
-      background: linear-gradient(135deg, #1a1f4b, #0066cc);
-      border: 2px solid transparent;
-      position: relative; overflow: hidden;
-    }
-    button.selected {
-      background: linear-gradient(135deg, #00f3ff, #0066cc) !important;
-      border: 2px solid #00ffff !important;
-      box-shadow: 0 0 15px rgba(0, 255, 255, 0.5) !important;
-    }
+  .round-card {
+    background: var(--pf-surface);
+    border: 1px solid var(--pf-border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .round-card-head {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--pf-border-subtle);
+    background: var(--pf-surface-raised);
+  }
+  .round-card-head .pf-eyebrow { font-size: 11px; letter-spacing: 0.12em; }
+  .round-card-body { padding: 22px; }
+  .round-topic {
+    font-family: var(--pf-font-serif);
+    font-size: 18px;
+    line-height: 1.45;
+    color: var(--pf-text);
+    text-wrap: pretty;
+  }
+  .round-topic.is-empty { color: var(--pf-text-faint); font-style: italic; }
+  .round-rows {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+    border-top: 1px solid var(--pf-border-subtle);
+  }
+  .round-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--pf-border-row);
+    font-size: 14px;
+  }
+  .round-row .row-label { color: var(--pf-text-muted); }
+  .round-row .row-value { font-weight: 600; color: var(--pf-text); }
+  .round-row .row-value.is-unset { font-weight: 400; color: var(--pf-text-faint); }
 
-    /* Glow sweep, scoped to the choice buttons and the start button only */
-    .choice-buttons button::before, #startButton::before {
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
-      transform: rotate(45deg); transition: all 0.5s ease; pointer-events: none;
-    }
-    .choice-buttons button:hover::before,
-    #startButton:not(:disabled):hover::before { animation: button-glow 1.5s infinite; }
-    @keyframes button-glow { 0% { left: -50%; } 100% { left: 150%; } }
+  /* You/AI legend + speech order expander */
+  .legend-wrap {
+    margin-top: 18px;
+    border-top: 1px solid var(--pf-border-subtle);
+    padding-top: 14px;
+  }
+  .legend-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--pf-text-muted); }
+  .legend .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .sq { display: block; width: 8px; height: 8px; border-radius: 2px; flex: none; }
+  .sq--you { background: var(--pf-accent); }
+  .sq--ai { background: var(--pf-ai); }
+  .order-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  .order-toggle .order-toggle-label { font-size: 12.5px; color: var(--pf-text-muted); }
+  .order-toggle .order-caret { font-size: 11px; color: var(--pf-accent); }
+  #speechOrderList { margin-top: 10px; }
+  .order-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-top: 1px solid #14304F;
+  }
+  .order-row .order-name { font-size: 13.5px; color: var(--pf-text-2); flex: 1; }
+  .order-row .order-who { font-family: var(--pf-font-mono); font-size: 12px; }
+  .order-who--you { color: var(--pf-accent); }
+  .order-who--ai { color: var(--pf-ai); }
 
-    #startButton {
-      font-size: 1.3rem; padding: 18px 35px; border-radius: 12px;
-      background: linear-gradient(135deg, #00f3ff, #0066cc);
-      text-transform: uppercase; letter-spacing: 1px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      transition: all 0.4s ease;
-    }
-    #startButton:not(:disabled):hover {
-      background: linear-gradient(45deg, #0066cc, #004d99);
-      background-size: 200% 200%;
-      animation: gradientShift 3s linear infinite;
-      transform: scale(1.1);
-      box-shadow: 0 0 20px rgba(0, 77, 153, 0.7), 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-    #startButton:disabled {
-      background: linear-gradient(135deg, #7d8aa5, #4a5a75);
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-      opacity: 0.85;
-    }
-    @keyframes gradientShift {
-      0% { background-position: 200% 0; }
-      50% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    #startHelper {
-      margin-top: 14px; font-size: 0.98rem; color: #12365e; min-height: 1.3em;
-    }
+  /* Start button + locked state */
+  .setup-start {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 48px;
+    margin-top: 22px;
+    background: var(--pf-blue);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 3px;
+    font-family: var(--pf-font);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .setup-start:hover:not(:disabled) { background: var(--pf-blue-hover); }
+  .setup-start:disabled {
+    background: var(--pf-blue-deep);
+    color: var(--pf-disabled-text);
+    cursor: not-allowed;
+  }
+  #startHelper {
+    margin: 10px 0 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--pf-text-muted);
+    text-align: center;
+    min-height: 1.2em;
+  }
+  .mic-note {
+    margin: 8px 0 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--pf-text-muted);
+    text-align: center;
+  }
+  .limit-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    margin-top: 22px;
+    background: #12233A;
+    border: 1px solid var(--pf-disabled-border);
+    border-radius: 3px;
+    color: var(--pf-disabled-text);
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .limit-note {
+    margin: 12px 0 0;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--pf-text-muted);
+    text-align: center;
+  }
+  .limit-note a { color: var(--pf-accent); text-decoration: underline; }
 
-    #pf-debate { margin-bottom: 40px; }
-    #pf-debate h2 { margin-bottom: 25px; }
+  /* Quota card */
+  .quota-card {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border: 1px solid #2F5A85;
+    background: #132A45;
+    border-radius: 4px;
+  }
+  .quota-headline {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #9FD3F5;
+  }
+  .quota-pips { display: flex; gap: 4px; margin-bottom: 9px; }
+  .quota-pips span { flex: 1; height: 4px; border-radius: 2px; }
+  .pip--used { background: var(--pf-disabled-border); }
+  .pip--left { background: var(--pf-selected-border); }
+  .quota-note { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--pf-text-muted); }
 
-    /* Info icon + tooltip: opens below the icon, tap or hover, keyboard reachable */
-    .info-icon {
-      width: 20px; height: 20px; padding: 0; margin: 0;
-      display: inline-flex; align-items: center; justify-content: center;
-      border: none; border-radius: 50%; background-color: #0066cc; color: #fff;
-      font-size: 13px; font-weight: 700; line-height: 1; cursor: pointer;
-      box-shadow: none; overflow: visible;
-    }
-    .info-icon:hover { background-color: #004d99; }
-    .tooltip { position: relative; display: inline-flex; align-items: center; }
-    .tooltip .tooltiptext {
-      visibility: hidden; width: min(300px, calc(100vw - 40px));
-      background-color: #fff; color: #333; text-align: left; border-radius: 6px; padding: 10px;
-      border: 1px solid #ccc; box-shadow: 0 4px 14px rgba(0,0,0,0.15); position: absolute; z-index: 20;
-      top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
-      font-size: 0.92rem; font-weight: 400; line-height: 1.45; text-shadow: none;
-      opacity: 0; transition: opacity 0.3s;
-    }
-    .tooltip .tooltiptext::after {
-      content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -5px;
-      border-width: 5px; border-style: solid; border-color: transparent transparent #ccc transparent;
-    }
-    .tooltip:hover .tooltiptext,
-    .tooltip.open .tooltiptext,
-    .info-icon:focus-visible + .tooltiptext { visibility: visible; opacity: 1; }
+  /* Simulated evidence notice (free) */
+  .evidence-note {
+    margin-top: 16px;
+    padding: 14px 18px;
+    border: 1px solid var(--pf-border);
+    background: var(--pf-surface-sunken);
+    border-radius: 4px;
+  }
+  .evidence-note-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .evidence-note-title { font-size: 12.5px; font-weight: 600; color: var(--pf-warning-text); }
+  .evidence-note p { margin: 0; font-size: 12px; line-height: 1.55; color: var(--pf-text-muted); }
+  .evidence-note a { color: var(--pf-accent); text-decoration: underline; }
 
-    /* Notice shown when Flow.html bounces a round link back here */
-    #roundParamsNotice {
-      display: none; width: 100%; margin: 0 0 22px; padding: 14px 18px;
-      border: 1px solid rgba(0, 243, 255, 0.5); border-left: 4px solid #00f3ff;
-      border-radius: 10px; background: rgba(10, 14, 39, 0.75); color: #eaffff;
-      text-align: left; font-size: 0.98rem; line-height: 1.5; position: relative;
-    }
+  /* Sidebar cards: evidence choice (premium) + in-progress drafts */
+  .aside-card {
+    margin-top: 16px;
+    background: var(--pf-surface);
+    border: 1px solid var(--pf-border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .aside-card-head {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--pf-border-subtle);
+    background: var(--pf-surface-raised);
+  }
+  .aside-card-head .pf-eyebrow { font-size: 10.5px; letter-spacing: 0.12em; }
+  .evidence-body { padding: 14px 18px; display: flex; flex-direction: column; gap: 9px; }
+  .evidence-body .pf-option { padding: 11px 13px; border-radius: 4px; }
+  .evidence-body .pf-option .pf-option-label { font-size: 13.5px; }
+  .evidence-body .pf-option .pf-option-note { font-size: 12px; margin-top: 3px; }
 
-    /* Highlight the page you are on in the toolbar.
-       Candidate for toolbar.css so every page gets it. */
-    nav.toolbar .nav-links a[aria-current="page"] { color: #fff; }
-    nav.toolbar .nav-links a[aria-current="page"]::after { width: 100%; }
-
-    /* Small-screen toolbar handling. toolbar.css has none below ~900px, so
-       this page carries its own until the shared file does. Candidate for toolbar.css. */
-    /* Toolbar responsive rules live in toolbar.css. */
-    @media (max-width: 480px) {
-      main { padding: 22px 14px; }
-      section { padding: 20px 14px; }
-    }
-
-    /* Footer */
-    .site-footer {
-      background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
-      color: #00f3ff; padding: 40px 20px; margin-top: 50px; width: 100%;
-      border-top: 1px solid rgba(0, 255, 255, 0.2); border-radius: 12px 12px 0 0;
-    }
-    .site-footer .logo { display: flex; align-items: center; gap: 15px; text-decoration: none; }
-    .site-footer .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4)); }
-    .site-footer .logo-text {
-      color: #00f3ff; font-size: 1.4rem; font-weight: 600; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
-      letter-spacing: 0.5px; margin-left: 10px; text-decoration: none;
-    }
-    .footer-content { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 30px; max-width: 1200px; margin: 0 auto; }
-    .footer-column { flex: 1; min-width: 250px; }
-    .footer-column h4 { font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #00f3ff; padding-bottom: 5px; }
-    .footer-column p { margin: 10px 0; }
-
-    .feedback-form { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; max-width: 500px; }
-    .feedback-form input, .feedback-form textarea {
-      width: 100%; padding: 10px; border: 2px solid #00f3ff; border-radius: 5px;
-      background: rgba(255, 255, 255, 0.1); color: #00f3ff;
-    }
-    .feedback-form textarea { height: 100px; font-family: inherit; }
-    .feedback-form button {
-      background: linear-gradient(135deg, #00f3ff, #0066cc); color: #fff; border: none;
-      margin: 0; padding: 12px 24px; border-radius: 5px; cursor: pointer; transition: transform 0.3s ease;
-      align-self: flex-start;
-    }
-    .feedback-form button:hover { transform: translateY(-2px); }
-    .feedback-form button:disabled { opacity: 0.7; cursor: wait; transform: none; }
-    .feedback-status { font-size: 0.92rem; min-height: 1.2em; margin: 0; }
-    .feedback-status.ok { color: #7cffb2; }
-    .feedback-status.err { color: #ff9da1; }
-
-    .or-separator { color: #00f3ff; margin: 15px 0; display: flex; align-items: center; text-align: center; gap: 10px; font-size: 0.9em; opacity: 0.8; }
-    .or-separator::before, .or-separator::after { content: ''; flex: 1; border-bottom: 1px solid #00f3ff; }
-
-    .plain-email { color: #00f3ff !important; text-decoration: none; }
-    .plain-email:hover { color: #00c4d6 !important; text-decoration: underline; }
-
-    .social-links { display: flex; flex-direction: column; gap: 10px; }
-    .social-link {
-      text-decoration: none; display: flex; align-items: center; gap: 8px;
-      transition: all 0.3s ease; padding: 5px 10px; border-radius: 4px;
-    }
-    .social-link.linkedin { color: #6fb3f2 !important; }
-    .social-link.youtube { color: #ff6b6b !important; }
-    .social-link.reddit { color: #ff8b55 !important; }
-    .social-link.linkedin:hover { background: rgba(10, 102, 194, 0.15); text-shadow: 0 0 10px rgba(10, 102, 194, 0.3); }
-    .social-link.youtube:hover { background: rgba(255, 0, 0, 0.15); text-shadow: 0 0 10px rgba(255, 0, 0, 0.3); }
-    .social-link.reddit:hover { background: rgba(255, 69, 0, 0.15); text-shadow: 0 0 10px rgba(255, 69, 0, 0.3); }
-
-    .footer-bottom { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(0, 255, 255, 0.1); }
-
-    @media (max-width: 768px) {
-      .footer-content { flex-direction: column; text-align: center; }
-      .site-footer .logo, .social-links { justify-content: center; align-items: center; }
-      .feedback-form { margin-left: auto; margin-right: auto; }
-      .feedback-form button { align-self: center; }
-    }
-  </style>
+  .draft-row {
+    display: block;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--pf-border-row);
+    text-decoration: none;
+    transition: background 0.3s ease;
+  }
+  .draft-row:hover { background: var(--pf-surface-raised); }
+  .draft-topic { display: block; font-size: 13px; line-height: 1.45; color: #CFEAFF; }
+  .draft-meta { display: flex; align-items: center; gap: 9px; margin-top: 7px; }
+  .draft-bar {
+    display: block;
+    flex: 1;
+    height: 4px;
+    background: var(--pf-border-row);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .draft-bar span { display: block; height: 100%; background: var(--pf-selected-border); }
+  .draft-count {
+    font-family: var(--pf-font-mono);
+    font-size: 10.5px;
+    color: var(--pf-text-muted);
+    white-space: nowrap;
+  }
+  .see-all-rounds {
+    display: block;
+    padding: 11px 18px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--pf-accent);
+    text-decoration: none;
+    transition: background 0.3s ease;
+  }
+  .see-all-rounds:hover { background: var(--pf-surface-raised); }
+</style>
 </head>
-<body>
+<body class="pf-page">
 
-  <!-- === Shared toolbar (markup matches every page; styled by toolbar.css) === -->
-  <nav class="toolbar">
-    <a class="logo" href="index.html">
-      <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
-      <span class="logo-text">PublicForumAI</span>
-    </a>
+<nav class="toolbar">
+  <a class="logo" href="index.html">
+    <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+    <span class="logo-text">PublicForumAI</span>
+  </a>
+  <div class="nav-links">
+    <a href="flower.html">Flow</a>
+    <a href="casewriter.html">Casewriter</a>
+    <a href="setup.html" aria-current="page">Practice Round</a>
+    <a href="login.html?next=%2Frounds.html" data-nav="myrounds">My Rounds</a>
+    <a href="modules.html">Training</a>
+    <a href="pricing.html">Pricing</a>
+  </div>
+  <div id="authSlot"><a href="login.html?next=%2Fsetup.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+</nav>
 
-    <div class="nav-links">
-      <a href="flower.html">AI Flow</a>
-      <a href="setup.html" aria-current="page">AI Practice Round</a>
-      <a href="casewriter.html">AI Casewriter</a>
-      <a href="modules.html">Training Modules</a>
+<main class="setup-main">
+
+  <h1>Set up the round</h1>
+
+  <div class="setup-notice" id="roundParamsNotice" role="alert" hidden>
+    <span class="notice-lead">Heads up</span>
+    <span>That round link was missing some settings. Pick your topic, side, order, and skill level below to start a round.</span>
+  </div>
+
+  <div class="setup-cols">
+
+    <div class="setup-form">
+
+      <section class="setup-section">
+        <div class="setup-section-head">
+          <span class="pf-section-num">01</span>
+          <label class="setup-section-title" for="debateTopic">Resolution</label>
+        </div>
+        <p class="setup-section-sub">Write the full resolution, not one or two words. For example: <em>NATO should strengthen its relationship with Ukraine in order to deter further Russian aggression.</em></p>
+        <div class="setup-section-body">
+          <input class="pf-input" type="text" id="debateTopic" name="debateTopic" maxlength="500" placeholder="Resolved: ..." required>
+          <div class="setup-topic-meta">
+            <span>Both sides argue this exact wording.</span>
+            <span class="topic-count" id="topicCount">0/500</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="setup-section">
+        <div class="setup-section-head">
+          <span class="pf-section-num">02</span>
+          <h2 class="setup-section-title">Skill level</h2>
+        </div>
+        <p class="setup-section-sub">Middle school makes the AI simpler and more accessible. Most debaters pick high school.</p>
+        <div class="setup-section-body setup-grid">
+          <button type="button" class="pf-option" data-group="skill" data-value="high" aria-pressed="false" id="highButton">
+            <span class="pf-option-label">High School</span>
+            <span class="pf-option-note">Full-speed AI, standard evidence</span>
+          </button>
+          <button type="button" class="pf-option" data-group="skill" data-value="middle" aria-pressed="false" id="middleButton">
+            <span class="pf-option-label">Middle School</span>
+            <span class="pf-option-note">Simpler language, slower pace</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="setup-section">
+        <div class="setup-section-head">
+          <span class="pf-section-num">03</span>
+          <h2 class="setup-section-title">Your side</h2>
+        </div>
+        <p class="setup-section-sub">The AI takes the other one.</p>
+        <div class="setup-section-body setup-grid">
+          <button type="button" class="pf-option" data-group="side" data-value="Aff" aria-pressed="false" id="affButton">
+            <span class="pf-option-label">Affirmative</span>
+            <span class="pf-option-note">You defend the resolution</span>
+          </button>
+          <button type="button" class="pf-option" data-group="side" data-value="Neg" aria-pressed="false" id="negButton">
+            <span class="pf-option-label">Negative</span>
+            <span class="pf-option-note">You argue against it</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="setup-section">
+        <div class="setup-section-head">
+          <span class="pf-section-num">04</span>
+          <h2 class="setup-section-title">Speaking order</h2>
+        </div>
+        <p class="setup-section-sub">Whoever speaks first gives the first constructive.</p>
+        <div class="setup-section-body setup-grid">
+          <button type="button" class="pf-option" data-group="turn" data-value="First" aria-pressed="false" id="firstButton">
+            <span class="pf-option-label">First</span>
+            <span class="pf-option-note">You open the round</span>
+          </button>
+          <button type="button" class="pf-option" data-group="turn" data-value="Second" aria-pressed="false" id="secondButton">
+            <span class="pf-option-label">Second</span>
+            <span class="pf-option-note">AI opens and you respond</span>
+          </button>
+        </div>
+      </section>
+
     </div>
 
-    <div id="authSlot">
-      <a href="login.html">
-        <div class="button signin"><span class="title">SIGN IN</span></div>
+    <aside class="setup-aside">
+
+      <div class="round-card">
+        <div class="round-card-head"><span class="pf-eyebrow">Round card</span></div>
+        <div class="round-card-body">
+          <div class="round-topic is-empty" id="roundTopic"></div>
+          <div class="round-rows">
+            <div class="round-row"><span class="row-label">Side</span><span class="row-value" id="sumSide"></span></div>
+            <div class="round-row"><span class="row-label">Order</span><span class="row-value" id="sumOrder"></span></div>
+            <div class="round-row"><span class="row-label">Level</span><span class="row-value" id="sumLevel"></span></div>
+            <div class="round-row"><span class="row-label">Evidence</span><span class="row-value" id="sumEvidence"></span></div>
+          </div>
+
+          <div class="legend-wrap">
+            <div class="legend-bar">
+              <div class="legend">
+                <span class="legend-item"><span class="sq sq--you"></span>You</span>
+                <span class="legend-item"><span class="sq sq--ai"></span>AI</span>
+              </div>
+              <button type="button" class="order-toggle" id="orderToggle" aria-expanded="false" aria-controls="speechOrderList">
+                <span class="order-toggle-label">Speech order</span>
+                <span class="order-caret" id="orderCaret">&#x25BC;</span>
+              </button>
+            </div>
+            <div id="speechOrderList" hidden></div>
+          </div>
+
+          <div id="startWrap">
+            <button type="button" class="setup-start" id="startButton" disabled>Start round</button>
+            <p id="startHelper" aria-live="polite"></p>
+            <p class="mic-note">Your browser will ask for microphone access when the first speech begins.</p>
+          </div>
+          <div id="limitWrap" hidden>
+            <div class="limit-box">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              Round limit reached
+            </div>
+            <p class="limit-note">Finish a round in progress, or <a href="pricing.html">go Premium</a> for unlimited rounds.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quota-card">
+        <span class="quota-headline" id="quotaHeadline"></span>
+        <div class="quota-pips" id="quotaPips"></div>
+        <p class="quota-note" id="quotaNote"></p>
+      </div>
+
+      <div class="evidence-note" id="evidenceNote">
+        <div class="evidence-note-head">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D68A2A" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>
+          <span class="evidence-note-title">Evidence in free rounds is simulated</span>
+        </div>
+        <p>The AI argues with realistic, made-up citations. They are usually close to the truth, but the authors, dates, and statistics are not real sources and should never be cut or read in a live round. <a href="pricing.html">Premium uses real evidence with working links.</a></p>
+      </div>
+
+      <div class="aside-card" id="evidenceChoice" hidden>
+        <div class="aside-card-head"><span class="pf-eyebrow">Evidence</span></div>
+        <div class="evidence-body">
+          <button type="button" class="pf-option" data-group="evidence" data-value="real" aria-pressed="false">
+            <span class="pf-option-label">Real sources</span>
+            <span class="pf-option-note">Genuine retrieved evidence with working links.</span>
+          </button>
+          <button type="button" class="pf-option" data-group="evidence" data-value="sim" aria-pressed="false">
+            <span class="pf-option-label">Simulated evidence</span>
+            <span class="pf-option-note">Realistic made-up citations, no links. Faster, and closer to a drill.</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="aside-card" id="draftsCard" hidden>
+        <div class="aside-card-head"><span class="pf-eyebrow">In progress</span></div>
+        <div id="draftsList"></div>
+        <a class="see-all-rounds" href="rounds.html">See all rounds &#8594;</a>
+      </div>
+
+    </aside>
+  </div>
+</main>
+
+<footer class="pf-footer">
+  <div class="pf-footer-cols">
+    <div class="pf-footer-brand">
+      <a class="pf-footer-logo" href="index.html">
+        <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+        <span>PublicForumAI</span>
       </a>
+      <p class="pf-footer-tag">Empowering debaters through AI</p>
     </div>
-  </nav>
-
-  <main>
-    <div id="roundParamsNotice" role="alert">
-      That round link was missing some settings. Pick your topic, side, order, and skill level below to start a round.
+    <div class="pf-footer-contact">
+      <h4>Contact Us</h4>
+      <a class="pf-footer-email" href="mailto:support@publicforumai.com">support@publicforumai.com</a>
+      <div class="pf-footer-or"><span></span><span class="pf-footer-or-label">OR</span><span></span></div>
+      <form id="feedbackForm" class="pf-footer-form">
+        <input name="from_email" placeholder="Your email" required="" type="email"/>
+        <textarea name="message" placeholder="Your feedback" required="" rows="3"></textarea>
+        <button type="submit">Submit Feedback</button>
+        <p class="pf-form-status" id="feedbackStatus" role="status" hidden></p>
+      </form>
     </div>
-    <section id="pf-debate">
-      <h2>PF Practice Round</h2>
-      <div class="label-row">
-        <label for="debateTopic">Enter Resolution (Topic):</label>
-        <span class="tooltip">
-          <button type="button" class="info-icon" aria-expanded="false" aria-describedby="topicTip">i</button>
-          <span class="tooltiptext" role="tooltip" id="topicTip">
-            This is the topic of the debate. <em>It should not be one or two words</em>, but a full resolution stating that something should or should not happen. For example, <em>"NATO should strengthen its relationship with Ukraine in order to deter further Russian aggression."</em>
-          </span>
-        </span>
-      </div>
-      <input type="text" id="debateTopic" name="debateTopic" required>
-    </section>
-
-    <section class="skill-level-section">
-      <div class="heading-row">
-        <h3>What is your skill level?</h3>
-        <span class="tooltip">
-          <button type="button" class="info-icon" aria-expanded="false" aria-describedby="skillTip">i</button>
-          <span class="tooltiptext" role="tooltip" id="skillTip">
-            Middle school makes the AI simpler and more accessible. Most debaters pick the high school version.
-          </span>
-        </span>
-      </div>
-      <div class="choice-buttons">
-        <button onclick="selectSkillLevel('middle')" id="middleButton">Middle School</button>
-        <button onclick="selectSkillLevel('high')" id="highButton">High School</button>
-      </div>
-    </section>
-
-    <section id="affirmative-negative">
-      <h3>Would you like to be affirmative or negative?</h3>
-      <div class="choice-buttons">
-        <button onclick="selectOptionAffNeg('Aff')" id="affButton">Affirmative</button>
-        <button onclick="selectOptionAffNeg('Neg')" id="negButton">Negative</button>
-      </div>
-    </section>
-
-    <section id="first-second">
-      <h3>Would you like to go first or second?</h3>
-      <div class="choice-buttons">
-        <button onclick="selectOptionFS('First')" id="firstButton">First</button>
-        <button onclick="selectOptionFS('Second')" id="secondButton">Second</button>
-      </div>
-    </section>
-
-    <section id="go-button">
-      <button id="startButton" onclick="goToLink()" disabled>Start Round!</button>
-      <p id="startHelper" aria-live="polite"></p>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="footer-content">
-      <!-- Brand Section -->
-      <div class="footer-column">
-        <a href="index.html" class="logo">
-          <img src="android-chrome-192x192.png" alt="Public Forum AI Logo">
-          <span class="logo-text">PublicForumAI</span>
-        </a>
-        <p>Empowering debaters through AI</p>
-      </div>
-
-      <!-- Contact Section -->
-      <div class="footer-column">
-        <h4>Contact Us</h4>
-        <p><a href="mailto:arda_altintepe@horacemann.org" class="plain-email">arda_altintepe@horacemann.org</a></p>
-        <div class="or-separator">OR</div>
-        <div class="feedback-form">
-          <form id="feedbackForm">
-            <input type="email" name="from_email" placeholder="Your email" required>
-            <textarea name="message" placeholder="Your feedback" required></textarea>
-            <button type="submit">Submit Feedback</button>
-            <p id="feedbackStatus" class="feedback-status" role="status"></p>
-          </form>
-        </div>
-      </div>
-
-      <!-- Social Links -->
-      <div class="footer-column">
-        <h4>Follow Us</h4>
-        <div class="social-links">
-          <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" class="social-link linkedin">
-            <i class="fab fa-linkedin"></i> LinkedIn
-          </a>
-          <a href="https://www.youtube.com/@PublicForumAI" target="_blank" class="social-link youtube">
-            <i class="fab fa-youtube"></i> YouTube
-          </a>
-          <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" class="social-link reddit">
-            <i class="fab fa-reddit-alien"></i> Reddit
-          </a>
-        </div>
+    <div class="pf-footer-social">
+      <h4>Follow Us</h4>
+      <div class="pf-footer-links">
+        <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://www.youtube.com/@PublicForumAI" target="_blank" rel="noopener">YouTube</a>
+        <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" rel="noopener">Reddit</a>
       </div>
     </div>
-
-    <!-- Copyright -->
-    <div class="footer-bottom">
-      <p>&copy; 2026 PublicForumAI. All rights reserved.</p>
+  </div>
+  <div class="pf-footer-bottom-wrap">
+    <div class="pf-footer-bottom">
+      <span>© 2026 PublicForumAI. All rights reserved.</span>
+      <span>Not for use in live rounds.</span>
     </div>
-  </footer>
+  </div>
+</footer>
 
-  <script>
-    var selectedSide = '';
-    var selectedTurn = '';
-    var selectedSkill = '';
+<script>
+// Feedback form: inline status messages, no dialogs.
+(function () {
+  var form = document.getElementById('feedbackForm');
+  var status = document.getElementById('feedbackStatus');
+  if (!form || !status) return;
 
-    function selectSkillLevel(level) {
-      selectedSkill = level;
-      document.getElementById('middleButton').classList.toggle('selected', level === 'middle');
-      document.getElementById('highButton').classList.toggle('selected', level === 'high');
-      updateStartState();
+  function showStatus(message, ok) {
+    status.textContent = message;
+    status.classList.remove('ok', 'err');
+    status.classList.add(ok ? 'ok' : 'err');
+    status.hidden = false;
+  }
+
+  try {
+    if (window.emailjs) emailjs.init('wgsczkr19C1FrKtLj');
+  } catch (e) { /* handled on submit */ }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!window.emailjs) {
+      showStatus('The feedback service did not load. Please email us directly instead.', false);
+      return;
     }
 
-    function selectOptionAffNeg(option) {
-      selectedSide = option;
-      document.getElementById('affButton').classList.toggle('selected', option === 'Aff');
-      document.getElementById('negButton').classList.toggle('selected', option === 'Neg');
-      updateStartState();
+    var btn = form.querySelector('button');
+    status.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    function done() {
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
     }
 
-    function selectOptionFS(option) {
-      selectedTurn = option;
-      document.getElementById('firstButton').classList.toggle('selected', option === 'First');
-      document.getElementById('secondButton').classList.toggle('selected', option === 'Second');
-      updateStartState();
+    emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
+      .then(function () {
+        form.reset();
+        showStatus('Thanks! Your feedback was sent.', true);
+        done();
+      }, function (error) {
+        showStatus('Something went wrong and your feedback was not sent. Please try again, or email us directly.', false);
+        console.error('Error:', error);
+        done();
+      });
+  });
+})();
+</script>
+
+<script src="auth.js"></script>
+<script src="sanitize.js"></script>
+<script src="gate.js"></script>
+<script src="api.js"></script>
+<script>
+// Round setup: numbered form + live round card, quota card from /me,
+// premium evidence choice, in-progress drafts, and the start-round flow
+// (pfRoundStart creates the server draft, then Flow.html opens it).
+// All user text lands in the DOM through textContent, never innerHTML.
+(function () {
+  var state = {
+    side: '',        // 'Aff' | 'Neg'
+    turn: '',        // 'First' | 'Second'
+    skill: '',       // 'high' | 'middle'
+    evidence: null,  // 'real' | 'sim' (premium picks; free is always simulated)
+    premium: false,
+    signedIn: false,
+    started: 0,      // rounds started this month (free)
+    limit: 3,        // roundsPerMonth from /me limits; null means unlimited
+    limitKnown: false,
+    starting: false,
+    orderOpen: false
+  };
+
+  var topicInput = document.getElementById('debateTopic');
+  var topicCount = document.getElementById('topicCount');
+  var roundTopic = document.getElementById('roundTopic');
+  var sumSide = document.getElementById('sumSide');
+  var sumOrder = document.getElementById('sumOrder');
+  var sumLevel = document.getElementById('sumLevel');
+  var sumEvidence = document.getElementById('sumEvidence');
+  var orderToggle = document.getElementById('orderToggle');
+  var orderCaret = document.getElementById('orderCaret');
+  var speechOrderList = document.getElementById('speechOrderList');
+  var startWrap = document.getElementById('startWrap');
+  var limitWrap = document.getElementById('limitWrap');
+  var startButton = document.getElementById('startButton');
+  var startHelper = document.getElementById('startHelper');
+  var quotaHeadline = document.getElementById('quotaHeadline');
+  var quotaPips = document.getElementById('quotaPips');
+  var quotaNote = document.getElementById('quotaNote');
+  var evidenceNote = document.getElementById('evidenceNote');
+  var evidenceChoice = document.getElementById('evidenceChoice');
+  var draftsCard = document.getElementById('draftsCard');
+  var draftsList = document.getElementById('draftsList');
+
+  function effectiveEvidence() {
+    return state.evidence || (state.premium ? 'real' : 'sim');
+  }
+
+  function monthKeyUTC() {
+    var d = new Date();
+    var m = d.getUTCMonth() + 1;
+    return d.getUTCFullYear() + '-' + (m < 10 ? '0' + m : '' + m);
+  }
+
+  // ---- form choices ---------------------------------------------------------
+
+  function selectOption(group, value) {
+    state[group] = value;
+    var buttons = document.querySelectorAll('.pf-option[data-group="' + group + '"]');
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute('aria-pressed', buttons[i].dataset.value === value ? 'true' : 'false');
     }
-
-    function missingChoices() {
-      var missing = [];
-      if (document.getElementById('debateTopic').value.trim() === '') missing.push('a topic');
-      if (selectedSkill === '') missing.push('your skill level');
-      if (selectedSide === '') missing.push('your side');
-      if (selectedTurn === '') missing.push('first or second');
-      return missing;
-    }
-
-    function updateStartState() {
-      var missing = missingChoices();
-      var btn = document.getElementById('startButton');
-      var helper = document.getElementById('startHelper');
-      btn.disabled = missing.length > 0;
-      helper.textContent = missing.length
-        ? 'Still needed: ' + missing.join(', ') + '.'
-        : 'All set. Start when you are ready.';
-    }
-
-    var topicInput = document.getElementById('debateTopic');
-    topicInput.addEventListener('input', function () {
-      if (this.value.trim() !== '') {
-        this.dataset.touched = '1';
-        this.classList.remove('missing-input');
-      } else if (this.dataset.touched) {
-        this.classList.add('missing-input');
-      }
-      updateStartState();
-    });
-    topicInput.addEventListener('blur', function () {
-      if (this.dataset.touched && this.value.trim() === '') this.classList.add('missing-input');
-    });
-
-    async function goToLink() {
-      var debateTopic = topicInput.value.trim();
-
-      // The button is disabled until everything is picked; this guard covers
-      // anything that slips through (for example a stale enabled state).
-      if (missingChoices().length > 0) {
-        if (debateTopic === '') topicInput.classList.add('missing-input');
-        updateStartState();
-        return;
-      }
-
-      var url = 'Flow.html' +
-        '?selectedSide=' + encodeURIComponent(selectedSide) +
-        '&selectedTurn=' + encodeURIComponent(selectedTurn) +
-        '&debateTopic=' + encodeURIComponent(debateTopic) +
-        '&selectedSkill=' + encodeURIComponent(selectedSkill);
-
-      // Rounds need an account; the settings ride the next URL through login.
-      if (window.pfGate && !(await pfGate.requireAuth({ page: 'setup', next: url }))) return;
-
-      window.location.href = url;
-    }
-
-    // Explain the bounce when Flow.html rejects a round link.
-    if (new URLSearchParams(location.search).get('error') === 'missing-params') {
-      document.getElementById('roundParamsNotice').style.display = 'block';
-    }
-
+    updateSummary();
     updateStartState();
+  }
 
-    // Tooltips: hover works on desktop; tap/click toggles for touch and keyboard.
-    (function () {
-      var tips = Array.prototype.slice.call(document.querySelectorAll('.tooltip'));
-      function closeAll(except) {
-        tips.forEach(function (t) {
-          if (t !== except) {
-            t.classList.remove('open');
-            var icon = t.querySelector('.info-icon');
-            if (icon) icon.setAttribute('aria-expanded', 'false');
-          }
+  (function wireOptions() {
+    var buttons = document.querySelectorAll('.pf-option[data-group]');
+    for (var i = 0; i < buttons.length; i++) {
+      (function (btn) {
+        btn.addEventListener('click', function () {
+          selectOption(btn.dataset.group, btn.dataset.value);
         });
+      })(buttons[i]);
+    }
+  })();
+
+  function missingChoices() {
+    var missing = [];
+    if (topicInput.value.trim() === '') missing.push('a topic');
+    if (state.skill === '') missing.push('your skill level');
+    if (state.side === '') missing.push('your side');
+    if (state.turn === '') missing.push('first or second');
+    return missing;
+  }
+
+  function updateStartState() {
+    var missing = missingChoices();
+    startButton.disabled = missing.length > 0 || state.starting;
+    startHelper.textContent = missing.length
+      ? 'Still needed: ' + missing.join(', ') + '.'
+      : 'All set. Start when you are ready.';
+  }
+
+  topicInput.addEventListener('input', function () {
+    if (this.value.trim() !== '') {
+      this.dataset.touched = '1';
+      this.classList.remove('missing-input');
+    } else if (this.dataset.touched) {
+      this.classList.add('missing-input');
+    }
+    updateSummary();
+    updateStartState();
+  });
+  topicInput.addEventListener('blur', function () {
+    if (this.dataset.touched && this.value.trim() === '') this.classList.add('missing-input');
+  });
+
+  // ---- round card -----------------------------------------------------------
+
+  function updateSummary() {
+    var topic = topicInput.value.trim();
+    topicCount.textContent = topicInput.value.length + '/500';
+    if (topic) {
+      roundTopic.textContent = topic;
+      roundTopic.classList.remove('is-empty');
+    } else {
+      roundTopic.textContent = 'Your resolution appears here.';
+      roundTopic.classList.add('is-empty');
+    }
+    setRow(sumSide, state.side === 'Aff' ? 'Affirmative' : state.side === 'Neg' ? 'Negative' : '');
+    setRow(sumOrder, state.turn === 'First' ? 'Speaking first' : state.turn === 'Second' ? 'Speaking second' : '');
+    setRow(sumLevel, state.skill === 'high' ? 'High school' : state.skill === 'middle' ? 'Middle school' : '');
+    setRow(sumEvidence, (state.premium && effectiveEvidence() === 'real') ? 'Real sources' : 'Simulated');
+    renderSpeechOrder();
+  }
+
+  function setRow(el, value) {
+    if (value) {
+      el.textContent = value;
+      el.classList.remove('is-unset');
+    } else {
+      el.textContent = 'Not set';
+      el.classList.add('is-unset');
+    }
+  }
+
+  function renderSpeechOrder() {
+    speechOrderList.hidden = !state.orderOpen;
+    orderCaret.textContent = state.orderOpen ? '▲' : '▼';
+    orderToggle.setAttribute('aria-expanded', state.orderOpen ? 'true' : 'false');
+    if (!state.orderOpen) return;
+    // Blue marks you, red marks the AI; never Aff/Neg.
+    var youFirst = state.turn !== 'Second';
+    var names = ['Constructive', 'Constructive', 'Rebuttal', 'Rebuttal', 'Summary', 'Summary', 'Final Focus', 'Final Focus'];
+    speechOrderList.textContent = '';
+    for (var i = 0; i < names.length; i++) {
+      var isYou = (i % 2 === 0) === youFirst;
+      var row = document.createElement('div');
+      row.className = 'order-row';
+      var sq = document.createElement('span');
+      sq.className = 'sq ' + (isYou ? 'sq--you' : 'sq--ai');
+      var name = document.createElement('span');
+      name.className = 'order-name';
+      name.textContent = names[i];
+      var who = document.createElement('span');
+      who.className = 'order-who ' + (isYou ? 'order-who--you' : 'order-who--ai');
+      who.textContent = isYou ? 'You' : 'AI';
+      row.appendChild(sq);
+      row.appendChild(name);
+      row.appendChild(who);
+      speechOrderList.appendChild(row);
+    }
+  }
+
+  orderToggle.addEventListener('click', function () {
+    state.orderOpen = !state.orderOpen;
+    renderSpeechOrder();
+  });
+
+  // ---- plan, quota, evidence cards -------------------------------------------
+
+  function renderPlanUI() {
+    if (state.premium) {
+      quotaHeadline.textContent = 'Unlimited rounds';
+      quotaPips.hidden = true;
+      quotaNote.textContent = 'Premium includes unlimited practice rounds and real sourced evidence.';
+    } else {
+      var limit = (state.limit == null || !isFinite(state.limit)) ? 3 : state.limit;
+      var started = Math.max(0, Math.min(state.started, limit));
+      var left = limit - started;
+      quotaHeadline.textContent = state.limitKnown
+        ? left + ' of ' + limit + ' free rounds left this month'
+        : limit + ' free rounds a month on the free plan';
+      quotaPips.hidden = false;
+      quotaPips.textContent = '';
+      for (var i = 0; i < limit; i++) {
+        var pip = document.createElement('span');
+        pip.className = i < started ? 'pip--used' : 'pip--left';
+        quotaPips.appendChild(pip);
       }
-      tips.forEach(function (t) {
-        var icon = t.querySelector('.info-icon');
-        if (!icon) return;
-        icon.addEventListener('click', function (e) {
-          e.stopPropagation();
-          var open = t.classList.toggle('open');
-          icon.setAttribute('aria-expanded', open ? 'true' : 'false');
-          closeAll(t);
-        });
+      quotaNote.textContent = 'Rounds you start count toward this, finished or not. Resets on the 1st.';
+    }
+
+    evidenceNote.hidden = state.premium;
+    evidenceChoice.hidden = !state.premium;
+    var ev = effectiveEvidence();
+    var evButtons = document.querySelectorAll('.pf-option[data-group="evidence"]');
+    for (var j = 0; j < evButtons.length; j++) {
+      evButtons[j].setAttribute('aria-pressed', evButtons[j].dataset.value === ev ? 'true' : 'false');
+    }
+
+    var atLimit = !state.premium && state.limitKnown && state.limit != null && state.limit - state.started <= 0;
+    startWrap.hidden = atLimit;
+    limitWrap.hidden = !atLimit;
+
+    updateSummary();
+  }
+
+  function applyMe(me) {
+    if (!me) return;
+    state.signedIn = true;
+    state.premium = me.premium === true || me.plan === 'premium';
+    var limits = me.limits || {};
+    if (state.premium) {
+      state.limit = null;
+    } else {
+      state.limit = (limits.roundsPerMonth === undefined) ? 3 : limits.roundsPerMonth;
+    }
+    var usage = me.usage || {};
+    state.started = (usage.month === monthKeyUTC() && isFinite(usage.roundsStarted)) ? usage.roundsStarted : 0;
+    state.limitKnown = true;
+    renderPlanUI();
+  }
+
+  // ---- in-progress drafts -----------------------------------------------------
+
+  function flowUrl(id, topic, side, turn, skill) {
+    // Legacy param names kept: Flow.html validates them on entry.
+    return 'Flow.html?round=' + encodeURIComponent(id) +
+      '&selectedSide=' + encodeURIComponent(side) +
+      '&selectedTurn=' + encodeURIComponent(turn) +
+      '&debateTopic=' + encodeURIComponent(topic) +
+      '&selectedSkill=' + encodeURIComponent(skill);
+  }
+
+  function renderDrafts(drafts) {
+    draftsList.textContent = '';
+    if (!drafts.length) {
+      draftsCard.hidden = true;
+      return;
+    }
+    for (var i = 0; i < drafts.length; i++) {
+      var d = drafts[i];
+      var done = Math.max(0, Math.min(8, Number(d.speechesDone) || 0));
+      var a = document.createElement('a');
+      a.className = 'draft-row';
+      a.href = flowUrl(d.id, d.topic || '', d.side || '', d.turn || '', d.skill || 'high');
+      var topic = document.createElement('span');
+      topic.className = 'draft-topic';
+      topic.textContent = d.topic || 'Untitled round';
+      var meta = document.createElement('span');
+      meta.className = 'draft-meta';
+      var bar = document.createElement('span');
+      bar.className = 'draft-bar';
+      var fill = document.createElement('span');
+      fill.style.width = Math.round((done / 8) * 100) + '%';
+      bar.appendChild(fill);
+      var count = document.createElement('span');
+      count.className = 'draft-count';
+      count.textContent = done + '/8';
+      meta.appendChild(bar);
+      meta.appendChild(count);
+      a.appendChild(topic);
+      a.appendChild(meta);
+      draftsList.appendChild(a);
+    }
+    draftsCard.hidden = false;
+  }
+
+  async function loadDrafts() {
+    try {
+      var data = await pfRounds({ quiet: true });
+      var rounds = Array.isArray(data) ? data : (data && data.rounds) || [];
+      var drafts = rounds.filter(function (r) { return r && r.status === 'draft' && r.id; });
+      drafts.sort(function (a, b) {
+        return (Number(b.updatedAt) || Number(b.createdAt) || 0) - (Number(a.updatedAt) || Number(a.createdAt) || 0);
       });
-      document.addEventListener('click', function () { closeAll(null); });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeAll(null);
-      });
-    })();
+      renderDrafts(drafts.slice(0, 4));
+    } catch (e) { /* background load; card stays hidden */ }
+  }
 
-    (function() { emailjs.init('wgsczkr19C1FrKtLj'); })();
+  // ---- start round --------------------------------------------------------------
 
-    document.getElementById('feedbackForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      var form = this;
-      var btn = form.querySelector('button');
-      var status = document.getElementById('feedbackStatus');
-      status.textContent = '';
-      status.className = 'feedback-status';
-      btn.disabled = true; btn.textContent = 'Sending...';
-      emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
-        .then(function () {
-          form.reset();
-          status.textContent = 'Thanks! Your feedback is on its way.';
-          status.className = 'feedback-status ok';
-        }, function (error) {
-          status.textContent = 'Could not send right now. Please try again, or email us directly.';
-          status.className = 'feedback-status err';
-          console.error('Error:', error);
-        })
-        .finally(function () { btn.disabled = false; btn.textContent = 'Submit Feedback'; });
-    });
-  </script>
+  async function goToLink() {
+    if (state.starting) return;
+    var topic = topicInput.value.trim();
 
-  <!-- Load the same auth logic used on casewriter to populate #authSlot -->
-  <script src="auth.js"></script>
-  <script src="gate.js"></script>
+    // The button is disabled until everything is picked; this guard covers
+    // anything that slips through (for example a stale enabled state).
+    if (missingChoices().length > 0) {
+      if (topic === '') topicInput.classList.add('missing-input');
+      updateStartState();
+      return;
+    }
+
+    // Rounds need an account. The gate stashes the form (evidence choice
+    // included) and brings the user back here after login via ?pending=.
+    if (window.pfGate && !(await pfGate.requireAuth({
+      page: 'setup',
+      saveState: { topic: topic, side: state.side, turn: state.turn, skill: state.skill, evidence: state.evidence }
+    }))) return;
+
+    state.starting = true;
+    startButton.disabled = true;
+    startButton.textContent = 'Starting...';
+    try {
+      var payload = { topic: topic, side: state.side, turn: state.turn, skill: state.skill };
+      // Free rounds are always simulated server-side; only premium sends a choice.
+      if (state.premium) payload.evidenceMode = effectiveEvidence() === 'real' ? 'real' : 'simulated';
+      var res = await pfRoundStart(payload, { page: 'setup' });
+      if (!res || !res.id) {
+        if (window.pfToast) pfToast('Something went wrong starting the round. Please try again.', { kind: 'error' });
+        throw new Error('round_start_no_id');
+      }
+      location.href = flowUrl(res.id, topic, state.side, state.turn, state.skill);
+      return;
+    } catch (err) {
+      state.starting = false;
+      startButton.textContent = 'Start round';
+      updateStartState();
+      if (err && err.code === 'quota_exhausted') {
+        // pfFetch already showed the upsell; sync the quota card with reality.
+        state.started = state.limit == null ? state.started : state.limit;
+        state.limitKnown = true;
+        renderPlanUI();
+        pfMe({ fresh: true }).then(applyMe).catch(function () {});
+      }
+    }
+  }
+
+  startButton.addEventListener('click', goToLink);
+
+  // ---- boot -----------------------------------------------------------------------
+
+  // Explain the bounce when Flow.html rejects a round link.
+  if (new URLSearchParams(location.search).get('error') === 'missing-params') {
+    document.getElementById('roundParamsNotice').hidden = false;
+  }
+
+  // Refill the form from a pre-login stash.
+  (function restoreStash() {
+    var fields = window.pfGate && pfGate.restorePending('setup');
+    if (!fields) return;
+    if (fields.topic) {
+      topicInput.value = String(fields.topic).slice(0, 500);
+      topicInput.dataset.touched = '1';
+    }
+    if (fields.skill === 'high' || fields.skill === 'middle') selectOption('skill', fields.skill);
+    if (fields.side === 'Aff' || fields.side === 'Neg') selectOption('side', fields.side);
+    if (fields.turn === 'First' || fields.turn === 'Second') selectOption('turn', fields.turn);
+    if (fields.evidence === 'real' || fields.evidence === 'sim') state.evidence = fields.evidence;
+  })();
+
+  // First paint from the cached auth snapshot so the premium bits do not flash.
+  try {
+    var snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot'));
+    if (snap && snap.uid) {
+      state.signedIn = true;
+      state.premium = snap.plan === 'premium';
+    }
+  } catch (e) {}
+
+  renderPlanUI();
+  updateStartState();
+
+  document.addEventListener('pfai:me', function (e) { applyMe(e.detail); });
+
+  // Only talk to the backend for verified sessions; a signed-out visitor must
+  // not be bounced to login just for opening the setup page.
+  (async function boot() {
+    if (!window.pfGate || !(await pfGate.isSignedInVerified())) return;
+    pfMe().then(applyMe).catch(function () {});
+    loadDrafts();
+  })();
+})();
+</script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="utf-8"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com; media-src 'self' blob:; connect-src 'self' https://pf-ai-debater-24c5902c1a88.herokuapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.emailjs.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://apis.google.com https://publicforumai.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.emailjs.com"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
 <script>
@@ -10,9 +10,26 @@
 if (self !== top) { document.documentElement.style.display = 'none'; try { top.location = self.location; } catch (e) {} }
 </script>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Training Modules - PublicForumAI</title>
+<!-- Google tag (gtag.js) -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
+</script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Training Modules - PublicForumAI</title>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <link rel="stylesheet" href="toolbar.css"/>
+<link rel="stylesheet" href="pf-theme.css"/>
 <script>
 /* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
 (function () {
@@ -28,12 +45,18 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     painted = true;
     obs.disconnect();
     var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
-    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
-    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
-    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
-      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
-    slot.querySelector('.user-avatar-initials').textContent = initials;
-    slot.querySelector('.user-name').textContent = '@' + name;
+    var initials = name.slice(0, 2).toUpperCase() || '?';
+    var premium = snap.plan === 'premium';
+    var planLabel = premium ? 'Premium' : 'Free plan';
+    slot.innerHTML = '<div class="user-menu-wrap">' +
+      '<button class="pf-avatar-btn' + (premium ? ' premium' : '') + '" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span class="pf-avatar-initials"></span>' +
+      (premium ? '<span class="pf-avatar-star">★</span>' : '') +
+      '</button></div>';
+    slot.querySelector('.pf-avatar-initials').textContent = initials;
+    slot.querySelector('.pf-avatar-btn').title = name + ' · ' + planLabel;
+    var myRounds = document.querySelectorAll('a[data-nav="myrounds"]');
+    for (var i = 0; i < myRounds.length; i++) myRounds[i].setAttribute('href', 'rounds.html');
   }
   var obs = new MutationObserver(paint);
   obs.observe(document.documentElement, { childList: true, subtree: true });
@@ -42,27 +65,29 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 </script>
   <style>
     /*
-      Training Modules layout.
+      Training Modules layout, redesign skin.
 
-      One authoritative layout: the fixed toolbar (toolbar.css) sits on top,
+      One authoritative layout: the sticky toolbar (toolbar.css) sits on top,
       its real height is mirrored into --toolbar-h by a small script, and
-      .app-container fills the rest of the viewport as a two-column grid.
-      The sidebar and #page-container scroll internally; the page itself
-      never scrolls.
+      .app-container fills the rest of the viewport as a two-column grid of
+      cards. The module list and #page-container scroll internally; the page
+      itself never scrolls.
     */
     :root {
-      --primary-color: #3498db;
-      --secondary-color: #9b59b6;
-      --accent-color: #f1c40f;
-      --background-dark: #01172d;
-      --background-light: #0a235a;
-      --card-bg: #11254b;
-      --text-color: #e0f4ff;
-      --shadow-color: rgba(0,0,0,0.3);
+      /* Legacy names: module content below references some of these inline.
+         Values are remapped to the redesign palette; keep the names. */
+      --primary-color: #7DD3FC;
+      --secondary-color: #F58C86;
+      --accent-color: #E0A24E;
+      --background-dark: #071A33;
+      --background-light: #0E2A49;
+      --card-bg: #0B2340;
+      --text-color: #E8F1FA;
+      --shadow-color: rgba(0, 0, 0, 0.3);
       --toolbar-h: 64px; /* kept in sync with the real bar by script */
       --pfai-accent: #6FCBFF;
-      --pfai-ok: #16a34a;
-      --pfai-ok-dark: #15803d;
+      --pfai-ok: #6FCF8F;
+      --pfai-ok-dark: #12301E;
     }
 
     html, body {
@@ -70,18 +95,16 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       padding: 0;
       height: 100%;
       overflow: hidden;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: var(--text-color);
     }
 
-    body {
-      padding-top: var(--toolbar-h) !important;
-      background: linear-gradient(180deg, #0a0e27, var(--background-dark));
+    body.pf-page {
+      background: var(--pf-bg);
+      color: var(--pf-text);
     }
 
-    /* The toolbar may wrap to two rows on narrow screens; the layout follows
-       because --toolbar-h is measured, not assumed. */
-    /* Toolbar responsive rules live in toolbar.css. */
+    input, textarea, button, select { font: inherit; }
+    ::placeholder { color: var(--pf-text-faint); opacity: 1; }
+    ::selection { background: var(--pf-border); }
 
     /* App frame between the toolbar and the bottom of the viewport */
     .app-container {
@@ -91,142 +114,225 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       width: 100%;
       max-width: 1400px;
       margin: 0 auto;
+      padding: 24px 28px 28px;
       display: grid;
-      grid-template-columns: 250px minmax(0, 1fr);
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 24px;
       overflow: hidden;
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 0 20px var(--shadow-color);
     }
 
     /* Hide the app until the head snapshot or the auth gate confirms a
        signed-in user, so logged-out visitors never see a flash of content. */
     html:not(.pfai-signed-in) .app-container { visibility: hidden; }
 
-    /* Sidebar */
+    /* Sidebar: header block + internally scrolling module list */
     .sidebar {
-      background: rgba(10,35,66,0.95);
-      padding: 20px;
-      box-sizing: border-box;
-      border-right: 1px solid rgba(125,211,252,0.2);
+      display: flex;
+      flex-direction: column;
       min-height: 0;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      background: var(--pf-surface);
+      border: 1px solid var(--pf-border);
+      border-radius: 6px;
+      overflow: hidden;
     }
-    .sidebar h2 {
-      margin: 0 0 12px;
-      font-size: 1.5rem;
-      color: var(--primary-color);
-      text-shadow: 0 0 8px rgba(255,255,255,0.2);
+    .sidebar-head {
+      flex: 0 0 auto;
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--pf-border-subtle);
+    }
+    .sidebar-head .pf-eyebrow {
+      margin-bottom: 8px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+    }
+    .sidebar-title {
+      margin: 0 0 14px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--pf-heading);
+    }
+    .sidebar-progress { display: flex; align-items: center; gap: 10px; }
+    .sidebar-progress-track {
+      flex: 1;
+      height: 5px;
+      background: var(--pf-border-subtle);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .sidebar-progress-fill {
+      width: 0;
+      height: 100%;
+      background: var(--pf-blue);
+      transition: width 0.3s ease;
+    }
+    .sidebar-progress-label {
+      font-family: var(--pf-font-mono);
+      font-size: 12px;
+      color: var(--pf-text-muted);
+      flex: none;
     }
     .gem-bar {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin: 0 0 16px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      background: rgba(241,196,15,0.1);
-      border: 1px solid rgba(241,196,15,0.35);
-      color: var(--accent-color);
-      font-weight: 700;
+      margin-top: 14px;
+      padding: 9px 12px;
+      background: #132A45;
+      border: 1px solid #2F5A85;
+      border-radius: 3px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #9FD3F5;
     }
-    .module-list { list-style: none; padding: 0; margin: 0; counter-reset: pfai-mod; }
-    .module-item { margin-bottom: 10px; }
-    .module-button {
+    .gem-diamond {
       display: block;
-      width: 100%;
-      position: relative;
-      padding: 12px 14px 12px 54px;
-      background: linear-gradient(145deg, #0d5db8, var(--pfai-accent));
-      border: 1px solid rgba(125,211,252,0.55);
-      border-radius: 10px;
-      color: #f8fbff;
-      font-size: 1rem;
-      text-align: left;
-      cursor: pointer;
-      box-shadow: 0 6px 18px rgba(59,130,246,0.20);
-      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
-    }
-    .module-button::before {
-      counter-increment: pfai-mod;
-      content: counter(pfai-mod);
-      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-      width: 30px; height: 30px; border-radius: 50%;
-      display: grid; place-items: center;
-      font-weight: 800;
-      background: rgba(255,255,255,0.08);
-      border: 1.5px solid rgba(125,211,252,0.7);
-      color: #e6f6ff;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.35);
-    }
-    .module-button:hover:not(:disabled),
-    .module-button.active {
-      filter: brightness(1.06);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px rgba(49,166,255,0.30);
-    }
-    .module-button .title { font-weight: bold; }
-    .module-button.completed {
-      background: linear-gradient(145deg, var(--pfai-ok), var(--pfai-ok-dark));
-      border-color: rgba(34,197,94,0.6);
-    }
-    .module-button.completed .title { color: #eaffea; }
-    .module-button.completed::after {
-      content: "\2713";
-      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-      font-weight: 900; font-size: 14px;
-    }
-    .module-button.locked {
-      pointer-events: none;
-      background: linear-gradient(145deg, #334155, #0f172a);
-      border-color: rgba(148,163,184,0.35);
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-    .module-button.locked .title { color: #c7d2fe; }
-    .module-button.locked::after {
-      content: "\1F512";
-      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-      font-size: 14px;
+      width: 9px;
+      height: 9px;
+      background: var(--pf-accent);
+      transform: rotate(45deg);
+      flex: none;
     }
 
-    /* Content column: header + scrollable page area + status line + nav */
+    .module-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .module-item { margin: 0; }
+    .module-button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      text-align: left;
+      padding: 13px 22px 13px 20px;
+      background: var(--pf-surface);
+      border: none;
+      border-bottom: 1px solid var(--pf-border-row);
+      border-left: 2px solid transparent;
+      color: var(--pf-text);
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+    .module-button:hover:not(:disabled) { background: #143354; }
+    .module-button.active {
+      background: var(--pf-selected);
+      border-left-color: var(--pf-selected-border);
+    }
+    .mod-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 3px;
+      background: var(--pf-border-row);
+      color: var(--pf-text-muted);
+      font-family: var(--pf-font-mono);
+      font-size: 11px;
+      flex: none;
+    }
+    .module-button.active .mod-num { background: var(--pf-blue); color: #FFFFFF; }
+    .module-button.completed .mod-num { background: var(--pf-success-bg); color: var(--pf-success); }
+    .mod-body { flex: 1; min-width: 0; }
+    .module-button .title {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--pf-text);
+      text-wrap: pretty;
+    }
+    .module-button.active .title { font-weight: 600; }
+    .module-button.completed .title { color: var(--pf-text-muted); }
+    .mod-reward {
+      display: block;
+      margin-top: 2px;
+      font-family: var(--pf-font-mono);
+      font-size: 10.5px;
+      color: var(--pf-text-muted);
+    }
+    .mod-state { font-size: 12px; color: var(--pf-accent); flex: none; }
+    .module-button.completed .mod-state { color: var(--pf-success); }
+    /* Sequential locking: the design draws no locked state, so this keeps the
+       mechanic visible in the same language: dimmed row, muted mono state. */
+    .module-button.locked {
+      pointer-events: none;
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+    .module-button.locked .mod-state {
+      color: var(--pf-text-muted);
+      font-family: var(--pf-font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Content column: header strip + scrollable page area + status + footer bar */
     .content {
       display: flex;
       flex-direction: column;
       min-height: 0;
       overflow: hidden;
-      background: rgba(10,35,66,0.9);
-      padding: 14px 16px;
-      box-sizing: border-box;
+      background: var(--pf-surface);
+      border: 1px solid var(--pf-border);
+      border-radius: 6px;
+    }
+    .content-head {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 34px;
+      border-bottom: 1px solid var(--pf-border-subtle);
+      background: var(--pf-surface-raised);
+      flex-wrap: wrap;
+    }
+    .content-eyebrow {
+      font-family: var(--pf-font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--pf-text-muted);
     }
     .content-header {
-      font-size: 1.6rem;
-      font-weight: bold;
-      margin-bottom: 8px;
-      color: var(--primary-color);
-      text-shadow: 0 0 10px rgba(125,211,252,0.3);
+      margin: 3px 0 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--pf-heading);
+    }
+    .content-pagelabel {
+      font-family: var(--pf-font-mono);
+      font-size: 12px;
+      color: var(--pf-text-muted);
     }
     .page-container {
       flex: 1 1 auto;
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
-      padding-right: 8px;
+      padding: 26px 34px 22px;
     }
-    #page-container h2 { color: var(--primary-color); font-size: 1.25rem; margin: 10px 0 8px; }
+    #page-container h2 { color: var(--pf-accent); font-size: 1.25rem; margin: 10px 0 8px; }
     #page-container img { max-width: 100%; height: auto; }
     #page-container pre { white-space: pre-wrap; word-break: break-word; max-width: 100%; }
     #page-container table { width: 100%; }
     .card {
       background: var(--card-bg);
-      padding: 14px 16px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      border: 1px solid var(--pf-border);
+      padding: 16px 18px;
+      border-radius: 4px;
       margin: 0 0 14px;
     }
-    .card h3 { margin-top: 0; color: var(--primary-color); }
+    .card h3 { margin-top: 0; color: var(--pf-heading); }
     .options-group { margin-top: 10px; }
     .options-group label { display: block; margin-bottom: 10px; cursor: pointer; }
 
@@ -236,86 +342,108 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     #page-container label.incorrect:not(.choice) {
       display: block;
       padding: 6px 10px;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
     }
-    #page-container label.correct:not(.choice) { border-left: 6px solid #16a34a; }
-    #page-container label.incorrect:not(.choice) { border-left: 6px solid #dc2626; }
+    #page-container label.correct:not(.choice) { border-left: 4px solid var(--pf-success); }
+    #page-container label.incorrect:not(.choice) { border-left: 4px solid var(--pf-ai-strong); }
 
     /* Inline status line, navigation, progress bar */
     #pf-toast {
       flex: 0 0 auto;
       min-height: 1.4em;
-      margin: 6px 2px 0;
+      margin: 6px 34px 8px;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 13px;
       opacity: 0;
-      transition: opacity .2s ease;
+      transition: opacity 0.2s ease;
     }
     #pf-toast.show { opacity: 1; }
-    #pf-toast.warn { color: #fca5a5; }
-    #pf-toast.ok { color: #6ee7b7; }
-    .nav-controls { flex: 0 0 auto; display: flex; justify-content: space-between; gap: 10px; margin-top: 6px; }
-    .nav-button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background .2s ease;
-      color: #fff;
+    #pf-toast.warn { color: var(--pf-loss-text); }
+    #pf-toast.ok { color: var(--pf-success); }
+    .nav-controls {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 34px;
+      border-top: 1px solid var(--pf-border-subtle);
+      background: var(--pf-surface-raised);
+      flex-wrap: wrap;
     }
-    .nav-button.back { background: var(--secondary-color); }
-    .nav-button.next { background: var(--primary-color); }
+    .nav-button {
+      height: 40px;
+      border-radius: 3px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .nav-button.back {
+      padding: 0 20px;
+      background: var(--pf-surface);
+      border: 1px solid var(--pf-border);
+      color: var(--pf-text);
+    }
+    .nav-button.next {
+      padding: 0 24px;
+      background: var(--pf-blue);
+      border: none;
+      color: #FFFFFF;
+    }
     .nav-button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .nav-button.back:hover:not(:disabled) { background: #7f3fbf; }
-    .nav-button.next:hover:not(:disabled) { background: #1d4fa7; }
+    .nav-button.back:hover:not(:disabled) { border-color: var(--pf-text); }
+    .nav-button.next:hover:not(:disabled) { background: var(--pf-blue-hover); }
     .primary-btn, .btn {
       display: inline-block;
       padding: 8px 16px;
       border: none;
-      border-radius: 6px;
-      background: var(--primary-color);
-      color: #fff;
+      border-radius: 3px;
+      background: var(--pf-blue);
+      color: #FFFFFF;
       font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
-      transition: background .2s ease;
+      transition: background 0.2s ease;
     }
-    .primary-btn:hover, .btn:hover { background: #1d4fa7; }
+    .primary-btn:hover, .btn:hover { background: var(--pf-blue-hover); }
     .progress-container {
-      flex: 0 0 auto;
-      height: 8px;
-      width: 100%;
-      background: rgba(255,255,255,0.1);
-      border-radius: 4px;
-      margin-top: 10px;
+      flex: 1 1 120px;
+      min-width: 120px;
+      height: 4px;
+      background: #1A3A5C;
+      border-radius: 2px;
       overflow: hidden;
     }
-    .progress-bar { height: 100%; background: var(--accent-color); width: 0; transition: width .3s ease; }
+    .progress-bar { height: 100%; background: var(--pf-accent); width: 0; transition: width 0.3s ease; }
 
     /* Form inputs */
     .form-input, textarea {
       width: 100%;
-      padding: 8px;
-      border: 1px solid rgba(125,211,252,0.3);
-      border-radius: 4px;
-      background: rgba(255,255,255,0.05);
-      color: var(--text-color);
+      padding: 9px 10px;
+      border: 1px solid var(--pf-border);
+      border-radius: 3px;
+      background: var(--pf-surface);
+      color: var(--pf-text);
       box-sizing: border-box;
       margin-top: 4px;
       font-family: inherit;
+    }
+    .form-input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--pf-accent);
     }
     select.form-input option { color: #0b1a2b; }
 
     /* Contrast guards for highlighted text */
     mark {
-      background: rgba(0,0,0,0.35) !important;
+      background: rgba(0, 0, 0, 0.35) !important;
       color: #ffffff !important;
       padding: 0.05em 0.25em;
       border-radius: 0.25em;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
     }
     .pill, .pill.claim, .pill.warrant, .pill.evidence, .pill.impact { color: #ffffff !important; }
     .choice, .quiz label { color: #ffffff !important; }
@@ -329,34 +457,42 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     /* Small screens: sidebar stacks above the content; both scroll
        internally and nothing overflows the viewport sideways. */
     @media (max-width: 768px) {
-      .app-container { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
-      .sidebar { max-height: 32vh; border-right: none; border-bottom: 1px solid rgba(125,211,252,0.2); padding: 14px; }
-      .content { padding: 12px; }
-      .content-header { font-size: 1.3rem; }
-      .nav-button { padding: 10px 14px; }
+      .app-container {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        padding: 12px;
+        gap: 12px;
+      }
+      .sidebar { max-height: 36vh; }
+      .sidebar-head { padding: 14px 16px; }
+      .module-button { padding: 11px 16px 11px 14px; }
+      .content-head { padding: 12px 16px; }
+      .page-container { padding: 16px; }
+      #pf-toast { margin: 6px 16px 8px; }
+      .nav-controls { padding: 12px 16px; }
+      .nav-button.back { padding: 0 16px; }
+      .nav-button.next { padding: 0 18px; }
     }
   </style>
 
 
 </head>
-<body>
+<body class="pf-page">
 
 <nav class="toolbar">
   <a class="logo" href="index.html">
-    <img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
+    <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
     <span class="logo-text">PublicForumAI</span>
   </a>
   <div class="nav-links">
-    <a href="flower.html">AI Flow</a>
-    <a href="setup.html">AI Practice Round</a>
-    <a href="casewriter.html">AI Casewriter</a>
-    <a href="modules.html">Training Modules</a>
+    <a href="flower.html">Flow</a>
+    <a href="casewriter.html">Casewriter</a>
+    <a href="setup.html">Practice Round</a>
+    <a href="login.html?next=%2Frounds.html" data-nav="myrounds">My Rounds</a>
+    <a href="modules.html" aria-current="page">Training</a>
+    <a href="pricing.html">Pricing</a>
   </div>
-  <div id="authSlot">
-    <a href="login.html">
-      <div class="button signin"><span class="title">SIGN IN</span></div>
-    </a>
-  </div>
+  <div id="authSlot"><a href="login.html?next=%2Fmodules.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
 </nav>
 
 <script>
@@ -378,23 +514,36 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
   <div class="app-container">
     <!-- Sidebar listing modules -->
     <aside class="sidebar">
-      <h2>Training Modules</h2>
-      <div class="gem-bar" id="gem-bar">💎 <span id="gem-count">0</span> gems</div>
+      <div class="sidebar-head">
+        <div class="pf-eyebrow pf-eyebrow--accent">New2Debate</div>
+        <h1 class="sidebar-title">Training modules</h1>
+        <div class="sidebar-progress">
+          <div class="sidebar-progress-track"><div id="modules-progress-fill" class="sidebar-progress-fill"></div></div>
+          <span id="modules-progress-label" class="sidebar-progress-label">0 of 15 done</span>
+        </div>
+        <div class="gem-bar" id="gem-bar"><span class="gem-diamond" aria-hidden="true"></span><span><span id="gem-count">0</span> gems earned</span></div>
+      </div>
       <ul id="module-list" class="module-list"></ul>
     </aside>
     <!-- Content area -->
     <main class="content">
-      <div id="module-title" class="content-header">Select a module</div>
+      <div class="content-head">
+        <div>
+          <div id="module-eyebrow" class="content-eyebrow">New2Debate</div>
+          <div id="module-title" class="content-header">Select a module</div>
+        </div>
+        <span id="page-label" class="content-pagelabel"></span>
+      </div>
       <div id="page-container" class="page-container"></div>
       <!-- Inline status line (replaces blocking alert dialogs) -->
       <div id="pf-toast" role="status" aria-live="polite"></div>
       <!-- Navigation buttons and progress bar -->
       <div class="nav-controls">
         <button id="back-btn" class="nav-button back" disabled>Back</button>
+        <div class="progress-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
         <button id="next-btn" class="nav-button next" disabled>Next</button>
-      </div>
-      <div class="progress-container">
-        <div id="progress-bar" class="progress-bar"></div>
       </div>
     </main>
   </div>
@@ -3195,36 +3344,34 @@ For these reasons, we are proud to affirm.`;
   </script>
 
 <style>
-/* Updated interactive styles for high contrast and white text.  The earlier
-   light pastels made white text illegible; these colours are darker and
-   pair with white text. */
+/* Interactive styles for later-module content, recolored to the redesign
+   palette. Tinted dark fills keep white text legible and keep the contrast
+   guards above working. */
 .choice {
   display:inline-block;
   padding:6px 10px;
-  border-radius:8px;
-  border:1px solid rgba(255,255,255,0.3);
+  border-radius:4px;
+  border:1px solid var(--pf-border);
   margin:4px 6px;
   cursor:pointer;
   transition:background .15s, border-color .15s;
   color:#ffffff;
-  background:rgba(255,255,255,0.05);
+  background:var(--pf-surface);
 }
 .choice input { margin-right:6px; }
 .choice.correct {
-  /* Do not fill the entire chip when correct; instead use a coloured left border */
-  background: rgba(255,255,255,0.05);
-  border-left: 6px solid #16a34a;
-  border-color: #16a34a;
+  background: var(--pf-success-bg);
+  border-color: #2A5C3C;
+  border-left: 4px solid var(--pf-success);
 }
 .choice.incorrect {
-  /* Indicate incorrect choice with a red border but keep the dark background */
-  background: rgba(255,255,255,0.05);
-  border-left: 6px solid #dc2626;
-  border-color: #dc2626;
+  background: var(--pf-loss-bg);
+  border-color: #5C2A2A;
+  border-left: 4px solid var(--pf-ai-strong);
 }
 .choice.neutral {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.3);
+  background: var(--pf-surface);
+  border-color: var(--pf-border);
 }
 
 .signpost-row {
@@ -3233,21 +3380,20 @@ For these reasons, we are proud to affirm.`;
   gap:12px;
   padding:8px 10px;
   margin:6px 12px;
-  border-radius:10px;
-  background:rgba(255,255,255,0.05);
+  border-radius:4px;
+  background:var(--pf-surface-raised);
   color:#ffffff;
-  border:1px solid rgba(255,255,255,0.15);
+  border:1px solid var(--pf-border);
 }
 .signpost-row.correct {
-  /* Use a coloured border rather than filling the row so text remains legible */
-  background: rgba(255,255,255,0.05);
-  border-left: 6px solid #16a34a;
-  border-color: #16a34a;
+  background: var(--pf-success-bg);
+  border-color: #2A5C3C;
+  border-left: 4px solid var(--pf-success);
 }
 .signpost-row.incorrect {
-  background: rgba(255,255,255,0.05);
-  border-left: 6px solid #dc2626;
-  border-color: #dc2626;
+  background: var(--pf-loss-bg);
+  border-color: #5C2A2A;
+  border-left: 4px solid var(--pf-ai-strong);
 }
 
 .signpost-badge {
@@ -3256,10 +3402,10 @@ For these reasons, we are proud to affirm.`;
   padding:2px 8px;
   border-radius:999px;
 }
-.signpost-badge.ok { background:#14532d; color:#d1fae5; }
-.signpost-badge.no { background:#7f1d1d; color:#fee2e2; }
+.signpost-badge.ok { background:var(--pf-success-bg); color:var(--pf-success); }
+.signpost-badge.no { background:var(--pf-loss-bg); color:var(--pf-loss-text); }
 
-mark.claim { background:#21365f; color:#ffffff; }
+mark.claim { background:#14375C; color:#ffffff; }
 mark.warrant { background:#14532d; color:#ffffff; }
 mark.evidence { background:#4c1d95; color:#ffffff; }
 mark.impact { background:#854d0e; color:#ffffff; }
@@ -3270,36 +3416,29 @@ mark.impact { background:#854d0e; color:#ffffff; }
   border-radius:999px;
   font-weight:700;
   margin-right:8px;
-  border:1px solid rgba(255,255,255,0.3);
+  border:1px solid var(--pf-border);
   color:#ffffff;
 }
-.pill.claim { background:#21365f; }
+.pill.claim { background:#14375C; }
 .pill.warrant { background:#14532d; }
 .pill.evidence { background:#4c1d95; }
 .pill.impact { background:#854d0e; }
 
-  /* -------------------------------------------------------------------------
-     Additional button and row styling (added in response to feedback)
-     The following rules improve contrast for the small buttons used in module
-     8 and 9 (Good/Bad selections, copy buttons, etc.) and ensure all text in
-     signpost rows remains white. Without these rules the default browser
-     buttons showed dark text on light backgrounds, which blended into the dark
-     theme, and some nested elements in the signpost rows inherited dark
-     colours.  These declarations override that behaviour with a dark
-     translucent background and white text.
-  */
+  /* Small utility buttons used inside module 8 and 9 content (Good/Bad
+     selections, copy buttons): dark surface, visible border, white text. */
   button.button {
-    background: rgba(255,255,255,0.07);
+    background: var(--pf-surface);
     color: #ffffff;
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 6px;
+    border: 1px solid var(--pf-border);
+    border-radius: 3px;
     padding: 4px 10px;
     margin-left: 4px;
     cursor: pointer;
-    transition: background .15s;
+    transition: background .15s, border-color .15s;
   }
   button.button:hover {
-    background: rgba(255,255,255,0.15);
+    background: #143354;
+    border-color: var(--pf-text);
   }
   .signpost-row, .signpost-row * {
     color: #ffffff !important;
@@ -4243,6 +4382,7 @@ if (typeof modules !== 'undefined' && Array.isArray(modules)) {
 <!-- Removed legacy override scripts to prevent conflicting sidebar behavior -->
 
 <script src="auth.js"></script>
+<script src="sanitize.js"></script>
 <script>
 /* PFAI_STRONG_AUTH_REPAINT */
 (function(){
@@ -4373,6 +4513,108 @@ if (typeof modules !== 'undefined' && Array.isArray(modules)) {
 <script>
 /* Give the page back its own toast: api.js just claimed the same global. */
 if (window.pfPageToast) window.pfToast = window.pfPageToast;
+</script>
+<script>
+/* PFAI_REDESIGN_SHELL_DECOR
+   Presentation-only bridge between the untouched module logic and the new
+   chrome: decorates sidebar rows with a number badge, gem reward and state
+   column, computes the "N of M done" header progress, and derives the main
+   panel's "Module NN" and "Page N of M" labels. It only reads module state
+   and never edits what buildModuleList or the page renderers draw inside
+   #page-container. */
+(function () {
+  var list = document.getElementById('module-list');
+  if (!list) return;
+  var fill = document.getElementById('modules-progress-fill');
+  var label = document.getElementById('modules-progress-label');
+  var eyebrow = document.getElementById('module-eyebrow');
+  var pageLabel = document.getElementById('page-label');
+  var titleEl = document.getElementById('module-title');
+
+  function pad2(n) { return String(n).length < 2 ? '0' + n : String(n); }
+
+  function decorateRows() {
+    var buttons = list.querySelectorAll('.module-button');
+    for (var i = 0; i < buttons.length; i++) {
+      var btn = buttons[i];
+      if (!btn.querySelector('.mod-num')) {
+        var num = document.createElement('span');
+        num.className = 'mod-num';
+        num.textContent = pad2(i + 1);
+        btn.insertBefore(num, btn.firstChild);
+        var body = document.createElement('span');
+        body.className = 'mod-body';
+        var title = btn.querySelector('.title');
+        if (title) {
+          btn.insertBefore(body, title);
+          body.appendChild(title);
+        } else {
+          btn.appendChild(body);
+        }
+        try {
+          if (typeof modules !== 'undefined' && modules[i] && modules[i].reward != null) {
+            var sub = document.createElement('span');
+            sub.className = 'mod-reward';
+            sub.textContent = modules[i].reward + ' gems';
+            body.appendChild(sub);
+          }
+        } catch (e) {}
+        var state = document.createElement('span');
+        state.className = 'mod-state';
+        btn.appendChild(state);
+      }
+      var stateEl = btn.querySelector('.mod-state');
+      if (stateEl) {
+        stateEl.textContent = btn.classList.contains('completed') ? 'Done'
+          : btn.classList.contains('active') ? 'In progress'
+          : btn.classList.contains('locked') ? 'Locked' : '';
+      }
+    }
+  }
+
+  function updateHeaderProgress() {
+    try {
+      if (typeof modules === 'undefined' || typeof AppState === 'undefined') return;
+      var done = 0;
+      for (var i = 0; i < modules.length; i++) {
+        if (AppState.isModuleComplete(modules[i].id)) done++;
+      }
+      if (label) label.textContent = done + ' of ' + modules.length + ' done';
+      if (fill) fill.style.width = Math.round((done / modules.length) * 100) + '%';
+    } catch (e) {}
+  }
+
+  function updatePanelLabels() {
+    try {
+      if (typeof currentModule !== 'undefined' && currentModule) {
+        var idx = -1;
+        if (typeof modules !== 'undefined') {
+          for (var i = 0; i < modules.length; i++) {
+            if (modules[i].id === currentModule.id) { idx = i; break; }
+          }
+        }
+        if (eyebrow) eyebrow.textContent = idx >= 0 ? 'Module ' + pad2(idx + 1) : 'Module';
+        var p = (typeof pageIndex === 'number') ? pageIndex : 0;
+        if (pageLabel) pageLabel.textContent = 'Page ' + (p + 1) + ' of ' + currentModule.pages.length;
+      } else {
+        if (eyebrow) eyebrow.textContent = 'New2Debate';
+        if (pageLabel) pageLabel.textContent = '';
+      }
+    } catch (e) {}
+  }
+
+  function refresh() {
+    decorateRows();
+    updateHeaderProgress();
+    updatePanelLabels();
+  }
+
+  /* buildModuleList rewrites the list's children on every repaint;
+     renderPage resets #module-title's text on every page turn. */
+  new MutationObserver(refresh).observe(list, { childList: true });
+  if (titleEl) new MutationObserver(refresh).observe(titleEl, { childList: true, characterData: true, subtree: true });
+  refresh();
+})();
 </script>
 <script>
 /* PFAI_MODULES_AUTH_GATE */

@@ -14,17 +14,23 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 <!-- Google tag (gtag.js) -->
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
 <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-ERE3HL6LKB');
-    </script>
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
+</script>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Public Forum Debate AI Flow</title>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <link rel="stylesheet" href="toolbar.css"/>
+<link rel="stylesheet" href="pf-theme.css"/>
 <script>
 /* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
 (function () {
@@ -40,12 +46,18 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     painted = true;
     obs.disconnect();
     var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
-    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
-    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
-    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
-      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
-    slot.querySelector('.user-avatar-initials').textContent = initials;
-    slot.querySelector('.user-name').textContent = '@' + name;
+    var initials = name.slice(0, 2).toUpperCase() || '?';
+    var premium = snap.plan === 'premium';
+    var planLabel = premium ? 'Premium' : 'Free plan';
+    slot.innerHTML = '<div class="user-menu-wrap">' +
+      '<button class="pf-avatar-btn' + (premium ? ' premium' : '') + '" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span class="pf-avatar-initials"></span>' +
+      (premium ? '<span class="pf-avatar-star">★</span>' : '') +
+      '</button></div>';
+    slot.querySelector('.pf-avatar-initials').textContent = initials;
+    slot.querySelector('.pf-avatar-btn').title = name + ' · ' + planLabel;
+    var myRounds = document.querySelectorAll('a[data-nav="myrounds"]');
+    for (var i = 0; i < myRounds.length; i++) myRounds[i].setAttribute('href', 'rounds.html');
   }
   var obs = new MutationObserver(paint);
   obs.observe(document.documentElement, { childList: true, subtree: true });
@@ -53,1045 +65,1055 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 })();
 </script>
 <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(180deg, #b4dcff, #3589dd, #1858b3, #06294d);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            color: #333;
-            overflow-x: hidden;
-        }
-
-        .loading {
-            text-align: center;
-            margin-top: 100px;
-            display: none;
-        }
-
-        .text10 {
-            font-size: 20px;
-            margin-bottom: 0px;
-
-        }
-
-        .ai-loader {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 10vh;
-            /* Ensure it's centered in full view */
-        }
-
-        .dot {
-            width: 15px;
-            height: 15px;
-            margin: 0 5px;
-            border-radius: 50%;
-            background-color: #2e5adc;
-            animation: pulse 1.5s infinite;
-        }
-
-        .dot1 {
-            animation-delay: 0s;
-        }
-
-        .dot2 {
-            animation-delay: 0.2s;
-        }
-
-        .dot3 {
-            animation-delay: 0.4s;
-        }
-
-        .dot4 {
-            animation-delay: 0.6s;
-        }
-
-        .dot5 {
-            animation-delay: 0.8s;
-        }
-
-        .dot6 {
-            animation-delay: 1s;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 0.3;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 1;
-                transform: scale(1.2);
-            }
-        }
-
-        .container {
-            box-sizing: border-box;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            width: 100%;
-            max-width: 1400px;
-            background: #fff;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            height: 700px;
-        }
-
-        .controls {
-            flex: 1;
-            margin-right: 30px;
-        }
-
-        .output {
-            flex: 2;
-        }
-
-        h1 {
-            color: #333;
-            text-align: center;
-            font-size: 1.8rem;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .input-group input[type="text"],
-        .input-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            background: #f9f9f9;
-            color: #333;
-            font-size: 1rem;
-        }
-
-        #speechType {
-            display: flex;
-            flex-direction: column;
-        }
-
-        #speechType label {
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: border-color 0.25s ease, box-shadow 0.25s ease;
-            background: #f9f9f9;
-            font-weight: normal;
-        }
-
-        #speechType input[type="radio"] {
-            display: none;
-        }
-
-        #speechType input[type="radio"]:checked+label {
-            border-color: #007bff;
-            box-shadow: 0 0 10px #007bff;
-        }
-
-        #recordButton {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2rem;
-            color: white;
-            background: linear-gradient(90deg, #0099ff, #66a6ff);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-            margin-top: 20px;
-            transition: background 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 15px rgba(0, 150, 255, 0.3);
-        }
-
-        #recordButton:hover {
-            background: linear-gradient(90deg, #00ccff, #80d4ff);
-            transform: scale(1.05);
-        }
-
-        #flowOutput {
-            border: 2px solid #ddd;
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 5px;
-            height: 600px;
-            overflow-y: auto;
-            font-size: 1rem;
-            color: #333;
-
-        }
-
-
-        .loading0U {
-            text-align: center;
-            margin-top: 100px;
-            display: none;
-        }
-
-        /* Audio visualizer: hidden until a recording starts; sized to its box. */
-        .listeningC {
-            display: none;
-            margin-top: 10px;
-        }
-
-        .listeningC canvas {
-            display: block;
-            width: 100%;
-            height: 200px;
-        }
-
-        /* Inline validation shown when Record is pressed with missing fields. */
-        .form-error {
-            display: none;
-            margin-top: 12px;
-            padding: 10px 12px;
-            border: 1px solid #e05555;
-            border-radius: 5px;
-            background: #fdecec;
-            color: #b02a2a;
-            font-size: 0.95rem;
-        }
-
-        .form-error.show {
-            display: block;
-        }
-
-        .input-error {
-            border-color: #e05555 !important;
-            box-shadow: 0 0 6px rgba(224, 85, 85, 0.5);
-        }
-
-        .flow-error {
-            color: #b02a2a;
-            font-weight: 600;
-        }
-
-        @media (max-width: 900px) {
-            .container {
-                flex-direction: column;
-                height: auto;
-            }
-
-            .controls {
-                margin-right: 0;
-                width: 100%;
-            }
-
-            .output {
-                width: 100%;
-            }
-
-            #flowOutput {
-                height: 400px;
-            }
-        }
-
-        /* Narrow-screen toolbar: page-scoped until toolbar.css handles it. */
-        /* Toolbar responsive rules live in toolbar.css. */
-
-        /* Toolbar wrap behavior and body clearance live in toolbar.css. */
-.site-footer .logo { display: flex; align-items: center; gap: 15px; text-decoration: none; }
-.site-footer .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4)); }
-.site-footer .logo-text {
-  color: #00f3ff; font-size: 1.4rem; font-weight: 600; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
-  letter-spacing: 0.5px; margin-left: 10px; text-decoration: none;
-}
-.site-footer {
-    box-sizing: border-box;
-    background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
-    color: #00f3ff;
-    padding: 40px 20px;
-    margin-top: 35px;
-    border-top: 1px solid rgba(0, 255, 255, 0.2);
-    width: 100%;
-  }
-
-  .footer-content {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin: 0 auto;
-    gap: 30px;
-  }
-
-  .footer-column {
-    flex: 1;
-    min-width: 250px;
-  }
-
-  .footer-column h4 {
-    font-size: 1.2rem;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #00f3ff;
-    padding-bottom: 5px;
-  }
-
-  .feedback-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 15px;
-  }
-
-  .feedback-form input,
-  .feedback-form textarea {
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #00f3ff;
-    background: rgba(255, 255, 255, 0.1);
-    color: #00f3ff;
-  }
-  .feedback-form textarea {
-    height: 100px;
-  }
-
-  .feedback-form button {
-    background: linear-gradient(135deg, #00f3ff, #0066cc);
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-  }
-
-  .feedback-form button:hover {
-    transform: translateY(-2px);
-  }
-
-  .social-links {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .social-link {
-    color: #00f3ff !important;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-  }
-
-  .social-link:hover {
-    text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
-  }
-
-  .footer-bottom {
-    text-align: center;
-    margin-top: 0px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(0, 255, 255, 0.1);
-  }
-
-  @media (max-width: 768px) {
-    .footer-content {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-    
-    .social-links {
-      align-items: center;
-    }
-  }
- /* Add to existing footer styles */
- .social-link.linkedin {
-    color: #0A66C2 !important;
-  }
-
-  .social-link.youtube {
-    color: #FF0000 !important;
-  }
-
-  .or-separator {
-    color: #00f3ff;
-    margin: 15px 0;
-    display: flex;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-    font-size: 0.9em;
-    opacity: 0.8;
-  }
-
-  .or-separator::before,
-  .or-separator::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid #00f3ff;
-  }
-
-  /* Keep existing hover effects but with platform colors */
-  .social-link.linkedin:hover {
-    color: #004182 !important;
-    text-shadow: 0 0 10px rgba(10, 102, 194, 0.4);
-  }
-
-  .social-link.youtube:hover {
-    color: #CC0000 !important;
-    text-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
-  }
-  .social-link.linkedin {
-    color: #0A66C2 !important; /* LinkedIn official blue */
-  }
-  .social-link.youtube {
-    color: #FF0000 !important; /* YouTube official red */
-  }
-  .social-link.reddit {
-    color: #FF4500 !important; /* Reddit official orange */
-  }
-
-  /* Hover Effects */
-  .social-link.linkedin:hover {
-    color: #004182 !important; /* Darker LinkedIn blue */
-    text-shadow: 0 0 10px rgba(10, 102, 194, 0.3);
-  }
-  .social-link.youtube:hover {
-    color: #CC0000 !important; /* Darker YouTube red */
-    text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-  }
-  .social-link.reddit:hover {
-    color: #D93A00 !important; /* Darker Reddit orange */
-    text-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
-  }
-
-  /* Optional: Add platform backgrounds on hover */
-  .social-link {
-    transition: all 0.3s ease;
-    padding: 5px 10px;
-    border-radius: 4px;
-  }
-  .social-link.linkedin:hover {
-    background: rgba(10, 102, 194, 0.1);
-  }
-  .social-link.youtube:hover {
-    background: rgba(255, 0, 0, 0.1);
-  }
-  .social-link.reddit:hover {
-    background: rgba(255, 69, 0, 0.1);
-  }
-  .plain-email {
-  color: #00f3ff !important;
-  text-decoration: none !important;
-  cursor: text !important; /* Shows text selection cursor */
-  
+/* AI Flow page styles. Values come from AI Flow.dc.html; tokens from pf-theme. */
+body.pf-page {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Replace the existing .plain-email styles with this */
-.plain-email {
-  color: #00f3ff !important;
-  
-  transition: none !important;
-  background: none !important;
-}
-
-.plain-email:hover {
-  color: #00c4d6 !important; /* Slightly darker shade for hover */
-  text-decoration: underline !important;
-  text-decoration: underline !important;
-}
-.feedback-form {
-  max-width: 500px;
-  margin: 20px auto;
-  margin-top: -20px;
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.feedback-form input,
-.feedback-form textarea {
-  box-sizing: border-box;
+.flow-wrap {
+  max-width: 1400px;
   width: 100%;
-  margin: 8px 0;
-  padding: 10px;
-  border: 2px solid #00f3ff;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #00f3ff;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 36px 32px 72px;
+  flex: 1;
 }
 
-.feedback-form button {
-  background: linear-gradient(135deg, #00f3ff, #0066cc);
-  color: white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 5px;
+.flow-wrap h1 {
+  margin: 0 0 8px;
+  font-size: 34px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  color: var(--pf-heading);
+}
+
+.flow-intro {
+  margin: 0 0 32px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--pf-text-2);
+  max-width: 44em;
+}
+
+.flow-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ---- Panels -------------------------------------------------------------- */
+
+.flow-panel {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.flow-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--pf-border-subtle);
+  background: var(--pf-surface-raised);
+}
+
+.flow-panel-head .pf-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+/* ---- Left: setup --------------------------------------------------------- */
+
+.flow-setup {
+  flex: 1 1 340px;
+  min-width: 0;
+  position: sticky;
+  top: 96px;
+}
+
+.flow-setup-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.flow-field-label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--pf-text);
+}
+
+#topic.pf-input {
+  height: 44px;
+  padding: 0 13px;
+  border-radius: 3px;
+  font-size: 14.5px;
+}
+#topic.pf-input:focus {
+  border-color: var(--pf-accent);
+  background: var(--pf-surface);
+}
+
+/* Side buttons: real radios, styled rows. Dot colors follow the design file. */
+.flow-side-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.flow-side-grid label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 13px;
+  background: var(--pf-surface-sunken);
+  border: 1px solid var(--pf-border);
+  border-radius: 3px;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pf-text);
+  transition: border-color 0.3s ease, background 0.3s ease;
 }
 
-.feedback-status {
+.flow-side-grid label:hover { border-color: var(--pf-accent); }
+
+.flow-side-grid input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flow-side-grid input[type="radio"]:checked + label {
+  background: var(--pf-selected);
+  border-color: var(--pf-selected-border);
+}
+
+.flow-side-grid input[type="radio"]:focus-visible + label {
+  border-color: var(--pf-accent);
+}
+
+.flow-side-dot {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex: none;
+}
+.flow-side-dot--aff { background: var(--pf-selected-border); }
+.flow-side-dot--neg { background: var(--pf-ai-bright); }
+
+/* Speech list: real radios, styled rows with mono times. */
+.flow-speech-list {
+  border: 1px solid var(--pf-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.flow-speech-list input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flow-speech-list label {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--pf-surface);
+  border-bottom: 1px solid var(--pf-border-subtle);
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.flow-speech-list label:last-of-type { border-bottom: none; }
+.flow-speech-list label:hover { background: #143354; }
+
+.flow-speech-ring {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--pf-border);
+  background: transparent;
+  flex: none;
+  box-sizing: border-box;
+}
+
+.flow-speech-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--pf-text);
+  flex: 1;
+}
+
+.flow-speech-time {
+  font-family: var(--pf-font-mono);
+  font-size: 11px;
+  color: var(--pf-text-muted);
+}
+
+.flow-speech-list input[type="radio"]:checked + label { background: var(--pf-selected); }
+.flow-speech-list input[type="radio"]:checked + label .flow-speech-ring {
+  border-color: var(--pf-selected-border);
+  background: var(--pf-selected-border);
+}
+.flow-speech-list input[type="radio"]:checked + label .flow-speech-name { font-weight: 600; }
+.flow-speech-list input[type="radio"]:focus-visible + label { background: #143354; }
+
+/* Record button: red, with a dark dot drawn as a pseudo-element so label
+   swaps (including pfFetch cooldown text) never destroy it. */
+#recordButton {
+  height: 50px;
+  background: var(--pf-ai-strong);
+  border: none;
+  border-radius: 3px;
+  color: #FFFFFF;
+  font-family: var(--pf-font);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.3s ease;
+}
+#recordButton:hover { background: #A63A36; }
+#recordButton::before {
+  content: '';
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--pf-surface);
+  flex: none;
+}
+
+.flow-note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--pf-text-muted);
+}
+
+/* Inline validation shown when Record is pressed with missing fields. */
+.form-error {
   display: none;
-  margin-top: 8px;
-  font-size: 0.9rem;
+  padding: 10px 12px;
+  border: 1px solid var(--pf-ai-strong);
+  border-radius: 3px;
+  background: var(--pf-loss-bg);
+  color: var(--pf-loss-text);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.form-error.show { display: block; }
+
+.input-error,
+.flow-side-grid.input-error label {
+  border-color: var(--pf-ai-bright) !important;
 }
 
-.feedback-status.show {
+/* ---- Right: flow output --------------------------------------------------- */
+
+.flow-out-wrap {
+  flex: 1.7 1 480px;
+  min-width: 0;
+}
+
+.flow-out {
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-out .flow-panel-head { padding: 14px 22px; }
+
+.flow-actions { display: flex; gap: 8px; }
+
+.flow-actions button {
+  height: 30px;
+  padding: 0 12px;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 3px;
+  color: var(--pf-text);
+  font-family: var(--pf-font);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+.flow-actions button:hover { border-color: var(--pf-text); }
+
+/* Listening state */
+.flow-listening {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 60px 24px;
+  background: #152C4A;
+}
+
+.flow-listening canvas {
+  width: 100%;
+  max-width: 520px;
+  height: 110px;
   display: block;
 }
 
-.feedback-status.ok {
-  color: #7cffb2;
+.flow-listening-title { font-size: 17px; font-weight: 600; color: var(--pf-text); }
+.flow-listening-note { font-size: 14px; color: var(--pf-text-muted); margin-top: 4px; }
+
+#stopButton {
+  height: 40px;
+  padding: 0 22px;
+  background: var(--pf-ai-strong);
+  border: none;
+  border-radius: 3px;
+  color: #FFFFFF;
+  font-family: var(--pf-font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+#stopButton:hover { background: #A63A36; }
+
+/* Flowing state */
+.flow-flowing {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 80px 24px;
 }
 
-.feedback-status.err {
-  color: #ff9c9c;
+.flow-flowing-note { font-size: 14px; color: var(--pf-text-muted); }
+
+/* Done state */
+.flow-done { flex: 1; }
+
+.flow-done-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--pf-border-subtle);
 }
-    </style>
+
+.flow-done-heading { font-size: 14px; font-weight: 600; color: var(--pf-text); }
+.flow-done-secs { font-size: 13px; color: var(--pf-text-muted); }
+
+#OutputText {
+  padding: 16px 22px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #C6D9EC;
+  overflow-wrap: break-word;
+}
+#OutputText p { margin: 0 0 12px; }
+#OutputText p:last-child { margin-bottom: 0; }
+
+.flow-error { color: var(--pf-loss-text); font-weight: 600; }
+
+/* Empty state (plus the mic-failure variant) */
+.flow-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.flow-empty-box { max-width: 28em; }
+.flow-empty-title { font-size: 16px; font-weight: 600; color: var(--pf-text-2); }
+.flow-empty-body { margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--pf-text-muted); }
+
+.flow-mic-error { max-width: 30em; }
+.flow-mic-error .flow-empty-title { color: var(--pf-ai-bright); }
+
+[hidden] { display: none !important; }
+
+@media (max-width: 860px) {
+  .flow-setup { position: static; }
+  .flow-wrap { padding: 28px 20px 56px; }
+}
+</style>
 </head>
-<body>
+<body class="pf-page">
 <nav class="toolbar">
-<a class="logo" href="index.html">
-<img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
-<span class="logo-text">PublicForumAI</span>
-</a>
-<div class="nav-links"><a href="flower.html">AI Flow</a>
-<a href="setup.html">AI Practice Round</a>
-<a href="casewriter.html">AI Casewriter</a>
-<a href="modules.html">Training Modules</a>
-</div>
-<div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+  <a class="logo" href="index.html">
+    <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+    <span class="logo-text">PublicForumAI</span>
+  </a>
+  <div class="nav-links">
+    <a href="flower.html" aria-current="page">Flow</a>
+    <a href="casewriter.html">Casewriter</a>
+    <a href="setup.html">Practice Round</a>
+    <a href="login.html?next=%2Frounds.html" data-nav="myrounds">My Rounds</a>
+    <a href="modules.html">Training</a>
+    <a href="pricing.html">Pricing</a>
+  </div>
+  <div id="authSlot"><a href="login.html?next=%2Fflower.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
 </nav>
-<div class="container">
-<div class="controls">
-<h1>AI Flow</h1>
-<div class="input-group">
-<label for="topic">Topic:</label>
-<input id="topic" placeholder="Enter the topic" type="text"/>
+
+<div class="flow-wrap">
+  <h1>AI Flow</h1>
+  <p class="flow-intro">Pick the speech, hit record, and speak. Voice recognition turns it into PF-structured flow notes so you can see what your opponents or a judge would write down. Use it to improve your flowing.</p>
+
+  <div class="flow-cols">
+
+    <div class="flow-setup">
+      <div class="flow-panel">
+        <div class="flow-panel-head">
+          <span class="pf-eyebrow">Setup</span>
+        </div>
+        <div class="flow-setup-body">
+
+          <div>
+            <label class="flow-field-label" for="topic">Topic</label>
+            <input class="pf-input" id="topic" placeholder="Enter the topic" type="text"/>
+          </div>
+
+          <div>
+            <span class="flow-field-label">Side</span>
+            <div class="flow-side-grid" id="sideGroup" role="radiogroup" aria-label="Side">
+              <span>
+                <input id="sideAff" name="side" type="radio" value="Affirmative"/>
+                <label for="sideAff"><span class="flow-side-dot flow-side-dot--aff"></span>Affirmative</label>
+              </span>
+              <span>
+                <input id="sideNeg" name="side" type="radio" value="Negative"/>
+                <label for="sideNeg"><span class="flow-side-dot flow-side-dot--neg"></span>Negative</label>
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <span class="flow-field-label">Speech</span>
+            <div class="flow-speech-list" id="speechType" role="radiogroup" aria-label="Speech">
+              <input id="constructive" name="speech" type="radio" value="constructive"/>
+              <label for="constructive">
+                <span class="flow-speech-ring"></span>
+                <span class="flow-speech-name">Constructive</span>
+                <span class="flow-speech-time">4:00</span>
+              </label>
+              <input id="rebuttal" name="speech" type="radio" value="rebuttal"/>
+              <label for="rebuttal">
+                <span class="flow-speech-ring"></span>
+                <span class="flow-speech-name">Rebuttal</span>
+                <span class="flow-speech-time">4:00</span>
+              </label>
+              <input id="summary" name="speech" type="radio" value="summary"/>
+              <label for="summary">
+                <span class="flow-speech-ring"></span>
+                <span class="flow-speech-name">Summary</span>
+                <span class="flow-speech-time">3:00</span>
+              </label>
+              <input id="finalFocus" name="speech" type="radio" value="finalFocus"/>
+              <label for="finalFocus">
+                <span class="flow-speech-ring"></span>
+                <span class="flow-speech-name">Final Focus</span>
+                <span class="flow-speech-time">2:00</span>
+              </label>
+            </div>
+          </div>
+
+          <button id="recordButton" type="button" onclick="toggleRecording()">Record speech</button>
+          <div id="formError" class="form-error" role="alert"></div>
+
+          <p class="flow-note">It may ask for your microphone to be enabled twice. If so, please press "allow" twice for speech recognition to work properly.</p>
+          <p class="flow-note" id="cautionNote">Your browser will ask for microphone access. Record at least 10 seconds of your speech so there is enough to flow.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-out-wrap">
+      <div class="flow-panel flow-out">
+        <div class="flow-panel-head">
+          <span class="pf-eyebrow">Flow output</span>
+          <div class="flow-actions" id="flowActions" hidden>
+            <button id="copyButton" type="button">Copy</button>
+            <button id="downloadButton" type="button">Download</button>
+          </div>
+        </div>
+
+        <div class="flow-empty" id="flowEmpty">
+          <div class="flow-empty-box" id="emptyBox">
+            <div class="flow-empty-title">Nothing flowed yet</div>
+            <p class="flow-empty-body">Set a topic and a speech, then record. Your notes appear here tagged by claim, warrant, and impact.</p>
+          </div>
+          <div class="flow-empty-box flow-mic-error" id="micErrorBox" hidden>
+            <div class="flow-empty-title">Microphone access failed</div>
+            <p class="flow-empty-body">Please allow the microphone in your browser settings, then press Record again.</p>
+          </div>
+        </div>
+
+        <div class="flow-listening" id="flowListening" hidden>
+          <canvas id="visualizer"></canvas>
+          <div style="text-align:center">
+            <div class="flow-listening-title">Listening</div>
+            <div class="flow-listening-note">Keep going. Flowing starts the moment you stop.</div>
+          </div>
+          <button id="stopButton" type="button" onclick="toggleRecording()">Stop recording</button>
+        </div>
+
+        <div class="flow-flowing" id="flowFlowing" hidden>
+          <div class="pf-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="flow-flowing-note">Flowing your speech</div>
+        </div>
+
+        <div class="flow-done" id="flowDone" hidden>
+          <div class="flow-done-head" id="flowDoneHead" hidden>
+            <span class="flow-side-dot" id="flowSideDot"></span>
+            <span class="flow-done-heading" id="flowHeading"></span>
+            <span class="flow-done-secs" id="flowSecs"></span>
+          </div>
+          <div id="OutputText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="input-group">
-<label for="side">Select Side:</label>
-<select id="side">
-<option disabled="" hidden="" selected="" value="">Select Side</option>
-<option value="Affirmative">Affirmative</option>
-<option value="Negative">Negative</option>
-</select>
-</div>
-<div class="input-group" id="speechType">
-<p><strong>Select Speech:</strong></p>
-<input id="constructive" name="speech" type="radio" value="constructive"/>
-<label for="constructive">Constructive</label>
-<input id="rebuttal" name="speech" type="radio" value="rebuttal"/>
-<label for="rebuttal">Rebuttal</label>
-<input id="summary" name="speech" type="radio" value="summary"/>
-<label for="summary">Summary</label>
-<input id="finalFocus" name="speech" type="radio" value="finalFocus"/>
-<label for="finalFocus">Final Focus</label>
-</div>
-<button id="recordButton" onclick="toggleRecording()">Record</button>
-<div id="formError" class="form-error" role="alert"></div>
-<p id="cautionNote" style="font-size: 12px; color: gray; margin-top: 4px;">
-                Your browser will ask for microphone access. Record at least 10 seconds of your speech so there is
-                enough to flow.
-            </p>
-</div>
-<div class="output">
-<h1>Flow Output</h1>
-<div id="flowOutput">
-<div id="OutputText"></div>
-<div class="loading">
-<div class="text10">Generating (~10-15 seconds)</div>
-<div class="ai-loader">
-<div class="dot dot1"></div>
-<div class="dot dot2"></div>
-<div class="dot dot3"></div>
-<div class="dot dot4"></div>
-<div class="dot dot5"></div>
-<div class="dot dot6"></div>
-</div>
-</div>
-<div class="loading0U">
-<div class="text4">Listening (~5 seconds)</div>
-<div class="ai-loader">
-<div class="dot dot1"></div>
-<div class="dot dot2"></div>
-<div class="dot dot3"></div>
-<div class="dot dot4"></div>
-<div class="dot dot5"></div>
-<div class="dot dot6"></div>
-</div>
-</div>
-<div class="listeningC">
-<canvas id="visualizer"></canvas>
-</div>
-</div>
-</div>
-</div>
-<footer class="site-footer">
-<div class="footer-content">
-<!-- Brand Section -->
-<div class="footer-column">
-<a class="logo" href="index.html">
-<img alt="Public Forum AI Logo" src="android-chrome-192x192.png"/>
-<span class="logo-text">PublicForumAI</span>
-</a>
-<p>Empowering debaters through AI</p>
-</div>
-<!-- Contact Section -->
-<div class="footer-column">
-<h4>Contact Us</h4>
-<p><a class="plain-email" href="mailto:arda_altintepe@horacemann.org">arda_altintepe@horacemann.org</a></p>
-<div class="or-separator">OR</div>
-<div class="feedback-form">
-<form id="feedbackForm">
-<input name="from_email" placeholder="Your email" required="" type="email"/>
-<textarea name="message" placeholder="Your feedback" required=""></textarea>
-<button type="submit">Submit Feedback</button>
-<div id="feedbackStatus" class="feedback-status" role="status"></div>
-</form>
-</div>
-</div>
-<!-- Social Links -->
-<div class="footer-column">
-<h4>Follow Us</h4>
-<div class="social-links">
-<a class="social-link linkedin" href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank">
-<i class="fab fa-linkedin"></i> LinkedIn
-                  </a>
-<a class="social-link youtube" href="https://www.youtube.com/@PublicForumAI" target="_blank">
-<i class="fab fa-youtube"></i> YouTube
-                  </a>
-<a class="social-link reddit" href="https://www.reddit.com/r/PublicForumAI/" target="_blank">
-<i class="fab fa-reddit-alien"></i> Reddit
-                  </a>
-</div>
-</div>
-</div>
-<!-- Copyright -->
-<div class="footer-bottom">
-<p>© 2026 PublicForumAI. All rights reserved.</p>
-</div>
+
+<footer class="pf-footer">
+  <div class="pf-footer-cols">
+    <div class="pf-footer-brand">
+      <a class="pf-footer-logo" href="index.html">
+        <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+        <span>PublicForumAI</span>
+      </a>
+      <p class="pf-footer-tag">Empowering debaters through AI</p>
+    </div>
+    <div class="pf-footer-contact">
+      <h4>Contact Us</h4>
+      <a class="pf-footer-email" href="mailto:support@publicforumai.com">support@publicforumai.com</a>
+      <div class="pf-footer-or"><span></span><span class="pf-footer-or-label">OR</span><span></span></div>
+      <form id="feedbackForm" class="pf-footer-form">
+        <input name="from_email" placeholder="Your email" required="" type="email"/>
+        <textarea name="message" placeholder="Your feedback" required="" rows="3"></textarea>
+        <button type="submit">Submit Feedback</button>
+        <p class="pf-form-status" id="feedbackStatus" role="status" hidden></p>
+      </form>
+    </div>
+    <div class="pf-footer-social">
+      <h4>Follow Us</h4>
+      <div class="pf-footer-links">
+        <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://www.youtube.com/@PublicForumAI" target="_blank" rel="noopener">YouTube</a>
+        <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" rel="noopener">Reddit</a>
+      </div>
+    </div>
+  </div>
+  <div class="pf-footer-bottom-wrap">
+    <div class="pf-footer-bottom">
+      <span>© 2026 PublicForumAI. All rights reserved.</span>
+      <span>Not for use in live rounds.</span>
+    </div>
+  </div>
 </footer>
+
 <script>
-            var recognition;
-            var isRecording = false;
-            var fullTranscription = ''
-            let mediaRecorder;
-            let audioChunks = [];
-            let audioStream;
-            let audioCtx;
-            let animationFrame;
-            let recordingStartTime;
-
-            function closeAudioContext() {
-                if (audioCtx) {
-                    try { audioCtx.close(); } catch (e) {}
-                    audioCtx = null;
-                }
-            }
-
-            function validateFlowForm() {
-                const topicInput = document.getElementById('topic');
-                const sideSelect = document.getElementById('side');
-                const speechChecked = document.querySelector('input[name="speech"]:checked');
-                const errorBox = document.getElementById('formError');
-                const missing = [];
-
-                topicInput.classList.toggle('input-error', topicInput.value.trim() === '');
-                sideSelect.classList.toggle('input-error', sideSelect.value === '');
-                if (topicInput.value.trim() === '') missing.push('the topic');
-                if (sideSelect.value === '') missing.push('your side');
-                if (!speechChecked) missing.push('a speech type');
-
-                if (missing.length > 0) {
-                    let list = missing.join(', ');
-                    if (missing.length > 1) {
-                        list = missing.slice(0, -1).join(', ') + ' and ' + missing[missing.length - 1];
-                    }
-                    errorBox.textContent = 'Before recording, please fill in ' + list + '.';
-                    errorBox.classList.add('show');
-                    return false;
-                }
-                errorBox.classList.remove('show');
-                return true;
-            }
-
-            // Clear field highlights as soon as the user fixes them.
-            document.addEventListener('DOMContentLoaded', function () {
-                document.getElementById('topic').addEventListener('input', function () {
-                    this.classList.remove('input-error');
-                });
-                document.getElementById('side').addEventListener('change', function () {
-                    this.classList.remove('input-error');
-                });
-            });
-
-            async function toggleRecording() {
-                const recordButton = document.getElementById('recordButton');
-
-                if (!isRecording) {
-                    if (!validateFlowForm()) return;
-                    // Recording feeds paid transcription, so gate before the
-                    // microphone opens; audio cannot survive a login redirect.
-                    // Fails closed: without gate.js we cannot verify the user,
-                    // and the server cannot un-open a microphone.
-                    if (!window.pfGate) {
-                        location.href = 'login.html?next=' + encodeURIComponent(location.pathname + location.search);
-                        return;
-                    }
-                    {
-                        const ok = await pfGate.requireAuth({
-                            page: 'flower',
-                            saveState: function () {
-                                const checked = document.querySelector('input[name="speech"]:checked');
-                                return {
-                                    topic: document.getElementById('topic').value,
-                                    side: document.getElementById('side').value,
-                                    speech: checked ? checked.value : ''
-                                };
-                            }
-                        });
-                        if (!ok) return;
-                    }
-                    recordButton.textContent = "Stop";
-                    startRecording();
-
-                } else {
-                    recordButton.textContent = "Record";
-                    stopRecording();
-
-                }
-
-                // Toggle the recording state
-                isRecording = !isRecording;
-            }
-
-            // Refill the form after the login round trip.
-            document.addEventListener('DOMContentLoaded', function () {
-                if (!window.pfGate) return;
-                const fields = pfGate.restorePending('flower');
-                if (!fields) return;
-                if (fields.topic) document.getElementById('topic').value = fields.topic;
-                if (fields.side === 'Affirmative' || fields.side === 'Negative') {
-                    document.getElementById('side').value = fields.side;
-                }
-                if (['constructive', 'rebuttal', 'summary', 'finalFocus'].indexOf(fields.speech) !== -1) {
-                    const radio = document.querySelector('input[name="speech"][value="' + fields.speech + '"]');
-                    if (radio) radio.checked = true;
-                }
-            });
-
-            async function startRecording() {
-                document.getElementById('OutputText').innerHTML = ''; // Reset previous output
-                fullTranscription = ''
-                audioChunks = [];
-
-                try {
-                    // Get audio stream and set up visualization
-                    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-                    // Visualization setup: show the box first so the canvas
-                    // can be sized to its rendered container, not the window.
-                    const listeningBox = document.querySelector('.listeningC');
-                    listeningBox.style.display = 'block';
-                    const canvas = document.getElementById('visualizer');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = canvas.clientWidth || 600;
-                    canvas.height = canvas.clientHeight || 200;
-
-                    audioCtx = new AudioContext();
-                    const source = audioCtx.createMediaStreamSource(audioStream);
-                    const analyser = audioCtx.createAnalyser();
-                    analyser.fftSize = 64;
-
-
-                    // Audio analysis setup
-                    const bufferLength = analyser.frequencyBinCount;
-                    const dataArray = new Uint8Array(bufferLength);
-                    source.connect(analyser);
-
-
-
-                    // Visualization animation
-                    function draw() {
-                        animationFrame = requestAnimationFrame(draw);
-                        analyser.getByteFrequencyData(dataArray);
-
-
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-
-                        const cylinderWidth = 3;
-                        const spacing = cylinderWidth;
-                        const centerY = canvas.height / 2;
-
-
-                        // Right side visualization
-                        let xRight = canvas.width / 2 + spacing;
-                        for (let i = 0; i < bufferLength; i++) {
-                            const barHeight = dataArray[i] / 4;
-                            ctx.fillStyle = `rgb(53, 121, 246)`;
-
-
-                            // Draw top and bottom circles
-                            ctx.beginPath();
-                            ctx.arc(xRight, centerY - barHeight, cylinderWidth / 2, 0, Math.PI * 2);
-                            ctx.arc(xRight, centerY + barHeight, cylinderWidth / 2, 0, Math.PI * 2);
-                            ctx.fill();
-
-
-                            // Draw vertical bar
-                            ctx.fillRect(
-                                xRight - cylinderWidth / 2,
-                                centerY - barHeight,
-                                cylinderWidth,
-                                barHeight * 2
-                            );
-
-
-                            xRight += cylinderWidth + spacing;
-                        }
-
-
-                        // Mirror left side visualization
-                        ctx.save();
-                        ctx.translate(canvas.width / 2, 0);
-                        ctx.scale(-1, 1);
-
-
-                        let xLeft = spacing;
-                        for (let i = 0; i < bufferLength; i++) {
-                            const barHeight = dataArray[i] / 4;
-                            ctx.fillStyle = `rgb(53, 121, 246)`;
-
-
-                            // Draw mirrored elements
-                            ctx.beginPath();
-                            ctx.arc(xLeft, centerY - barHeight, cylinderWidth / 2, 0, Math.PI * 2);
-                            ctx.arc(xLeft, centerY + barHeight, cylinderWidth / 2, 0, Math.PI * 2);
-                            ctx.fill();
-
-
-                            ctx.fillRect(
-                                xLeft - cylinderWidth / 2,
-                                centerY - barHeight,
-                                cylinderWidth,
-                                barHeight * 2
-                            );
-
-
-                            xLeft += cylinderWidth + spacing;
-                        }
-
-
-                        ctx.restore();
-                    }
-
-
-                    // Start visualization
-                    draw();
-
-
-                    // Setup audio recording
-                    mediaRecorder = new MediaRecorder(audioStream);
-                    mediaRecorder.ondataavailable = (e) => {
-                        audioChunks.push(e.data);
-                    };
-                    mediaRecorder.start();
-                    recordingStartTime = Date.now();
-
-                } catch (err) {
-                    console.error('Error accessing audio stream:', err);
-                    document.querySelector('.listeningC').style.display = 'none';
-                    closeAudioContext();
-                    document.getElementById('OutputText').innerHTML =
-                        '<p class="flow-error">Microphone access failed. Please allow the microphone in your browser settings, then press Record again.</p>';
-                    document.getElementById('recordButton').textContent = 'Record';
-                    isRecording = false;
-                }
-            }
-
-            async function stopRecording() {
-                if (mediaRecorder && mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                    cancelAnimationFrame(animationFrame);
-
-                    mediaRecorder.onstop = async () => {
-                        document.querySelector('.listeningC').style.display = 'none';
-                        closeAudioContext();
-
-                        const durationSeconds = (Date.now() - recordingStartTime) / 1000;
-
-                        if (durationSeconds < 10) {
-                            document.getElementById('OutputText').innerHTML =
-                                '<p class="flow-error">That recording was under 10 seconds. Please record your full speech so there is enough to flow.</p>';
-
-                            // Cleanup audio resources
-                            audioStream.getTracks().forEach(track => track.stop());
-                            return; // Exit early without backend request
-                        }
-
-                        document.querySelector('.loading0U').style.display = 'block';
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-
-                        try {
-                            const formData = new FormData();
-                            formData.append('file', audioBlob, 'recording.webm');
-
-
-                            const response = await pfFetch('/transcribe', { formData: formData },
-                                { page: 'flower', button: document.getElementById('recordButton'), label: 'Record' });
-
-                            const { transcript } = await response.json();
-
-                            // Rest of your existing processing code
-                            
-                            const topic = document.getElementById('topic').value;
-                            const side = document.getElementById('side').value;
-                            processTranscription(transcript, topic, side);
-
-                           
-
-                        } catch (error) {
-                            console.error('Transcription error:', error);
-                            document.querySelector('.loading0U').style.display = 'none';
-                            if (!error || error.code !== 'auth_required') {
-                                document.getElementById('OutputText').innerHTML =
-                                    '<p class="flow-error">Transcription did not go through. Please press Record and try again.</p>';
-                            }
-                        }
-
-                        audioStream.getTracks().forEach(track => track.stop());
-                    };
-                }
-            }
-            async function processTranscription(transcription, debateTopic, selectedSide) {
-                document.querySelector('.loading0U').style.display = 'none';
-                document.querySelector('.loading').style.display = 'block';
-                const checked = document.querySelector('input[name="speech"]:checked');
-                const speechType = checked ? checked.value : 'constructive';
-                // Send the transcription to your Python backend for processing
-                try {
-                    if (speechType == "constructive") {
-                        const response = await pfFetch('/processC', {
-                            json: {
-                                transcription: transcription,
-                                debateTopic: debateTopic,
-                                selectedSide: selectedSide,
-                            }
-                        }, { page: 'flower' });
-
-                        // Get the debate flow from the response
-                        const { CaseFlow } = await response.json(); // Parse JSON response
-                        if (CaseFlow == '') {
-                            document.getElementById('OutputText').innerHTML = 'Your speech does not resemble a public forum debate case.'
-                        } else {
-                            document.getElementById('OutputText').innerHTML = "<p>" + pfSanitize(CaseFlow) + "</p>";
-                        }
-                    }
-                    if (speechType == "rebuttal") {
-                        const response = await pfFetch('/processR', {
-                            json: {
-                                transcriptionR: transcription,
-                                debateTopic: debateTopic,
-                                selectedSide: selectedSide,
-                            }
-                        }, { page: 'flower' });
-
-                        // Get the debate flow from the response
-                        const { RebuttalFlow } = await response.json(); // Parse JSON response
-                        document.getElementById('OutputText').innerHTML = "<p>" + pfSanitize(RebuttalFlow) + "</p>";
-                    }
-                    if (speechType == "summary") {
-                        const response = await pfFetch('/processS', {
-                            json: {
-                                transcriptionS: transcription,
-                                debateTopic: debateTopic,
-                                selectedSide: selectedSide,
-                            }
-                        }, { page: 'flower' });
-
-                        // Get the debate flow from the response
-                        const { SummaryFlow } = await response.json(); // Parse JSON response
-                        document.getElementById('OutputText').innerHTML = "<p>" + pfSanitize(SummaryFlow) + "</p>";
-                    }
-                    if (speechType == "finalFocus") {
-                        const response = await pfFetch('/processF', {
-                            json: {
-                                transcriptionF: transcription,
-                                debateTopic: debateTopic,
-                                selectedSide: selectedSide,
-                            }
-                        }, { page: 'flower' });
-
-                        // Get the debate flow from the response
-                        const { FinalFocusFlow } = await response.json(); // Parse JSON response
-                        document.getElementById('OutputText').innerHTML = "<p>" + pfSanitize(FinalFocusFlow) + "</p>";
-                    }
-                } catch (error) {
-                    console.error('Failed to process transcription:', error);
-                    if (!error || error.code !== 'auth_required') {
-                        // The recording already cost a transcription, so keep the
-                        // transcript on screen instead of sending the student back
-                        // to Record with nothing.
-                        document.getElementById('OutputText').innerHTML =
-                            '<p class="flow-error">We could not turn your speech into a flow this time. Your transcript is below so nothing is lost. Press Record to try again when you are ready.</p>' +
-                            '<p>' + pfSanitize(transcription) + '</p>';
-                    }
-                } finally {
-                    document.querySelector('.loading').style.display = 'none';
-                }
-            }
-
-
-(function() {
-emailjs.init('wgsczkr19C1FrKtLj'); // Your actual User ID
-})();
-
-// Handle form submission
-document.getElementById('feedbackForm').addEventListener('submit', function(e) {
-e.preventDefault();
-
-const btn = this.querySelector('button');
-const status = document.getElementById('feedbackStatus');
-btn.disabled = true;
-btn.textContent = 'Sending...';
-status.className = 'feedback-status';
-status.textContent = '';
-
-emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', this)
-  .then(() => {
-    this.reset();
-    status.textContent = 'Thanks! Your feedback was sent.';
-    status.className = 'feedback-status show ok';
-  }, (error) => {
-    console.error('Error:', error);
-    status.textContent = 'Sending failed. Please try again later, or email us directly.';
-    status.className = 'feedback-status show err';
-  })
-  .finally(() => {
-    btn.disabled = false;
-    btn.textContent = 'Submit Feedback';
+// Feedback form: inline status messages, no dialogs.
+(function () {
+  var form = document.getElementById('feedbackForm');
+  var status = document.getElementById('feedbackStatus');
+  if (!form || !status) return;
+
+  function showStatus(message, ok) {
+    status.textContent = message;
+    status.classList.remove('ok', 'err');
+    status.classList.add(ok ? 'ok' : 'err');
+    status.hidden = false;
+  }
+
+  try {
+    if (window.emailjs) emailjs.init('wgsczkr19C1FrKtLj');
+  } catch (e) { /* handled on submit */ }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!window.emailjs) {
+      showStatus('The feedback service did not load. Please email us directly instead.', false);
+      return;
+    }
+
+    var btn = form.querySelector('button');
+    status.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    function done() {
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
+    }
+
+    emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
+      .then(function () {
+        form.reset();
+        showStatus('Thanks! Your feedback was sent.', true);
+        done();
+      }, function (error) {
+        showStatus('Something went wrong and your feedback was not sent. Please try again, or email us directly.', false);
+        console.error('Error:', error);
+        done();
+      });
   });
-});
-        </script>
+})();
+</script>
+
 <script src="auth.js"></script>
 <script src="sanitize.js"></script>
 <script src="gate.js"></script>
 <script src="api.js"></script>
+<script>
+var isRecording = false;
+let mediaRecorder;
+let audioChunks = [];
+let audioStream;
+let audioCtx;
+let animationFrame;
+let recordingStartTime;
+let flowStartTime;
+let lastFlowText = '';
+
+const RECORD_LABEL = 'Record speech';
+const STOP_LABEL = 'Stop recording';
+
+function closeAudioContext() {
+    if (audioCtx) {
+        try { audioCtx.close(); } catch (e) {}
+        audioCtx = null;
+    }
+}
+
+// Right-panel state machine: empty -> listening -> flowing -> done.
+function showPanelState(name) {
+    document.getElementById('flowEmpty').hidden = name !== 'empty';
+    document.getElementById('flowListening').hidden = name !== 'listening';
+    document.getElementById('flowFlowing').hidden = name !== 'flowing';
+    document.getElementById('flowDone').hidden = name !== 'done';
+    if (name !== 'done') {
+        document.getElementById('flowActions').hidden = true;
+        document.getElementById('flowDoneHead').hidden = true;
+    }
+}
+
+function showEmptyState(micError) {
+    document.getElementById('emptyBox').hidden = !!micError;
+    document.getElementById('micErrorBox').hidden = !micError;
+    showPanelState('empty');
+}
+
+// Show content in the done panel. Only a successful flow gets the header row
+// (side dot + heading + seconds) and the Copy/Download actions.
+function showDoneContent(html, meta) {
+    document.getElementById('OutputText').innerHTML = html;
+    var head = document.getElementById('flowDoneHead');
+    if (meta) {
+        var dot = document.getElementById('flowSideDot');
+        dot.className = 'flow-side-dot';
+        dot.style.background = meta.side === 'Affirmative'
+            ? 'var(--pf-selected-border)' : 'var(--pf-ai-strong)';
+        document.getElementById('flowHeading').textContent =
+            meta.side + ' ' + meta.speechLabel.toLowerCase();
+        document.getElementById('flowSecs').textContent =
+            meta.secs != null ? 'flowed in ' + meta.secs + ' seconds' : '';
+        head.hidden = false;
+        document.getElementById('flowActions').hidden = false;
+    } else {
+        head.hidden = true;
+        document.getElementById('flowActions').hidden = true;
+    }
+    showPanelState('done');
+}
+
+function selectedSideValue() {
+    var checked = document.querySelector('input[name="side"]:checked');
+    return checked ? checked.value : '';
+}
+
+const SPEECH_LABELS = {
+    constructive: 'Constructive',
+    rebuttal: 'Rebuttal',
+    summary: 'Summary',
+    finalFocus: 'Final Focus'
+};
+
+function validateFlowForm() {
+    const topicInput = document.getElementById('topic');
+    const sideGroup = document.getElementById('sideGroup');
+    const speechChecked = document.querySelector('input[name="speech"]:checked');
+    const errorBox = document.getElementById('formError');
+    const missing = [];
+
+    topicInput.classList.toggle('input-error', topicInput.value.trim() === '');
+    sideGroup.classList.toggle('input-error', selectedSideValue() === '');
+    if (topicInput.value.trim() === '') missing.push('the topic');
+    if (selectedSideValue() === '') missing.push('your side');
+    if (!speechChecked) missing.push('a speech type');
+
+    if (missing.length > 0) {
+        let list = missing.join(', ');
+        if (missing.length > 1) {
+            list = missing.slice(0, -1).join(', ') + ' and ' + missing[missing.length - 1];
+        }
+        errorBox.textContent = 'Before recording, please fill in ' + list + '.';
+        errorBox.classList.add('show');
+        return false;
+    }
+    errorBox.classList.remove('show');
+    return true;
+}
+
+// Clear field highlights as soon as the user fixes them.
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('topic').addEventListener('input', function () {
+        this.classList.remove('input-error');
+    });
+    var sideRadios = document.querySelectorAll('input[name="side"]');
+    for (var i = 0; i < sideRadios.length; i++) {
+        sideRadios[i].addEventListener('change', function () {
+            document.getElementById('sideGroup').classList.remove('input-error');
+        });
+    }
+});
+
+async function toggleRecording() {
+    const recordButton = document.getElementById('recordButton');
+
+    if (!isRecording) {
+        if (!validateFlowForm()) return;
+        // Recording feeds paid transcription, so gate before the
+        // microphone opens; audio cannot survive a login redirect.
+        // Fails closed: without gate.js we cannot verify the user,
+        // and the server cannot un-open a microphone.
+        if (!window.pfGate) {
+            location.href = 'login.html?next=' + encodeURIComponent(location.pathname + location.search);
+            return;
+        }
+        {
+            const ok = await pfGate.requireAuth({
+                page: 'flower',
+                saveState: function () {
+                    const checked = document.querySelector('input[name="speech"]:checked');
+                    return {
+                        topic: document.getElementById('topic').value,
+                        side: selectedSideValue(),
+                        speech: checked ? checked.value : ''
+                    };
+                }
+            });
+            if (!ok) return;
+        }
+        recordButton.textContent = STOP_LABEL;
+        startRecording();
+
+    } else {
+        recordButton.textContent = RECORD_LABEL;
+        stopRecording();
+
+    }
+
+    // Toggle the recording state
+    isRecording = !isRecording;
+}
+
+// Refill the form after the login round trip.
+document.addEventListener('DOMContentLoaded', function () {
+    if (!window.pfGate) return;
+    const fields = pfGate.restorePending('flower');
+    if (!fields) return;
+    if (fields.topic) document.getElementById('topic').value = fields.topic;
+    if (fields.side === 'Affirmative' || fields.side === 'Negative') {
+        const sideRadio = document.querySelector('input[name="side"][value="' + fields.side + '"]');
+        if (sideRadio) sideRadio.checked = true;
+    }
+    if (['constructive', 'rebuttal', 'summary', 'finalFocus'].indexOf(fields.speech) !== -1) {
+        const radio = document.querySelector('input[name="speech"][value="' + fields.speech + '"]');
+        if (radio) radio.checked = true;
+    }
+});
+
+async function startRecording() {
+    document.getElementById('OutputText').innerHTML = ''; // Reset previous output
+    lastFlowText = '';
+    audioChunks = [];
+
+    try {
+        // Get audio stream and set up visualization
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        // Show the listening panel first so the canvas can be sized
+        // to its rendered container, not the window.
+        showPanelState('listening');
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaStreamSource(audioStream);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        source.connect(analyser);
+
+        // Mirrored, center-out frequency bars: 3px bars with 3px gaps,
+        // circle caps, scaled for devicePixelRatio.
+        function draw() {
+            animationFrame = requestAnimationFrame(draw);
+            analyser.getByteFrequencyData(dataArray);
+
+            const dpr = window.devicePixelRatio || 1;
+            const w = canvas.clientWidth || 520;
+            const h = canvas.clientHeight || 110;
+            if (canvas.width !== Math.round(w * dpr)) {
+                canvas.width = Math.round(w * dpr);
+                canvas.height = Math.round(h * dpr);
+            }
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, w, h);
+
+            const barW = 3, gap = barW, centerY = h / 2, cap = h / 2 - 2;
+            function side(dir) {
+                let x = w / 2 + gap * dir;
+                for (let i = 0; i < bufferLength; i++) {
+                    const bar = Math.min(dataArray[i] / 4, cap);
+                    ctx.fillStyle = '#3B82F6';
+                    ctx.beginPath();
+                    ctx.arc(x, centerY - bar, barW / 2, 0, Math.PI * 2);
+                    ctx.arc(x, centerY + bar, barW / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillRect(x - barW / 2, centerY - bar, barW, bar * 2);
+                    x += (barW + gap) * dir;
+                }
+            }
+            side(1);
+            side(-1);
+        }
+
+        // Start visualization
+        draw();
+
+        // Setup audio recording
+        mediaRecorder = new MediaRecorder(audioStream);
+        mediaRecorder.ondataavailable = (e) => {
+            audioChunks.push(e.data);
+        };
+        mediaRecorder.start();
+        recordingStartTime = Date.now();
+
+    } catch (err) {
+        console.error('Error accessing audio stream:', err);
+        cancelAnimationFrame(animationFrame);
+        closeAudioContext();
+        if (audioStream) audioStream.getTracks().forEach(track => track.stop());
+        showEmptyState(true);
+        document.getElementById('recordButton').textContent = RECORD_LABEL;
+        isRecording = false;
+    }
+}
+
+async function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        cancelAnimationFrame(animationFrame);
+
+        mediaRecorder.onstop = async () => {
+            closeAudioContext();
+
+            const durationSeconds = (Date.now() - recordingStartTime) / 1000;
+
+            if (durationSeconds < 10) {
+                showDoneContent(
+                    '<p class="flow-error">That recording was under 10 seconds. Please record your full speech so there is enough to flow.</p>',
+                    null);
+
+                // Cleanup audio resources
+                audioStream.getTracks().forEach(track => track.stop());
+                return; // Exit early without backend request
+            }
+
+            showPanelState('flowing');
+            flowStartTime = Date.now();
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+            try {
+                const formData = new FormData();
+                formData.append('file', audioBlob, 'recording.webm');
+
+                const response = await pfFetch('/transcribe', { formData: formData },
+                    { page: 'flower', button: document.getElementById('recordButton'), label: RECORD_LABEL });
+
+                const { transcript } = await response.json();
+
+                const topic = document.getElementById('topic').value;
+                const side = selectedSideValue();
+                processTranscription(transcript, topic, side);
+
+            } catch (error) {
+                console.error('Transcription error:', error);
+                if (!error || error.code !== 'auth_required') {
+                    showDoneContent(
+                        '<p class="flow-error">Transcription did not go through. Please press Record and try again.</p>',
+                        null);
+                } else {
+                    showEmptyState(false);
+                }
+            }
+
+            audioStream.getTracks().forEach(track => track.stop());
+        };
+    }
+}
+
+async function processTranscription(transcription, debateTopic, selectedSide) {
+    const checked = document.querySelector('input[name="speech"]:checked');
+    const speechType = checked ? checked.value : 'constructive';
+    const meta = {
+        side: selectedSide,
+        speechLabel: SPEECH_LABELS[speechType] || 'Constructive'
+    };
+
+    function renderFlow(flowText) {
+        lastFlowText = flowText;
+        meta.secs = Math.max(1, Math.round((Date.now() - flowStartTime) / 1000));
+        showDoneContent('<p>' + pfSanitize(flowText) + '</p>', meta);
+    }
+
+    // Send the transcription to the backend for processing
+    try {
+        if (speechType == "constructive") {
+            const response = await pfFetch('/processC', {
+                json: {
+                    transcription: transcription,
+                    debateTopic: debateTopic,
+                    selectedSide: selectedSide,
+                }
+            }, { page: 'flower' });
+
+            // Get the debate flow from the response
+            const { CaseFlow } = await response.json(); // Parse JSON response
+            if (CaseFlow == '') {
+                showDoneContent('Your speech does not resemble a public forum debate case.', null);
+            } else {
+                renderFlow(CaseFlow);
+            }
+        }
+        if (speechType == "rebuttal") {
+            const response = await pfFetch('/processR', {
+                json: {
+                    transcriptionR: transcription,
+                    debateTopic: debateTopic,
+                    selectedSide: selectedSide,
+                }
+            }, { page: 'flower' });
+
+            // Get the debate flow from the response
+            const { RebuttalFlow } = await response.json(); // Parse JSON response
+            renderFlow(RebuttalFlow);
+        }
+        if (speechType == "summary") {
+            const response = await pfFetch('/processS', {
+                json: {
+                    transcriptionS: transcription,
+                    debateTopic: debateTopic,
+                    selectedSide: selectedSide,
+                }
+            }, { page: 'flower' });
+
+            // Get the debate flow from the response
+            const { SummaryFlow } = await response.json(); // Parse JSON response
+            renderFlow(SummaryFlow);
+        }
+        if (speechType == "finalFocus") {
+            const response = await pfFetch('/processF', {
+                json: {
+                    transcriptionF: transcription,
+                    debateTopic: debateTopic,
+                    selectedSide: selectedSide,
+                }
+            }, { page: 'flower' });
+
+            // Get the debate flow from the response
+            const { FinalFocusFlow } = await response.json(); // Parse JSON response
+            renderFlow(FinalFocusFlow);
+        }
+    } catch (error) {
+        console.error('Failed to process transcription:', error);
+        if (!error || error.code !== 'auth_required') {
+            // The recording already cost a transcription, so keep the
+            // transcript on screen instead of sending the student back
+            // to Record with nothing.
+            showDoneContent(
+                '<p class="flow-error">We could not turn your speech into a flow this time. Your transcript is below so nothing is lost. Press Record to try again when you are ready.</p>' +
+                '<p>' + pfSanitize(transcription) + '</p>',
+                null);
+        } else {
+            showEmptyState(false);
+        }
+    }
+}
+
+// Copy and Download act on the raw flow string from the backend.
+document.addEventListener('DOMContentLoaded', function () {
+    var copyBtn = document.getElementById('copyButton');
+    var downloadBtn = document.getElementById('downloadButton');
+
+    copyBtn.addEventListener('click', function () {
+        if (!lastFlowText) return;
+        var restore = function () { setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1500); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(lastFlowText).then(function () {
+                copyBtn.textContent = 'Copied';
+                restore();
+            }, function () {
+                copyBtn.textContent = 'Copy failed';
+                restore();
+            });
+        } else {
+            copyBtn.textContent = 'Copy failed';
+            restore();
+        }
+    });
+
+    downloadBtn.addEventListener('click', function () {
+        if (!lastFlowText) return;
+        var url = URL.createObjectURL(new Blob([lastFlowText], { type: 'text/plain' }));
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'pf-flow.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+});
+</script>
 </body>
 </html>

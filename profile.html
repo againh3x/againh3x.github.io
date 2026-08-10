@@ -10,20 +10,26 @@
 if (self !== top) { document.documentElement.style.display = 'none'; try { top.location = self.location; } catch (e) {} }
 </script>
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-ERE3HL6LKB');
-  </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Profile | PublicForumAI</title>
-  <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
-  <link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
-  <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
-  <link href="/site.webmanifest" rel="manifest"/>
-
+<!-- Google tag (gtag.js) -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
+</script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Account | PublicForumAI</title>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <link rel="stylesheet" href="toolbar.css"/>
+<link rel="stylesheet" href="pf-theme.css"/>
 <script>
 /* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
 (function () {
@@ -39,12 +45,18 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     painted = true;
     obs.disconnect();
     var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
-    var parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
-    var initials = parts.map(function (w) { return w[0]; }).join('').toUpperCase() || '?';
-    slot.innerHTML = '<div class="user-menu-wrap"><button class="user-btn" type="button">' +
-      '<span class="user-avatar user-avatar-initials"></span><span class="user-name"></span></button></div>';
-    slot.querySelector('.user-avatar-initials').textContent = initials;
-    slot.querySelector('.user-name').textContent = '@' + name;
+    var initials = name.slice(0, 2).toUpperCase() || '?';
+    var premium = snap.plan === 'premium';
+    var planLabel = premium ? 'Premium' : 'Free plan';
+    slot.innerHTML = '<div class="user-menu-wrap">' +
+      '<button class="pf-avatar-btn' + (premium ? ' premium' : '') + '" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span class="pf-avatar-initials"></span>' +
+      (premium ? '<span class="pf-avatar-star">★</span>' : '') +
+      '</button></div>';
+    slot.querySelector('.pf-avatar-initials').textContent = initials;
+    slot.querySelector('.pf-avatar-btn').title = name + ' · ' + planLabel;
+    var myRounds = document.querySelectorAll('a[data-nav="myrounds"]');
+    for (var i = 0; i < myRounds.length; i++) myRounds[i].setAttribute('href', 'rounds.html');
   }
   var obs = new MutationObserver(paint);
   obs.observe(document.documentElement, { childList: true, subtree: true });
@@ -52,325 +64,760 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 })();
 </script>
 
-  <!-- ===== Base page styles (match casewriter body + container) ===== -->
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(180deg, #8ac8ff, #185da1, #08316a, #011529);
-      margin: 80px 0 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      color: #EAFBFF;
-    }
+<style>
+  /* Account page. Values come from Account.dc.html; tokens from pf-theme.css. */
+  body.pf-page {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  ::selection { background: var(--pf-border); }
 
-    .page-col { width: 95%; max-width: 1400px; margin-top: 18px; }
+  /* .acct-row and friends set display, which would beat the UA sheet's
+     [hidden] rule and leave toggled boxes on screen. */
+  [hidden] { display: none !important; }
 
-    .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      width: 100%;
-      background: linear-gradient(180deg, rgba(10,14,39,0.88), rgba(26,31,75,0.88));
-      backdrop-filter: blur(6px);
-      padding: 30px;
-      border-radius: 15px;
-      border: 1px solid rgba(0, 243, 255, 0.20);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-      min-height: 600px;
-      color: #EAFBFF;
-      box-sizing: border-box;
-    }
-    @media (max-width: 900px) {
-      .container { flex-direction: column; }
-      .profile-left { padding-right: 0 !important; width: 100%; }
-      .profile-right { width: 100%; margin-top: 14px; }
-    }
+  .acct-main {
+    max-width: 1240px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 36px 32px 80px;
+    box-sizing: border-box;
+    flex: 1;
+  }
 
-    .profile-left { flex: 1; padding-right: 30px; min-width: 0; }
-    .profile-right { flex: 1.5; min-width: 0; }
+  /* ---- Banners ---- */
+  .acct-banner {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 18px;
+    margin-bottom: 26px;
+    background: #132A45;
+    border: 1px solid #2F5A85;
+    border-radius: 4px;
+  }
+  .acct-banner-dot {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--pf-accent);
+    margin-top: 7px;
+    flex: none;
+  }
+  .acct-banner p { margin: 0; font-size: 14px; line-height: 1.6; color: #9FD3F5; }
+  .acct-banner a { color: var(--pf-accent); text-decoration: underline; }
+  .acct-banner--warn .acct-banner-dot { background: var(--pf-warning); }
+  .acct-banner--warn p { color: var(--pf-warning-text); }
+  .acct-banner--warn a { color: var(--pf-warning-text); }
 
-    .profile-card {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(0,255,255,0.20);
-      border-radius: 12px;
-      padding: 20px;
-      color:#EAFBFF;
-    }
-    .profile-header { display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
-    .avatar {
-      width: 84px; height: 84px; border-radius: 50%;
-      border: 3px solid #00f3ff; box-shadow: 0 0 10px rgba(0,243,255,0.35);
-      object-fit: cover; background:#e8f6ff;
-    }
-    .username { margin: 0; font-size: 1.6rem; color:#EAFBFF; overflow-wrap:anywhere; }
-    .handle { color:#7fcdff; font-weight:700; }
+  /* ---- Columns ---- */
+  .acct-cols {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  .acct-col-left {
+    flex: 1 1 320px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .acct-col-right {
+    flex: 2 1 520px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
 
-    .badges { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
-    .pill {
-      background: linear-gradient(135deg, #00f3ff, #00a6ff);
-      color: #052b36; font-weight:800; padding:8px 14px; border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-    }
-    .badge-ok, .badge-warn {
-      display:inline-block; padding:3px 10px; border-radius:999px;
-      font-size:.8rem; font-weight:800; vertical-align:middle;
-    }
-    .badge-ok  { background:rgba(60,220,140,0.18); color:#7dffbe; border:1px solid rgba(60,220,140,0.45); }
-    .badge-warn{ background:rgba(255,190,60,0.15); color:#ffd98a; border:1px solid rgba(255,190,60,0.45); }
+  .acct-card { padding: 24px 26px; }
+  .acct-card--profile { padding: 26px; }
+  .acct-card h2 {
+    margin: 0 0 16px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--pf-text);
+  }
 
-    .section-title { color:#EAFBFF; margin: 0 0 10px; }
-    .rounds-list { background: rgba(255,255,255,0.04); border:1px solid rgba(0,255,255,0.20); border-radius:12px; padding:16px; color:#EAFBFF; }
-    .round-card { background: rgba(0,0,0,0.30); border:1px solid rgba(0,255,255,0.20); border-radius:10px; padding:12px 14px; margin-bottom:12px; color:#EAFBFF; }
-    .round-card h4 { margin:0 0 6px; color:#7df9ff; }
-    .round-card .meta { font-size:0.9rem; color:#cfeaff; margin-bottom:6px; }
-    .round-card .actions{ display:flex; align-items:center; margin-top:14px; }
+  /* ---- Profile card ---- */
+  .acct-identity { display: flex; align-items: center; gap: 16px; }
+  .acct-initials-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    background: var(--pf-blue);
+    color: #FFFFFF;
+    font-size: 20px;
+    font-weight: 700;
+    flex: none;
+  }
+  .acct-identity-text { min-width: 0; }
+  .acct-identity-text h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .acct-handle {
+    font-family: var(--pf-font-mono);
+    font-size: 13px;
+    color: var(--pf-text-muted);
+    margin-top: 2px;
+    overflow-wrap: anywhere;
+  }
 
-    .open-btn {
-      display:inline-flex; align-items:center; gap:8px;
-      background: linear-gradient(135deg, #00f3ff, #00a6ff);
-      color: #052b36; border: none; border-radius: 999px;
-      padding: 8px 16px; font-weight: 800; cursor: pointer;
-      text-decoration: none; font-size: .95rem;
-      transition: background 0.2s ease, transform 0.15s ease;
-    }
-    .open-btn:hover { background: linear-gradient(135deg, #00d6ff, #008cff); transform: translateY(-1px); }
-    .open-btn:disabled { opacity:.55; cursor:default; transform:none; }
+  .acct-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    margin-top: 22px;
+    background: var(--pf-border-subtle);
+    border: 1px solid var(--pf-border-subtle);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .acct-stat { background: var(--pf-surface); padding: 14px 16px; }
+  .acct-stat-value { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .acct-stat-label { font-size: 12.5px; color: var(--pf-text-muted); margin-top: 2px; }
+  .acct-gem-row { display: flex; align-items: center; gap: 7px; }
+  .acct-gem {
+    display: block;
+    width: 9px;
+    height: 9px;
+    background: var(--pf-accent);
+    transform: rotate(45deg);
+    flex: none;
+  }
 
-    .ghost-btn {
-      display:inline-flex; align-items:center; gap:8px;
-      background: transparent; color:#A3DCFF;
-      border:1px solid rgba(163,220,255,.4); border-radius:999px;
-      padding:7px 14px; font-weight:700; cursor:pointer; font-size:.9rem;
-      transition: box-shadow .15s ease, color .15s ease;
-    }
-    .ghost-btn:hover { box-shadow: 0 0 10px rgba(163,220,255,.25); }
-    .ghost-btn.danger { color:#ff8f8f; border-color:rgba(255,120,120,.45); }
-    .ghost-btn.danger:hover { box-shadow: 0 0 10px rgba(255,120,120,.25); }
-    .ghost-btn:disabled { opacity:.55; cursor:default; }
+  /* ---- Account rows ---- */
+  .acct-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--pf-border-row);
+    font-size: 14px;
+  }
+  .acct-row-label { color: var(--pf-text-muted); flex: none; }
+  .acct-row-value { font-weight: 500; color: var(--pf-text); text-align: right; overflow-wrap: anywhere; }
+  .acct-badge-warn {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    background: rgba(214, 138, 42, 0.15);
+    border: 1px solid var(--pf-warning);
+    color: var(--pf-warning-text);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
 
-    .banner {
-      width:100%; box-sizing:border-box; margin-bottom:14px;
-      background: rgba(255,190,60,0.12); border:1px solid rgba(255,190,60,0.45);
-      border-radius:12px; padding:14px 18px; color:#ffe9bd;
-    }
-    .banner a { color:#ffd98a; font-weight:800; }
+  /* ---- Buttons ---- */
+  .acct-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 16px;
+    box-sizing: border-box;
+    background: var(--pf-surface);
+    border: 1px solid var(--pf-border);
+    border-radius: 3px;
+    font-family: var(--pf-font);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--pf-text);
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+  }
+  .acct-btn:hover { border-color: var(--pf-text); }
+  .acct-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .acct-btn--danger { border-color: #5C2A2A; color: var(--pf-loss-text); }
+  .acct-btn--danger:hover { border-color: var(--pf-loss-text); }
+  .acct-btn--primary {
+    background: var(--pf-blue);
+    border: none;
+    color: #FFFFFF;
+    transition: background 0.3s ease;
+  }
+  .acct-btn--primary:hover { background: var(--pf-blue-hover); }
+  .acct-btn--block { width: 100%; }
+  .acct-signout { margin-top: 18px; }
+  .acct-btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 
-    .notice {
-      width:100%; box-sizing:border-box; margin-bottom:14px;
-      background: rgba(0,243,255,0.08); border:1px solid rgba(0,243,255,0.30);
-      border-radius:12px; padding:12px 18px; color:#CFEAFF;
-    }
+  /* ---- 2FA card ---- */
+  .acct-mfa-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .acct-mfa-head h2 { margin: 0; }
+  .acct-mfa-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: 2px;
+    background: var(--pf-border-row);
+    color: var(--pf-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .acct-mfa-badge.is-on { background: var(--pf-success-bg); color: var(--pf-success); }
+  .acct-note { margin: 0 0 16px; font-size: 13.5px; line-height: 1.6; color: var(--pf-text-muted); }
+  .acct-note--tight { margin: 0 0 10px; }
+  .acct-warn { margin: 0.5rem 0; font-size: 13.5px; line-height: 1.6; color: var(--pf-warning-text); }
+  .acct-err { margin: 0.5rem 0; font-size: 13.5px; line-height: 1.6; color: var(--pf-loss-text); }
 
-    .acct-row { margin:.4rem 0; color:#EAFBFF; }
-    .mfa-note { color:#CFEAFF; font-size:.95rem; margin:.5rem 0; }
-    .warn { color:#ffd98a; font-size:.95rem; margin:.5rem 0; }
-    .err { color:#ff8f8f; font-size:.95rem; margin:.5rem 0; }
-    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:.6rem 0; }
-    /* .row sets display, which beats the UA sheet's [hidden] rule, so the
-       reauth rows stayed on screen while marked hidden. */
-    [hidden] { display: none !important; }
+  .acct-mfa-stack { display: flex; flex-direction: column; gap: 10px; }
+  .acct-kv-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 13px;
+    background: var(--pf-surface-raised);
+    border: 1px solid var(--pf-border-subtle);
+    border-radius: 3px;
+    font-size: 13.5px;
+  }
+  .acct-kv-row .acct-row-label { color: var(--pf-text-muted); }
+  .acct-kv-value { font-family: var(--pf-font-mono); font-weight: 500; }
 
-    .text-input {
-      background: rgba(0,0,0,.35); border:1px solid rgba(0,255,255,.3);
-      border-radius:8px; color:#EAFBFF; padding:9px 12px; font-size:1rem;
-      letter-spacing:.05em; outline:none; max-width: 160px;
-    }
-    .text-input:focus { border-color:#00f3ff; box-shadow:0 0 8px rgba(0,243,255,.25); }
-    .text-input.wide { max-width: 260px; letter-spacing:normal; }
+  .acct-mfa-block {
+    border-top: 1px solid var(--pf-border-subtle);
+    margin-top: 14px;
+    padding-top: 14px;
+  }
+  .acct-qr-wrap {
+    background: #FFFFFF;
+    border-radius: 8px;
+    padding: 10px;
+    display: inline-block;
+    margin: 0.4rem 0;
+  }
+  .acct-mono {
+    font-family: var(--pf-font-mono);
+    font-size: 12.5px;
+    background: var(--pf-surface-sunken);
+    border: 1px solid var(--pf-border-subtle);
+    border-radius: 4px;
+    padding: 2px 8px;
+    word-break: break-all;
+  }
+  .acct-input {
+    box-sizing: border-box;
+    height: 40px;
+    padding: 0 12px;
+    background: var(--pf-surface-sunken);
+    border: 1px solid var(--pf-border);
+    border-radius: 3px;
+    color: var(--pf-text);
+    font-family: var(--pf-font);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+  .acct-input:focus { border-color: var(--pf-accent); }
+  .acct-input--code {
+    max-width: 150px;
+    font-family: var(--pf-font-mono);
+    font-size: 16px;
+    letter-spacing: 0.2em;
+  }
+  .acct-input--wide { max-width: 260px; width: 100%; }
+  .acct-field-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0.6rem 0; }
+  label.acct-note { display: block; }
 
-    .qr-wrap {
-      background:#fff; border-radius:12px; padding:12px;
-      display:inline-block; margin:.4rem 0;
-    }
-    .mono {
-      font-family: ui-monospace, Menlo, Consolas, monospace;
-      background: rgba(0,0,0,.35); border:1px solid rgba(0,255,255,.2);
-      border-radius:6px; padding:2px 8px; word-break: break-all;
-    }
-    .codes {
-      display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
-      gap:8px; margin:.6rem 0;
-    }
-    .codes code {
-      font-family: ui-monospace, Menlo, Consolas, monospace;
-      background: rgba(0,0,0,.4); border:1px solid rgba(0,255,255,.25);
-      border-radius:8px; padding:8px 10px; font-size:.9rem; word-break: break-all;
-    }
-    .mfa-block { border-top:1px solid rgba(0,255,255,.15); margin-top:14px; padding-top:12px; }
+  .acct-codes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin: 0.6rem 0;
+  }
+  .acct-codes code {
+    font-family: var(--pf-font-mono);
+    background: var(--pf-surface-sunken);
+    border: 1px solid var(--pf-border-subtle);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    word-break: break-all;
+  }
 
-    .module-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
-    .module-chip {
-      background: rgba(0,0,0,.3); border:1px solid rgba(0,255,255,.25);
-      border-radius:999px; padding:5px 12px; font-size:.85rem; color:#7df9ff; font-weight:700;
-    }
+  /* ---- Rounds summary card ---- */
+  .acct-rounds-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .acct-rounds-head h2 { margin: 0; }
+  .acct-rounds-head a { font-size: 13.5px; font-weight: 600; }
+  .acct-round-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr));
+    gap: 1px;
+    margin-top: 0;
+    background: var(--pf-border-subtle);
+    border: 1px solid var(--pf-border-subtle);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .acct-round-stats .acct-stat-value { font-size: 20px; }
+  .acct-stat-value--accent { color: var(--pf-accent); }
+  .acct-stat-value--success { color: var(--pf-success); }
+  .acct-draft-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--pf-surface-sunken);
+    border: 1px solid #1C3E63;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: border-color 0.3s ease;
+  }
+  .acct-draft-row:hover { border-color: var(--pf-border-strong); }
+  .acct-draft-main { flex: 1; min-width: 0; }
+  .acct-draft-label { display: block; font-size: 12px; color: var(--pf-text-muted); }
+  .acct-draft-topic {
+    display: block;
+    margin-top: 3px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--pf-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .acct-draft-progress {
+    font-family: var(--pf-font-mono);
+    font-size: 11px;
+    color: var(--pf-accent);
+    flex: none;
+  }
+  .acct-rounds-status { margin: 12px 0 0; font-size: 12.5px; color: var(--pf-text-muted); }
 
-    .open-btn:focus-visible, .ghost-btn:focus-visible, .text-input:focus-visible,
-    .banner a:focus-visible, .warn a:focus-visible {
-      outline: 2px solid #7df9ff; outline-offset: 2px;
-    }
+  /* ---- Training modules card ---- */
+  .acct-modules-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--pf-font);
+  }
+  .acct-modules-toggle h2 { margin: 0; }
+  .acct-modules-meta { display: flex; align-items: center; gap: 10px; }
+  .acct-modules-count { font-size: 13.5px; color: var(--pf-text-muted); }
+  .acct-modules-caret { font-size: 11px; color: var(--pf-accent); }
+  .acct-module-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .acct-module-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 11px;
+    border: 1px solid #1A3A5C;
+    background: var(--pf-surface-sunken);
+    border-radius: 3px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--pf-text-muted);
+  }
+  .acct-module-chip.is-done {
+    background: var(--pf-success-bg);
+    border-color: #2A5C3C;
+    color: var(--pf-success);
+  }
 
-    /* toolbar.css has no breakpoints yet; keep this page usable on phones. */
-    /* Toolbar responsive rules live in toolbar.css. */
-    @media (max-width: 600px) {
-      body { padding: 12px; }
-      .page-col { width: 100%; margin-top: 12px; }
-      .container { padding: 18px; }
-    }
-  </style>
+  /* ---- Plan card ---- */
+  .acct-plan-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .acct-plan-head h2 { margin: 0 0 5px; }
+  .acct-plan-note { margin: 0; font-size: 14px; color: var(--pf-text-muted); }
+  .acct-plan-cta {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 20px;
+    background: var(--pf-blue);
+    color: #FFFFFF;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.3s ease;
+  }
+  .acct-plan-cta:hover { background: var(--pf-blue-hover); color: #FFFFFF; }
+  .acct-plan-cta--ghost {
+    background: transparent;
+    border: 1px solid var(--pf-border);
+    color: var(--pf-text);
+    transition: border-color 0.3s ease;
+  }
+  .acct-plan-cta--ghost:hover { background: transparent; border-color: var(--pf-accent); color: var(--pf-text); }
+  .acct-quota.pf-quota-bar {
+    height: 6px;
+    margin-top: 18px;
+    background: var(--pf-border-subtle);
+  }
+  .acct-plan-reset { margin: 9px 0 0; font-size: 12.5px; color: var(--pf-text-muted); }
+
+  .acct-btn:focus-visible, .acct-input:focus-visible, .acct-modules-toggle:focus-visible,
+  .acct-draft-row:focus-visible, .acct-plan-cta:focus-visible, .acct-banner a:focus-visible {
+    outline: 2px solid var(--pf-accent);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 600px) {
+    .acct-main { padding: 24px 16px 60px; }
+    .acct-card, .acct-card--profile { padding: 20px 18px; }
+  }
+</style>
 </head>
 
-<body>
-  <!-- ===== Toolbar ===== -->
+<body class="pf-page">
   <nav class="toolbar">
     <a class="logo" href="index.html">
-      <img src="android-chrome-192x192.png" alt="Public Forum AI Logo"/>
+      <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
       <span class="logo-text">PublicForumAI</span>
     </a>
     <div class="nav-links">
-      <a href="flower.html">AI Flow</a>
-      <a href="setup.html">AI Practice Round</a>
-      <a href="casewriter.html">AI Casewriter</a>
-      <a href="modules.html">Training Modules</a>
+      <a href="flower.html">Flow</a>
+      <a href="casewriter.html">Casewriter</a>
+      <a href="setup.html">Practice Round</a>
+      <a href="login.html?next=%2Frounds.html" data-nav="myrounds">My Rounds</a>
+      <a href="modules.html">Training</a>
+      <a href="pricing.html">Pricing</a>
     </div>
-    <div id="authSlot"><a href="login.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+    <div id="authSlot"><a href="login.html?next=%2Fprofile.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
   </nav>
 
-  <div class="page-col">
-    <div id="legacyBanner" class="banner" hidden>
-      Your account signs in with a placeholder address, so password reset emails cannot reach you.
-      <a href="login.html?next=profile.html">Add a real email address</a> to keep your account recoverable.
-    </div>
-    <div id="pageNotice" class="notice" hidden></div>
+  <div class="acct-main">
 
-    <!-- ===== Main content ===== -->
-    <div class="container">
-      <div class="profile-left">
-        <div class="profile-card">
-          <div class="profile-header">
-            <img id="avatar" class="avatar" alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='52'%20height='52'%3E%3Crect%20width='52'%20height='52'%20rx='26'%20fill='%23123a5e'/%3E%3C/svg%3E"/>
-            <div>
-              <h2 class="username"><span id="displayName">Your Name</span> <span class="handle" id="handle">@username</span></h2>
-              <div class="badges">
-                <div class="pill"><span id="statRounds">0</span> rounds</div>
-                <div class="pill"><span id="statGems">0</span> gems</div>
+    <div id="legacyBanner" class="acct-banner acct-banner--warn" hidden>
+      <span class="acct-banner-dot"></span>
+      <p>Your account signs in with a placeholder address, so password reset emails cannot reach you.
+      <a href="login.html?next=profile.html">Add a real email address</a> to keep your account recoverable.</p>
+    </div>
+
+    <div id="pageNotice" class="acct-banner" hidden>
+      <span class="acct-banner-dot"></span>
+      <p id="pageNoticeText"></p>
+    </div>
+
+    <div id="verifyHint" class="acct-banner" hidden>
+      <span class="acct-banner-dot"></span>
+      <p>Verify your email to sync your debates across devices and unlock two-factor authentication. <a href="login.html?next=profile.html">Resend the link</a></p>
+    </div>
+
+    <div class="acct-cols">
+
+      <!-- ===== Left column ===== -->
+      <div class="acct-col-left">
+
+        <div class="pf-card acct-card acct-card--profile">
+          <div class="acct-identity">
+            <span id="avatarTile" class="acct-initials-tile">?</span>
+            <div class="acct-identity-text">
+              <h1 id="displayName">Your Name</h1>
+              <div class="acct-handle" id="handle">@username</div>
+            </div>
+          </div>
+          <div class="acct-stats">
+            <div class="acct-stat">
+              <div class="acct-stat-value" id="statRounds">0</div>
+              <div class="acct-stat-label">rounds</div>
+            </div>
+            <div class="acct-stat">
+              <div class="acct-gem-row">
+                <span class="acct-gem"></span>
+                <span class="acct-stat-value" id="statGems">0</span>
               </div>
+              <div class="acct-stat-label">gems</div>
             </div>
           </div>
         </div>
-        <div style="height:14px"></div>
-        <div class="profile-card">
-          <h3 class="section-title">Account</h3>
-          <p class="acct-row">Email: <strong id="email">Loading</strong> <span id="emailBadge"></span></p>
-          <p class="acct-row">Member since: <strong id="created">Loading</strong></p>
-          <p id="verifyHint" class="warn" hidden>
-            Verify your email to sync your debates across devices and unlock two-factor authentication.
-            <a href="login.html?next=profile.html" style="color:#ffd98a">Resend or check verification</a>
-          </p>
-          <div class="row"><button id="signOutBtn" class="ghost-btn" type="button">Sign out</button></div>
+
+        <div class="pf-card acct-card">
+          <h2>Account</h2>
+          <div class="acct-row">
+            <span class="acct-row-label">Email</span>
+            <span class="acct-row-value"><span id="email">Loading</span><span id="emailBadge"></span></span>
+          </div>
+          <div class="acct-row">
+            <span class="acct-row-label">Member since</span>
+            <span class="acct-row-value" id="created">Loading</span>
+          </div>
+          <button id="signOutBtn" class="acct-btn acct-btn--block acct-signout" type="button">Sign out</button>
         </div>
-        <div style="height:14px"></div>
 
         <!-- ===== Two-factor authentication ===== -->
-        <div class="profile-card" id="mfaCard" hidden>
-          <h3 class="section-title">Two-factor authentication</h3>
+        <div class="pf-card acct-card" id="mfaCard" hidden>
+          <div class="acct-mfa-head">
+            <h2>Two-factor authentication</h2>
+            <span id="mfaBadge" class="acct-mfa-badge">Off</span>
+          </div>
 
           <div id="mfaOff" hidden>
-            <p class="mfa-note">Add a second step at sign-in using an authenticator app such as Google Authenticator or Authy. If someone learns your password, they still cannot get in.</p>
-            <button id="mfaStartBtn" class="open-btn" type="button">Set up 2FA</button>
-            <p id="mfaOffErr" class="err" hidden></p>
+            <p class="acct-note">Add a second step at sign-in using an authenticator app such as Google Authenticator or Authy. If someone learns your password, they still cannot get in.</p>
+            <button id="mfaStartBtn" class="acct-btn acct-btn--primary acct-btn--block" style="height:42px" type="button">Set up 2FA</button>
+            <p id="mfaOffErr" class="acct-err" hidden></p>
           </div>
 
           <div id="mfaGoogleOnly" hidden>
-            <p class="mfa-note">You sign in with Google, so your Google account already decides what a second step looks like. Turn on 2-Step Verification in your Google account and it protects PublicForumAI too.</p>
-            <p class="mfa-note">We do not add a separate authenticator here for Google sign-ins. Recovering one needs a password, and your account does not have a password to check, so losing your phone would lock you out for good.</p>
+            <p class="acct-note acct-note--tight">You sign in with Google, so your Google account already decides what a second step looks like. Turn on 2-Step Verification in your Google account and it protects PublicForumAI too.</p>
+            <p class="acct-note">We do not add a separate authenticator here for Google sign-ins. Recovering one needs a password, and your account does not have a password to check, so losing your phone would lock you out for good.</p>
           </div>
 
           <div id="mfaEnrollBox" hidden>
-            <p class="mfa-note">Scan this code with your authenticator app, or type the key in by hand.</p>
-            <div class="qr-wrap"><canvas id="mfaQr"></canvas></div>
-            <p class="mfa-note">Manual key: <code id="mfaKey" class="mono"></code></p>
-            <label class="mfa-note" for="mfaCode">Enter the 6-digit code your app shows:</label>
-            <div class="row">
-              <input id="mfaCode" class="text-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"/>
-              <button id="mfaVerifyBtn" class="open-btn" type="button">Verify</button>
-              <button id="mfaCancelBtn" class="ghost-btn" type="button">Cancel</button>
+            <p class="acct-note acct-note--tight">Scan this code with your authenticator app, or type the key in by hand.</p>
+            <div class="acct-qr-wrap"><canvas id="mfaQr"></canvas></div>
+            <p class="acct-note acct-note--tight">Manual key: <code id="mfaKey" class="acct-mono"></code></p>
+            <label class="acct-note acct-note--tight" for="mfaCode">Enter the 6-digit code your app shows:</label>
+            <div class="acct-field-row">
+              <input id="mfaCode" class="acct-input acct-input--code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"/>
+              <button id="mfaVerifyBtn" class="acct-btn acct-btn--primary" type="button">Verify</button>
+              <button id="mfaCancelBtn" class="acct-btn" type="button">Cancel</button>
             </div>
-            <p id="mfaEnrollErr" class="err" hidden></p>
+            <p id="mfaEnrollErr" class="acct-err" hidden></p>
           </div>
 
           <div id="mfaOn" hidden>
-            <p class="mfa-note">2FA is on for this account. <span id="mfaFactorLabel"></span></p>
-            <p class="mfa-note" id="mfaCodesLeft" hidden></p>
-            <p class="warn" id="mfaCodesWarn" hidden>You are running low on recovery codes. Generate a new set soon.</p>
-            <div class="row">
-              <button id="mfaRegenBtn" class="ghost-btn" type="button">Generate new recovery codes</button>
-              <button id="mfaOffBtn" class="ghost-btn danger" type="button">Turn off 2FA</button>
+            <p class="acct-note">Add a second step at sign-in using an authenticator app such as Google Authenticator or Authy. If someone learns your password, they still cannot get in.</p>
+            <p class="acct-note acct-note--tight" id="mfaFactorLabel"></p>
+            <div class="acct-mfa-stack">
+              <div class="acct-kv-row" id="mfaCodesLeft" hidden>
+                <span class="acct-row-label">Recovery codes left</span>
+                <span class="acct-kv-value" id="mfaCodesLeftVal"></span>
+              </div>
+              <p class="acct-warn" id="mfaCodesWarn" hidden>You are running low on recovery codes. Generate a new set soon.</p>
+              <button id="mfaRegenBtn" class="acct-btn" type="button">Generate new recovery codes</button>
+              <button id="mfaOffBtn" class="acct-btn acct-btn--danger" type="button">Turn off 2FA</button>
             </div>
-            <div id="mfaRegenConfirm" class="mfa-block" hidden>
-              <p class="warn">This replaces your current recovery codes. The old ones stop working right away.</p>
-              <div class="row">
-                <button id="mfaRegenYes" class="open-btn" type="button">Generate new codes</button>
-                <button id="mfaRegenNo" class="ghost-btn" type="button">Cancel</button>
+            <div id="mfaRegenConfirm" class="acct-mfa-block" hidden>
+              <p class="acct-warn">This replaces your current recovery codes. The old ones stop working right away.</p>
+              <div class="acct-btn-row">
+                <button id="mfaRegenYes" class="acct-btn acct-btn--primary" type="button">Generate new codes</button>
+                <button id="mfaRegenNo" class="acct-btn" type="button">Cancel</button>
               </div>
             </div>
-            <div id="mfaOffConfirm" class="mfa-block" hidden>
-              <p class="warn">This removes the authenticator app step from sign-in and deletes your recovery codes.</p>
-              <div class="row">
-                <button id="mfaOffYes" class="ghost-btn danger" type="button">Turn off</button>
-                <button id="mfaOffNo" class="ghost-btn" type="button">Cancel</button>
+            <div id="mfaOffConfirm" class="acct-mfa-block" hidden>
+              <p class="acct-warn">This removes the authenticator app step from sign-in and deletes your recovery codes.</p>
+              <div class="acct-btn-row">
+                <button id="mfaOffYes" class="acct-btn acct-btn--danger" type="button">Turn off</button>
+                <button id="mfaOffNo" class="acct-btn" type="button">Cancel</button>
               </div>
             </div>
-            <p id="mfaOnErr" class="err" hidden></p>
+            <p id="mfaOnErr" class="acct-err" hidden></p>
           </div>
 
-          <div id="codesBox" class="mfa-block" hidden>
-            <p class="warn">Save these recovery codes somewhere safe. Each code works once, and this is the only time they can be shown. If you lose your phone, a recovery code is how you get back into your account.</p>
-            <div id="codesList" class="codes"></div>
-            <div class="row">
-              <button id="codesCopyBtn" class="ghost-btn" type="button">Copy</button>
-              <button id="codesDownloadBtn" class="ghost-btn" type="button">Download</button>
-              <button id="codesDoneBtn" class="open-btn" type="button">I saved them</button>
+          <div id="codesBox" class="acct-mfa-block" hidden>
+            <p class="acct-warn">Save these recovery codes somewhere safe. Each code works once, and this is the only time they can be shown. If you lose your phone, a recovery code is how you get back into your account.</p>
+            <div id="codesList" class="acct-codes"></div>
+            <div class="acct-btn-row">
+              <button id="codesCopyBtn" class="acct-btn" type="button">Copy</button>
+              <button id="codesDownloadBtn" class="acct-btn" type="button">Download</button>
+              <button id="codesDoneBtn" class="acct-btn acct-btn--primary" type="button">I saved them</button>
             </div>
-            <p id="codesErr" class="err" hidden></p>
+            <p id="codesErr" class="acct-err" hidden></p>
           </div>
 
-          <div id="reauthBox" class="mfa-block" hidden>
-            <p class="mfa-note" id="reauthMsg">For security, confirm your password to continue.</p>
-            <div class="row" id="reauthPwRow">
-              <input id="reauthPw" class="text-input wide" type="password" autocomplete="current-password" placeholder="Password"/>
+          <div id="reauthBox" class="acct-mfa-block" hidden>
+            <p class="acct-note acct-note--tight" id="reauthMsg">For security, confirm your password to continue.</p>
+            <div class="acct-field-row" id="reauthPwRow">
+              <input id="reauthPw" class="acct-input acct-input--wide" type="password" autocomplete="current-password" placeholder="Password"/>
             </div>
-            <div class="row" id="reauthCodeRow" hidden>
-              <label class="mfa-note" for="reauthCode" style="margin:0">Code from your authenticator app:</label>
-              <input id="reauthCode" class="text-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"/>
+            <div class="acct-field-row" id="reauthCodeRow" hidden>
+              <label class="acct-note acct-note--tight" for="reauthCode" style="margin:0">Code from your authenticator app:</label>
+              <input id="reauthCode" class="acct-input acct-input--code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"/>
             </div>
-            <div class="row">
-              <button id="reauthGoBtn" class="open-btn" type="button">Confirm</button>
-              <button id="reauthCancelBtn" class="ghost-btn" type="button">Cancel</button>
+            <div class="acct-btn-row">
+              <button id="reauthGoBtn" class="acct-btn acct-btn--primary" type="button">Confirm</button>
+              <button id="reauthCancelBtn" class="acct-btn" type="button">Cancel</button>
             </div>
-            <p id="reauthErr" class="err" hidden></p>
+            <p id="reauthErr" class="acct-err" hidden></p>
           </div>
         </div>
       </div>
 
-      <div class="profile-right">
-        <div class="rounds-list">
-          <h3 class="section-title">Past Debates</h3>
-          <p id="roundsStatus" class="mfa-note" hidden></p>
-          <div id="rounds"><p>No saved debates yet.</p></div>
+      <!-- ===== Right column ===== -->
+      <div class="acct-col-right">
+
+        <div class="pf-card acct-card">
+          <div class="acct-rounds-head">
+            <h2>Rounds</h2>
+            <a href="rounds.html">View all rounds →</a>
+          </div>
+          <div class="acct-round-stats">
+            <div class="acct-stat">
+              <div class="acct-stat-value" id="statFinished">0</div>
+              <div class="acct-stat-label">finished</div>
+            </div>
+            <div class="acct-stat">
+              <div class="acct-stat-value acct-stat-value--accent" id="statInProgress">0</div>
+              <div class="acct-stat-label">in progress</div>
+            </div>
+            <div class="acct-stat">
+              <div class="acct-stat-value acct-stat-value--success" id="statRecord">0&ndash;0</div>
+              <div class="acct-stat-label">record</div>
+            </div>
+          </div>
+          <a id="draftRow" class="acct-draft-row" href="rounds.html" hidden>
+            <span class="acct-draft-main">
+              <span class="acct-draft-label">Most recent, in progress</span>
+              <span class="acct-draft-topic" id="draftTopic"></span>
+            </span>
+            <span class="acct-draft-progress" id="draftProgress"></span>
+          </a>
+          <p id="roundsStatus" class="acct-rounds-status" hidden></p>
         </div>
-        <div style="height:14px"></div>
-        <div class="profile-card">
-          <h3 class="section-title">Training Modules</h3>
-          <p class="acct-row"><strong id="modulesCount">0</strong> completed</p>
-          <div id="modulesChips" class="module-chips"></div>
+
+        <div class="pf-card acct-card">
+          <button id="modulesToggle" class="acct-modules-toggle" type="button" aria-expanded="false" aria-controls="modulesChips">
+            <h2 style="margin:0">Training modules</h2>
+            <span class="acct-modules-meta">
+              <span class="acct-modules-count"><span id="modulesCount">0</span> of <span id="modulesTotal">15</span> completed</span>
+              <span class="acct-modules-caret" id="modulesCaret">&#9660;</span>
+            </span>
+          </button>
+          <div id="modulesChips" class="acct-module-chips" hidden></div>
+        </div>
+
+        <div class="pf-card acct-card">
+          <div class="acct-plan-head">
+            <div>
+              <h2>Plan</h2>
+              <p class="acct-plan-note" id="planNote">Free</p>
+            </div>
+            <a id="planCta" class="acct-plan-cta" href="pricing.html">Upgrade to Premium</a>
+          </div>
+          <div class="acct-quota pf-quota-bar">
+            <span id="quotaFill" class="pf-quota-bar__fill"></span>
+          </div>
+          <p class="acct-plan-reset">Resets on the 1st of each month.</p>
         </div>
       </div>
     </div>
   </div>
+
+  <footer class="pf-footer">
+    <div class="pf-footer-cols">
+      <div class="pf-footer-brand">
+        <a class="pf-footer-logo" href="index.html">
+          <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+          <span>PublicForumAI</span>
+        </a>
+        <p class="pf-footer-tag">Empowering debaters through AI</p>
+      </div>
+      <div class="pf-footer-contact">
+        <h4>Contact Us</h4>
+        <a class="pf-footer-email" href="mailto:support@publicforumai.com">support@publicforumai.com</a>
+        <div class="pf-footer-or"><span></span><span class="pf-footer-or-label">OR</span><span></span></div>
+        <form id="feedbackForm" class="pf-footer-form">
+          <input name="from_email" placeholder="Your email" required="" type="email"/>
+          <textarea name="message" placeholder="Your feedback" required="" rows="3"></textarea>
+          <button type="submit">Submit Feedback</button>
+          <p class="pf-form-status" id="feedbackStatus" role="status" hidden></p>
+        </form>
+      </div>
+      <div class="pf-footer-social">
+        <h4>Follow Us</h4>
+        <div class="pf-footer-links">
+          <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="https://www.youtube.com/@PublicForumAI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" rel="noopener">Reddit</a>
+        </div>
+      </div>
+    </div>
+    <div class="pf-footer-bottom-wrap">
+      <div class="pf-footer-bottom">
+        <span>© 2026 PublicForumAI. All rights reserved.</span>
+        <span>Not for use in live rounds.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  // Feedback form: inline status messages, no dialogs.
+  (function () {
+    var form = document.getElementById('feedbackForm');
+    var status = document.getElementById('feedbackStatus');
+    if (!form || !status) return;
+
+    function showStatus(message, ok) {
+      status.textContent = message;
+      status.classList.remove('ok', 'err');
+      status.classList.add(ok ? 'ok' : 'err');
+      status.hidden = false;
+    }
+
+    try {
+      if (window.emailjs) emailjs.init('wgsczkr19C1FrKtLj');
+    } catch (e) { /* handled on submit */ }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      if (!window.emailjs) {
+        showStatus('The feedback service did not load. Please email us directly instead.', false);
+        return;
+      }
+
+      var btn = form.querySelector('button');
+      status.hidden = true;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      function done() {
+        btn.disabled = false;
+        btn.textContent = 'Submit Feedback';
+      }
+
+      emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
+        .then(function () {
+          form.reset();
+          showStatus('Thanks! Your feedback was sent.', true);
+          done();
+        }, function (error) {
+          showStatus('Something went wrong and your feedback was not sent. Please try again, or email us directly.', false);
+          console.error('Error:', error);
+          done();
+        });
+    });
+  })();
+  </script>
 
   <script src="auth.js"></script>
   <script src="sanitize.js"></script>
@@ -581,11 +1028,6 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     await ensureFirebase();
 
     const $ = (id) => document.getElementById(id);
-    // Element-content and quoted-attribute safe. No call site splices into an
-    // unquoted attribute, and none should.
-    const esc = (s) => String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const pick = (obj, keys, dflt) => {
       for (const k of keys) if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
       return dflt;
@@ -603,6 +1045,26 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     const show = (el, on) => { if (el) el.hidden = !on; };
     const setErr = (el, msg) => { if (el) { el.textContent = msg || ''; el.hidden = !msg; } };
     const canFetch = () => typeof window.pfFetch === 'function';
+
+    // Mirrors the modules array in modules.html (m1 through m15). Counts are
+    // always computed from this list, never hardcoded.
+    const REAL_MODULES = [
+      ['m1', 'Getting to Know You'],
+      ['m2', 'Debate Etiquette & Professional Conduct'],
+      ['m3', 'What is Debate?'],
+      ['m4', 'What is Public Forum'],
+      ['m5', 'Crossfire'],
+      ['m6', 'Flowing'],
+      ['m7', 'Prep for a Debate Round'],
+      ['m8', 'Case Writing'],
+      ['m9', 'Rebuttal'],
+      ['m10', 'Advanced Rebuttal'],
+      ['m11', 'Summary & Weighing'],
+      ['m12', 'Weighing Mechanisms'],
+      ['m13', 'Final Focus'],
+      ['m14', 'Judges & Adaptation'],
+      ['m15', 'Public Forum AI']
+    ];
 
     let handled = false;
     onAuth((user) => {
@@ -622,18 +1084,18 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       const verified = !!user.emailVerified || isGoogle;
       const isLegacy = /@pf\.local$/i.test(user.email || '');
 
-      // Keep the neutral placeholder if there is no photo and no initials helper.
-      const fallbackAvatar = window.pfaiInitialsAvatar ? window.pfaiInitialsAvatar(name) : null;
-      if (fallbackAvatar) {
-        $('avatar').onerror = function () { this.onerror = null; this.src = fallbackAvatar; };
-      }
-      $('avatar').src = user.photoURL || fallbackAvatar || $('avatar').src;
+      const initials = name.split(/\s+/).filter(Boolean).slice(0, 2)
+        .map((w) => w[0]).join('').toUpperCase() || '?';
+      $('avatarTile').textContent = initials;
       $('displayName').textContent = name;
       $('handle').textContent = '@' + name;
       $('email').textContent = user.email || 'None';
-      $('emailBadge').innerHTML = verified
-        ? '<span class="badge-ok">Verified</span>'
-        : '<span class="badge-warn">Not verified</span>';
+      if (!verified) {
+        const badge = document.createElement('span');
+        badge.className = 'acct-badge-warn';
+        badge.textContent = 'Not verified';
+        $('emailBadge').appendChild(badge);
+      }
       show($('verifyHint'), !verified && !isLegacy);
       show($('legacyBanner'), isLegacy);
 
@@ -645,16 +1107,25 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
         window.location.href = 'index.html';
       });
 
+      // Modules expander: collapsed by default, chips render into #modulesChips.
+      $('modulesToggle').addEventListener('click', () => {
+        const chips = $('modulesChips');
+        const open = chips.hidden;
+        chips.hidden = !open;
+        $('modulesToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+        $('modulesCaret').textContent = open ? '▲' : '▼';
+      });
+
       // Server profile. Unverified users cannot pass the backend's verified-email
       // check, so they get the local view plus the verify prompt.
       let me = null;
       if (verified && canFetch()) {
-        me = await fetchMe();
+        me = await fetchMe(true);
         if (me) {
           const importResult = await maybeImport(user, me);
           if (importResult) {
             notice(importResult);
-            me = (await fetchMe()) || me;
+            me = (await fetchMe(true)) || me;
           }
         }
       }
@@ -667,10 +1138,13 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
           notice('Could not reach the server. Showing debates saved on this device.');
         }
       }
+      renderPlan(me);
 
       const createdAt = pick(me || {}, ['createdAt', 'created_at'], localCreated);
       const createdDt = toDate(createdAt);
-      $('created').textContent = createdDt ? createdDt.toLocaleDateString() : 'Unknown';
+      $('created').textContent = createdDt
+        ? createdDt.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+        : 'Unknown';
 
       if (verified) initMfa(user, me);
     }
@@ -681,14 +1155,18 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       try { return await res.json(); } catch (e) { return {}; }
     }
 
-    async function fetchMe() {
-      try { return await fetchJson('/me', null, { method: 'GET' }); } catch (e) { return null; }
+    // pfMe caches /me, pushes the plan into the auth snapshot for the header
+    // avatar, and fires pfai:me. fresh bypasses the cache around the import.
+    async function fetchMe(fresh) {
+      try {
+        if (typeof window.pfMe === 'function') return await window.pfMe({ fresh: !!fresh });
+        return await fetchJson('/me', null, { method: 'GET' });
+      } catch (e) { return null; }
     }
 
     function notice(msg) {
-      const el = $('pageNotice');
-      el.textContent = msg;
-      el.hidden = false;
+      $('pageNoticeText').textContent = msg;
+      $('pageNotice').hidden = false;
     }
 
     // ── One-time migration of the old localStorage profile ────────────────
@@ -808,7 +1286,9 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       let rounds = null;
       if (canFetch()) {
         try {
-          const res = await fetchJson('/rounds', null, { method: 'GET' });
+          const res = (typeof window.pfRounds === 'function')
+            ? await window.pfRounds()
+            : await fetchJson('/rounds', null, { method: 'GET' });
           rounds = Array.isArray(res) ? res : pick(res || {}, ['rounds'], null);
         } catch (e) {}
       }
@@ -835,33 +1315,35 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
       renderRounds(p.rounds || []);
     }
 
+    // The profile shows counts only; rounds.html owns the full lists.
     function renderRounds(rounds) {
       rounds = rounds || [];
       $('statRounds').textContent = rounds.length;
-      const roundsDiv = $('rounds');
-      if (!rounds.length) {
-        roundsDiv.innerHTML = '<p>No saved debates yet.</p>';
-        return;
+
+      // Drafts carry status "draft"; anything else (finished or a legacy
+      // full-save with no status) counts as finished.
+      const drafts = rounds.filter((r) => r && r.status === 'draft');
+      const finished = rounds.filter((r) => r && r.status !== 'draft');
+      const wins = finished.filter((r) => r.winner === 'user').length;
+      const losses = finished.filter((r) => r.winner === 'ai').length;
+
+      $('statFinished').textContent = finished.length;
+      $('statInProgress').textContent = drafts.length;
+      $('statRecord').textContent = wins + '–' + losses;
+
+      drafts.sort((a, b) => {
+        const da = toDate(a.updatedAt || a.createdAt);
+        const db = toDate(b.updatedAt || b.createdAt);
+        return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+      });
+      const latest = drafts[0] || null;
+      if (latest) {
+        const m = latest.meta || latest;
+        $('draftTopic').textContent = m.debateTopic || latest.topic || 'Practice Round';
+        const done = Math.max(0, Math.min(8, Number(latest.speechesDone) || 0));
+        $('draftProgress').textContent = done + '/8';
       }
-      roundsDiv.innerHTML = rounds.map((r) => {
-        // Device rounds nest under meta; API summaries are flat and date their
-        // rounds with savedAt.
-        const m = r.meta || r;
-        const topic = m.debateTopic || r.topic || 'Practice Round';
-        const dt = toDate(r.timestamp || r.createdAt || r.savedAt);
-        const date = dt ? dt.toLocaleString() : '';
-        const side = m.selectedSide || r.side || '';
-        const turnValue = m.selectedTurn || r.turn || '';
-        const turn = turnValue ? ' (' + turnValue + ')' : '';
-        const judgeValue = m.judgeType || r.judgeType || '';
-        const judge = judgeValue ? judgeValue.toUpperCase() + ' judge' : '';
-        const metaLine = [date, (side + turn).trim(), judge].filter(Boolean).join(' • ');
-        return '<div class="round-card">' +
-          '<h4>' + esc(topic) + '</h4>' +
-          '<div class="meta">' + esc(metaLine) + '</div>' +
-          '<div class="actions"><a class="open-btn" href="round.html?id=' +
-          encodeURIComponent(r.id) + '">Open</a></div></div>';
-      }).join('');
+      show($('draftRow'), !!latest);
     }
 
     // Module progress comes in two shapes: the API's flat
@@ -877,9 +1359,48 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
     }
 
     function renderModules(state) {
-      const done = completedModules(state);
-      $('modulesCount').textContent = done.length;
-      $('modulesChips').innerHTML = done.map((id) => '<span class="module-chip">' + esc(id) + '</span>').join('');
+      const doneSet = new Set(completedModules(state));
+      const doneCount = REAL_MODULES.filter((m) => doneSet.has(m[0])).length;
+      $('modulesCount').textContent = doneCount;
+      $('modulesTotal').textContent = REAL_MODULES.length;
+      const wrap = $('modulesChips');
+      wrap.textContent = '';
+      REAL_MODULES.forEach((m) => {
+        const chip = document.createElement('span');
+        chip.className = 'acct-module-chip' + (doneSet.has(m[0]) ? ' is-done' : '');
+        chip.textContent = m[1];
+        wrap.appendChild(chip);
+      });
+    }
+
+    // ── Plan card ─────────────────────────────────────────────────────────
+    function renderPlan(me) {
+      const premium = !!(me && me.plan === 'premium');
+      const limits = (me && me.limits) || {};
+      const cap = Number.isFinite(Number(limits.roundsPerMonth)) && limits.roundsPerMonth !== null
+        ? Number(limits.roundsPerMonth) : 3;
+      const monthKey = new Date().toISOString().slice(0, 7);
+      const usage = (me && me.usage) || null;
+      const started = (usage && usage.month === monthKey) ? (Number(usage.roundsStarted) || 0) : 0;
+
+      const fill = $('quotaFill');
+      const cta = $('planCta');
+      if (premium) {
+        $('planNote').textContent = 'Premium · unlimited rounds';
+        fill.style.width = '100%';
+        fill.classList.remove('is-full');
+        fill.classList.add('is-premium');
+        cta.textContent = 'Manage plan';
+        cta.classList.add('acct-plan-cta--ghost');
+      } else {
+        $('planNote').textContent = 'Free · ' + started + ' of ' + cap + ' rounds started this month';
+        const pct = Math.max(0, Math.min(100, Math.round((started / cap) * 100)));
+        fill.style.width = pct + '%';
+        fill.classList.toggle('is-full', started >= cap);
+        fill.classList.remove('is-premium');
+        cta.textContent = 'Upgrade to Premium';
+        cta.classList.remove('acct-plan-cta--ghost');
+      }
     }
 
     // ── Two-factor authentication ─────────────────────────────────────────
@@ -910,6 +1431,8 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
 
       function renderState() {
         const f = totpFactor();
+        $('mfaBadge').textContent = f ? 'On' : 'Off';
+        $('mfaBadge').classList.toggle('is-on', !!f);
         show($('mfaOff'), !f && hasPassword);
         show($('mfaGoogleOnly'), !f && !hasPassword);
         show($('mfaOn'), !!f);
@@ -920,7 +1443,7 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
           const since = f.enrollmentTime ? ' since ' + new Date(f.enrollmentTime).toLocaleDateString() : '';
           $('mfaFactorLabel').textContent = (f.displayName || 'Authenticator app') + since + '.';
           if (typeof codesRemaining === 'number') {
-            $('mfaCodesLeft').textContent = 'Recovery codes left: ' + codesRemaining;
+            $('mfaCodesLeftVal').textContent = codesRemaining;
             show($('mfaCodesLeft'), true);
             show($('mfaCodesWarn'), codesRemaining <= 3);
           } else {
@@ -1055,7 +1578,7 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
         setErr($('codesErr'), '');
         if (!canFetch()) {
           show($('codesBox'), true);
-          $('codesList').innerHTML = '';
+          $('codesList').textContent = '';
           setErr($('codesErr'), 'Could not create recovery codes right now. Use "Generate new recovery codes" to try again later.');
           return;
         }
@@ -1065,12 +1588,18 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
           if (!codes.length) throw new Error('empty recovery code response');
           shownCodes = codes;
           codesRemaining = codes.length;
-          $('codesList').innerHTML = codes.map((c) => '<code>' + esc(c) + '</code>').join('');
+          const list = $('codesList');
+          list.textContent = '';
+          codes.forEach((c) => {
+            const el = document.createElement('code');
+            el.textContent = c;
+            list.appendChild(el);
+          });
           renderState();
           show($('codesBox'), true);
         } catch (e) {
           show($('codesBox'), true);
-          $('codesList').innerHTML = '';
+          $('codesList').textContent = '';
           setErr($('codesErr'), 'Could not create recovery codes. Use "Generate new recovery codes" to try again.');
         }
       }
@@ -1092,7 +1621,7 @@ if (self !== top) { document.documentElement.style.display = 'none'; try { top.l
         a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 2000);
       });
-      $('codesDoneBtn').addEventListener('click', () => { shownCodes = []; $('codesList').innerHTML = ''; show($('codesBox'), false); });
+      $('codesDoneBtn').addEventListener('click', () => { shownCodes = []; $('codesList').textContent = ''; show($('codesBox'), false); });
 
       // Regenerate
       $('mfaRegenBtn').addEventListener('click', () => { show($('mfaRegenConfirm'), true); show($('mfaOffConfirm'), false); });

@@ -1,122 +1,95 @@
-/* toolbar.css - the one shared toolbar. Load in <head> before page styles.
-   Geometry is fixed: 64px bar, 40px auth controls. auth.js swaps #authSlot
-   content only; nothing inside the slot may change the bar's size. */
-
-:root {
-  --toolbar-accent: #6FCBFF;
-  --toolbar-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Page styles load after this file and often set their own body padding or
-   margin, so the toolbar clearance has to win the cascade. */
-body { padding-top: 64px !important; margin-top: 0 !important; }
+/* toolbar.css - the one shared sticky header. Load in <head> before pf-theme
+   and page styles. The bar is position:sticky and wraps at narrow widths, so
+   pages need NO body top padding for it.
+   Geometry contract: #authSlot is a fixed 40px-high flex-none box. Both auth
+   states render controls with identical outer geometry (40px SIGN IN pill or
+   38px avatar button inside the 40px box). auth.js and the inline head
+   snippet swap #authSlot content only; nothing inside the slot may change the
+   bar's size. */
 
 nav.toolbar {
   box-sizing: border-box;
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 64px;
-  padding: 0 30px;
+  z-index: 50;
+  min-height: 64px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
-  border-bottom: 1px solid rgba(111, 203, 255, 0.25);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-  font-family: var(--toolbar-font);
-  font-weight: 700;
-}
-
-nav.toolbar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 200%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent 25%, rgba(111, 203, 255, 0.1) 50%, transparent 75%);
-  animation: toolbar-scan 8s infinite linear;
-  pointer-events: none;
-}
-
-@keyframes toolbar-scan {
-  from { transform: translateX(0); }
-  to { transform: translateX(100%); }
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  padding: 10px 28px;
+  background: linear-gradient(135deg, #0A0E27 0%, #1A1F4B 100%);
+  border-bottom: 1px solid #24406B;
+  font-family: Archivo, 'Segoe UI', sans-serif;
 }
 
 nav.toolbar .logo {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 11px;
+  flex: none;
   margin: 0;
   text-decoration: none;
-  position: relative;
 }
 
 nav.toolbar .logo img {
-  height: 40px;
-  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
-  transition: filter 0.3s ease;
-}
-
-nav.toolbar .logo:hover img {
-  filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6));
+  height: 38px;
+  width: 38px;
+  border-radius: 7px;
+  display: block;
 }
 
 nav.toolbar .logo-text {
-  color: var(--toolbar-accent);
-  font-size: 1.4rem;
+  font-size: 19px;
   font-weight: 700;
-  letter-spacing: 0.5px;
-  text-shadow: 0 0 10px rgba(111, 203, 255, 0.4);
+  letter-spacing: -0.01em;
+  color: #FFFFFF;
   white-space: nowrap;
   margin: 0;
   border-bottom: none;
 }
 
+/* Center nav: underline grows from the left over 0.3s; the active page
+   (aria-current="page") sits at 100%. No background highlight. */
 nav.toolbar .nav-links {
   display: flex;
   align-items: center;
-  gap: clamp(18px, 5vw, 60px);
-  position: relative;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-width: 0;
 }
 
 nav.toolbar .nav-links a {
-  color: var(--toolbar-accent);
-  text-decoration: none;
-  font-weight: 700;
   position: relative;
-  padding: 5px 0;
+  padding: 8px 12px 7px;
+  border-radius: 6px 6px 0 0;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: #C5DCF0;
+  background-color: transparent;
+  background-image: linear-gradient(#6FCBFF, #6FCBFF);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 2px;
+  transition: background-size 0.3s ease, color 0.3s ease;
   white-space: nowrap;
-  background: none;
-  transition: background 0.3s ease;
-}
-
-nav.toolbar .nav-links a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 0;
-  height: 2px;
-  background: var(--toolbar-accent);
-  transition: width 0.3s ease;
 }
 
 nav.toolbar .nav-links a:hover {
-  background: rgba(111, 203, 255, 0.1);
+  color: #FFFFFF;
+  background-size: 100% 2px;
 }
 
-nav.toolbar .nav-links a:hover::after {
-  width: 100%;
+nav.toolbar .nav-links a[aria-current="page"] {
+  color: #FFFFFF;
+  background-size: 100% 2px;
 }
 
-/* Auth slot: fixed 40px box in a 64px bar. Both auth states render controls
-   with identical outer geometry, so swapping them never moves the bar. */
+/* ---- Auth slot -------------------------------------------------------- */
+
 nav.toolbar #authSlot {
   flex: none;
   display: flex;
@@ -139,87 +112,55 @@ nav.toolbar #authSlot a::after { content: none; }
    static SIGN IN anchor keeps a signed-in first paint from flashing it. */
 html.pfai-signed-in nav.toolbar #authSlot > a { display: none; }
 
-nav.toolbar #authSlot .button.signin,
-nav.toolbar #authSlot .user-btn {
+/* Signed out: SIGN IN pill, 40px tall. */
+nav.toolbar #authSlot .button.signin {
   box-sizing: border-box;
   display: inline-flex;
-  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   height: 40px;
   width: auto;
   margin: 0;
-  padding: 0 16px;
-  border: 2px solid var(--toolbar-accent);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--toolbar-accent);
-  font-family: var(--toolbar-font);
+  padding: 0 20px;
+  background: #123A5E;
+  border: 1px solid #3E86B8;
+  border-radius: 6px;
+  color: #DCEEFB;
+  font-family: Archivo, 'Segoe UI', sans-serif;
+  font-size: 13px;
   font-weight: 700;
-  font-size: 0.95rem;
   line-height: 1;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.08em;
   cursor: pointer;
   overflow: visible;
   box-shadow: none;
   transform: none;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 /* Pages define broad .button rules with ::before shine overlays; keep them
    out of the slot. */
 nav.toolbar #authSlot .button.signin::before,
-nav.toolbar #authSlot .button.signin::after,
-nav.toolbar #authSlot .user-btn::before { content: none; }
+nav.toolbar #authSlot .button.signin::after { content: none; }
 
 nav.toolbar #authSlot .button.signin .title {
   margin: 0;
   color: inherit;
-  font-size: 0.95rem;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-nav.toolbar #authSlot .button.signin:hover,
-nav.toolbar #authSlot .user-btn:hover {
-  background: var(--toolbar-accent);
-  color: #0a0e27;
+nav.toolbar #authSlot .button.signin:hover {
+  background: #17507F;
+  border-color: #6FCBFF;
+  color: #FFFFFF;
 }
+nav.toolbar #authSlot .button.signin:hover .title { color: #FFFFFF; }
 
-nav.toolbar #authSlot .button.signin:hover .title { color: #0a0e27; }
-
-nav.toolbar #authSlot .user-avatar {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid rgba(111, 203, 255, 0.5);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex: none;
-}
-
-nav.toolbar #authSlot .user-avatar-initials {
-  background: #123a5e;
-  color: var(--toolbar-accent);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-nav.toolbar #authSlot .user-btn:hover .user-avatar-initials {
-  color: #0a0e27;
-  background: rgba(10, 14, 39, 0.15);
-}
-
-nav.toolbar #authSlot .user-name {
-  white-space: nowrap;
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
+/* Signed in: one 38px circular avatar button inside the 40px slot. */
 nav.toolbar .user-menu-wrap {
   position: relative;
   display: inline-flex;
@@ -227,84 +168,213 @@ nav.toolbar .user-menu-wrap {
   height: 40px;
 }
 
-nav.toolbar .user-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 14px);
-  min-width: 190px;
-  padding: 6px;
-  background: rgba(2, 17, 33, 0.95);
-  border: 1px solid rgba(111, 203, 255, 0.25);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(6px);
-  display: none;
-  z-index: 9999;
+nav.toolbar #authSlot .pf-avatar-btn {
+  box-sizing: border-box;
+  position: relative;
+  width: 38px;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid #24406B;
+  border-radius: 50%;
+  cursor: pointer;
+  overflow: visible;
+  box-shadow: none;
+  transform: none;
+  transition: border-color 0.3s ease;
+}
+nav.toolbar #authSlot .pf-avatar-btn::before,
+nav.toolbar #authSlot .pf-avatar-btn::after { content: none; }
+nav.toolbar #authSlot .pf-avatar-btn:hover { border-color: #6FCBFF; }
+nav.toolbar #authSlot .pf-avatar-btn.premium { border-color: #A9702A; }
+nav.toolbar #authSlot .pf-avatar-btn.premium:hover { border-color: #6FCBFF; }
+
+nav.toolbar #authSlot .pf-avatar-initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #6FCBFF;
+  color: #0A0E27;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  flex: none;
 }
 
+/* Premium star badge: absolutely positioned, never part of layout flow. */
+nav.toolbar #authSlot .pf-avatar-star {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #E0A24E;
+  color: #231402;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #101538;
+  pointer-events: none;
+}
+
+/* ---- Avatar dropdown --------------------------------------------------- */
+
+nav.toolbar .user-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 250px;
+  background: #0B1330;
+  border: 1px solid #2A4C77;
+  border-radius: 10px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  text-align: left;
+  display: none;
+  z-index: 60;
+}
 nav.toolbar .user-menu.open { display: block; }
 
-nav.toolbar .user-menu .menu-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: transparent;
-  color: #eaffff;
-  border: none;
-  font-family: var(--toolbar-font);
-  font-size: 1rem;
+nav.toolbar .user-menu .menu-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid #1C3E63;
+}
+nav.toolbar .user-menu .menu-username {
+  font-size: 14px;
   font-weight: 700;
+  color: #FFFFFF;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+nav.toolbar .user-menu .menu-plan {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 9px;
+  padding: 7px 9px;
+  border: 1px solid #24406B;
+  background: rgba(111, 203, 255, 0.08);
+  border-radius: 5px;
+  text-decoration: none;
+  transition: border-color 0.3s ease;
+}
+nav.toolbar .user-menu .menu-plan:hover { border-color: #6FCBFF; }
+nav.toolbar .user-menu .menu-plan .plan-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9FD3F5;
+}
+nav.toolbar .user-menu .menu-plan .plan-action {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7DD3FC;
+}
+nav.toolbar .user-menu .menu-plan.premium {
+  border-color: #A9702A;
+  background: rgba(224, 162, 78, 0.12);
+}
+nav.toolbar .user-menu .menu-plan.premium:hover { border-color: #6FCBFF; }
+nav.toolbar .user-menu .menu-plan.premium .plan-label { color: #F0C079; }
+
+nav.toolbar .user-menu .menu-body {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+nav.toolbar .user-menu .menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 9px 11px;
+  border-radius: 6px;
+  background: transparent;
+  color: #CFEAFF;
+  border: none;
+  font-family: Archivo, 'Segoe UI', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
 }
-
+nav.toolbar .user-menu .menu-item .chev {
+  margin-left: auto;
+  font-size: 14px;
+  color: #4E7BA0;
+}
 nav.toolbar .user-menu .menu-item:hover {
-  background: rgba(111, 203, 255, 0.12);
-  color: #7df9ff;
+  background: rgba(125, 211, 252, 0.1);
+  color: #FFFFFF;
 }
 
-/* Responsive behavior, one policy for every page. Below 720px the bar wraps
-   to two rows (logo + auth on top, scrollable nav links underneath), so the
-   body clearance grows with it. Pages must not ship their own toolbar media
-   rules. */
+nav.toolbar .user-menu .menu-foot {
+  padding: 6px;
+  border-top: 1px solid #1C3E63;
+}
+nav.toolbar .user-menu .menu-signout {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 9px 11px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: #8AA6C2;
+  font-family: Archivo, 'Segoe UI', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+nav.toolbar .user-menu .menu-signout:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #E8F1FA;
+}
+
+/* ---- Narrow widths ------------------------------------------------------ */
+/* The bar wraps naturally (flex-wrap). Below 720px let the nav take its own
+   full row and scroll sideways instead of stacking six rows deep. Pages must
+   not ship their own toolbar media rules. */
+
 @media (max-width: 900px) {
-  nav.toolbar { padding: 0 16px; }
-  nav.toolbar .logo { gap: 10px; }
-  nav.toolbar .logo img { height: 34px; }
-  nav.toolbar .logo-text { font-size: 1.2rem; }
-  nav.toolbar .nav-links { gap: clamp(12px, 3vw, 28px); }
-  nav.toolbar .nav-links a { font-size: 0.95rem; }
-  nav.toolbar #authSlot .user-name { max-width: 110px; }
+  nav.toolbar { padding: 10px 16px; }
+  nav.toolbar .logo img { height: 34px; width: 34px; }
+  nav.toolbar .logo-text { font-size: 17px; }
+  nav.toolbar .nav-links a { font-size: 14px; padding: 8px 9px 7px; }
 }
 
 @media (max-width: 720px) {
-  body { padding-top: 100px !important; }
-  nav.toolbar {
-    flex-wrap: wrap;
-    height: auto;
-    min-height: 64px;
-    padding: 8px 12px;
-    row-gap: 4px;
-  }
   nav.toolbar .logo { order: 1; }
   nav.toolbar #authSlot { order: 2; }
   nav.toolbar .nav-links {
     order: 3;
     flex-basis: 100%;
+    flex-wrap: nowrap;
     justify-content: flex-start;
-    gap: 18px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding-bottom: 2px;
   }
   nav.toolbar .nav-links::-webkit-scrollbar { display: none; }
-  nav.toolbar .nav-links a { font-size: 0.9rem; }
 }
 
 @media (max-width: 400px) {
-  nav.toolbar .logo-text { font-size: 1.05rem; letter-spacing: 0.2px; }
-  nav.toolbar #authSlot .user-name { max-width: 80px; }
+  nav.toolbar .logo-text { font-size: 15px; }
 }

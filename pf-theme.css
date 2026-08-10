@@ -1,0 +1,613 @@
+/* pf-theme.css - shared design tokens + components for the redesign.
+   Load in <head> on every page, after toolbar.css and before page styles.
+   Every value here comes from the design handoff README token table and the
+   .dc.html reference files. Blue means the user, red means the AI; never map
+   these colors to Aff/Neg. */
+
+:root {
+  /* Surfaces */
+  --pf-bg: #071A33;
+  --pf-surface: #0E2A49;
+  --pf-surface-raised: #123255;
+  --pf-surface-sunken: #0B2340;
+
+  /* Borders */
+  --pf-border: #1E4269;
+  --pf-border-subtle: #183756;
+  --pf-border-row: #153352;
+  --pf-border-strong: #3E86B8;
+
+  /* Text */
+  --pf-text: #E8F1FA;
+  --pf-heading: #FFFFFF;
+  --pf-text-2: #A9C3DB;
+  --pf-text-muted: #8AA6C2;
+  --pf-text-faint: #7E9AB8;
+
+  /* Accents */
+  --pf-accent: #7DD3FC;          /* links, "you", active states */
+  --pf-accent-bar: #6FCBFF;      /* topbar underline + avatar only */
+
+  /* Action blue (the user) */
+  --pf-blue: #2563EB;
+  --pf-blue-hover: #1D4ED8;
+  --pf-blue-deep: #123E68;
+  --pf-blue-deep-hover: #17507F;
+  --pf-selected: #14375C;
+  --pf-selected-border: #3B82F6;
+
+  /* AI red (the AI) */
+  --pf-ai: #F49C97;
+  --pf-ai-strong: #C94A45;
+  --pf-ai-bright: #E8615B;
+  --pf-danger: #C62828;
+
+  /* Status */
+  --pf-success: #6FCF8F;
+  --pf-success-bg: #12301E;
+  --pf-loss-bg: #3A1A1A;
+  --pf-loss-text: #F58C86;
+  --pf-warning: #D68A2A;
+  --pf-warning-text: #D6A45A;
+  --pf-warning-body: #C79A57;
+
+  /* Premium gold */
+  --pf-gold: #E0A24E;
+  --pf-gold-border: #A9702A;
+  --pf-gold-text: #F0C079;
+
+  /* Overlay surfaces */
+  --pf-menu: #0B1330;
+  --pf-menu-border: #2A4C77;
+
+  /* Disabled / locked */
+  --pf-disabled-border: #2A4059;
+  --pf-disabled-text: #6F8DA8;
+
+  /* Header and footer */
+  --pf-topbar-grad: linear-gradient(135deg, #0A0E27 0%, #1A1F4B 100%);
+  --pf-topbar-border: #24406B;
+  --pf-footer-grad: linear-gradient(135deg, #0A0E27 0%, #141A3C 100%);
+
+  /* Round page background (Practice Round only) */
+  --pf-round-bg: linear-gradient(180deg, #0A192F, #0A1A2F, #020D1A);
+
+  /* Fonts */
+  --pf-font: Archivo, 'Segoe UI', sans-serif;
+  --pf-font-serif: Newsreader, Georgia, serif;
+  --pf-font-mono: 'IBM Plex Mono', Consolas, monospace;
+
+  /* Shadows: overlays only, cards use borders */
+  --pf-shadow-menu: 0 18px 44px rgba(0, 0, 0, 0.55);
+  --pf-shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.55);
+  --pf-shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.45);
+
+  /* The original round page's cyan halo, verbatim */
+  --pf-glow: 0 0 20px 4px rgba(153, 255, 255, 0.8);
+}
+
+body.pf-page {
+  margin: 0;
+  background: var(--pf-bg);
+  color: var(--pf-text);
+  font-family: var(--pf-font);
+}
+
+.pf-page a { color: var(--pf-accent); }
+
+/* ---- Buttons ------------------------------------------------------------ */
+
+.pf-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 22px;
+  box-sizing: border-box;
+  background: var(--pf-blue);
+  border: 1px solid var(--pf-selected-border);
+  border-radius: 6px;
+  color: #FFFFFF;
+  font-family: var(--pf-font);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.pf-btn-primary:hover { background: var(--pf-blue-hover); }
+.pf-btn-primary:disabled {
+  background: transparent;
+  border-color: var(--pf-disabled-border);
+  color: var(--pf-disabled-text);
+  cursor: not-allowed;
+}
+.pf-btn-primary--lg { height: 48px; font-size: 15px; }
+
+.pf-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 20px;
+  box-sizing: border-box;
+  background: var(--pf-blue-deep);
+  border: 1px solid var(--pf-border-strong);
+  border-radius: 6px;
+  color: #DCEEFB;
+  font-family: var(--pf-font);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+.pf-btn-secondary:hover {
+  background: var(--pf-blue-deep-hover);
+  border-color: var(--pf-accent-bar);
+  color: #FFFFFF;
+}
+
+/* Quiet button: transparent with a border, for Manage plan, Not now, etc. */
+.pf-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 20px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--pf-menu-border);
+  border-radius: 6px;
+  color: #CFEAFF;
+  font-family: var(--pf-font);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+.pf-btn-ghost:hover { border-color: var(--pf-accent); }
+
+/* ---- Cards and panels ---------------------------------------------------- */
+
+.pf-card {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 6px;
+  padding: 22px 24px;
+  box-sizing: border-box;
+}
+.pf-card--home { border-radius: 10px; }
+.pf-card--list { border-radius: 8px; }
+.pf-card--sunken { background: var(--pf-surface-sunken); }
+
+.pf-panel-header {
+  padding: 14px 22px;
+  background: var(--pf-surface-raised);
+  border-bottom: 1px solid var(--pf-border-subtle);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--pf-heading);
+}
+
+/* ---- Inputs -------------------------------------------------------------- */
+
+.pf-input,
+textarea.pf-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  background: var(--pf-surface-sunken);
+  border: 1px solid var(--pf-border);
+  border-radius: 4px;
+  color: var(--pf-text);
+  font-family: var(--pf-font);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+textarea.pf-input {
+  height: auto;
+  padding: 12px 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.pf-input::placeholder { color: var(--pf-text-faint); }
+.pf-input:focus { border-color: var(--pf-border-strong); }
+
+/* ---- Option buttons (setup choices, judge type, evidence mode) ----------- */
+
+.pf-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  background: var(--pf-surface-sunken);
+  border: 1px solid var(--pf-border);
+  border-radius: 6px;
+  color: var(--pf-text);
+  font-family: var(--pf-font);
+  cursor: pointer;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.pf-option:hover { border-color: var(--pf-accent); }
+.pf-option.is-selected,
+.pf-option[aria-pressed="true"],
+.pf-option[aria-checked="true"] {
+  background: var(--pf-selected);
+  border-color: var(--pf-selected-border);
+}
+.pf-option .pf-option-label {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pf-heading);
+}
+.pf-option .pf-option-note {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--pf-text-muted);
+  line-height: 1.5;
+}
+
+/* ---- Chips and badges ----------------------------------------------------- */
+
+/* Won / Lost result chip: 44x24, mono uppercase */
+.pf-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 24px;
+  border-radius: 3px;
+  font-family: var(--pf-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex: none;
+}
+.pf-chip--won { background: var(--pf-success-bg); color: var(--pf-success); }
+.pf-chip--lost { background: var(--pf-loss-bg); color: var(--pf-loss-text); }
+
+/* Premium chip: gold tint, used for premium callouts */
+.pf-chip--premium {
+  width: auto;
+  padding: 0 8px;
+  background: rgba(224, 162, 78, 0.12);
+  border: 1px solid var(--pf-gold-border);
+  color: var(--pf-gold-text);
+}
+
+/* Plan name badge (Plan cards): 20px tall */
+.pf-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 3px;
+  background: var(--pf-border-row);
+  color: var(--pf-text-muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.pf-plan-badge--premium { background: var(--pf-blue-deep); color: var(--pf-accent); }
+
+/* ---- Quota bar ------------------------------------------------------------ */
+
+.pf-quota-bar {
+  height: 5px;
+  background: #132A45;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.pf-quota-bar__fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--pf-warning);
+  transition: width 0.3s ease;
+}
+.pf-quota-bar__fill.is-full { background: var(--pf-ai-strong); }
+.pf-quota-bar__fill.is-premium { background: var(--pf-selected-border); }
+
+/* ---- Mono eyebrow ---------------------------------------------------------- */
+
+.pf-eyebrow {
+  font-family: var(--pf-font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--pf-text-muted);
+}
+.pf-eyebrow--accent { color: var(--pf-accent); }
+
+/* Numbered section marker (01, 02...) on setup and ballot */
+.pf-section-num {
+  font-family: var(--pf-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--pf-accent);
+}
+
+/* ---- Dropdown / popover menus ---------------------------------------------- */
+
+.pf-menu {
+  background: var(--pf-menu);
+  border: 1px solid var(--pf-menu-border);
+  border-radius: 10px;
+  box-shadow: var(--pf-shadow-menu);
+  overflow: hidden;
+  text-align: left;
+}
+.pf-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #CFEAFF;
+  font-family: var(--pf-font);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.pf-menu-item:hover { background: rgba(125, 211, 252, 0.1); color: #FFFFFF; }
+.pf-menu-item .pf-menu-chev { margin-left: auto; font-size: 14px; color: #4E7BA0; }
+
+/* ---- Modal shell + upsell modal (pfUpsell in api.js builds this) ----------- */
+
+.pf-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  background: rgba(2, 10, 22, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.pf-modal {
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+  padding: 26px;
+  background: var(--pf-menu);
+  border: 1px solid var(--pf-menu-border);
+  border-radius: 10px;
+  box-shadow: var(--pf-shadow-menu);
+  font-family: var(--pf-font);
+}
+.pf-upsell { text-align: center; }
+.pf-upsell-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(125, 211, 252, 0.12);
+  color: var(--pf-accent);
+  margin-bottom: 14px;
+}
+.pf-upsell-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #E4F1FF;
+}
+.pf-upsell-body {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #9FC4E2;
+}
+.pf-upsell-actions { display: flex; gap: 10px; }
+.pf-upsell-actions .pf-btn-ghost,
+.pf-upsell-actions .pf-btn-primary { flex: 1; }
+
+/* ---- Loaders --------------------------------------------------------------- */
+
+@keyframes pf-dot { 0%, 80%, 100% { opacity: 0.2; transform: scale(0.85); } 40% { opacity: 1; transform: scale(1); } }
+@keyframes pf-wave { 0%, 100% { transform: scaleY(0.25); } 50% { transform: scaleY(1); } }
+@keyframes pf-bar { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+@keyframes pf-fade { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@keyframes pf-ready { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+.pf-dots { display: inline-flex; gap: 7px; }
+.pf-dots span {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pf-accent);
+  animation: pf-dot 1.4s ease-in-out infinite;
+}
+.pf-dots span:nth-child(2) { animation-delay: 0.14s; }
+.pf-dots span:nth-child(3) { animation-delay: 0.28s; }
+.pf-dots span:nth-child(4) { animation-delay: 0.42s; }
+.pf-dots span:nth-child(5) { animation-delay: 0.56s; }
+.pf-dots span:nth-child(6) { animation-delay: 0.7s; }
+
+/* ---- Lock badge (premium-gated buttons keep their size; badge floats) ------ */
+
+.pf-lock-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--pf-accent);
+  color: #062038;
+  box-shadow: 0 0 0 2px #0F2037;
+  pointer-events: none;
+}
+
+/* ---- Site footer (markup in REDESIGN_SNIPPETS.md) --------------------------- */
+
+.pf-footer {
+  background: var(--pf-footer-grad);
+  border-top: 1px solid var(--pf-topbar-border);
+  font-family: var(--pf-font);
+  color: #C5DCF0;
+  text-align: left;
+  width: 100%;
+}
+.pf-footer-cols {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 52px 28px 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px 56px;
+  align-items: flex-start;
+}
+.pf-footer-brand { flex: 1 1 240px; min-width: 0; }
+.pf-footer-brand .pf-footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+}
+.pf-footer-brand .pf-footer-logo img {
+  height: 38px;
+  width: 38px;
+  border-radius: 7px;
+  display: block;
+}
+.pf-footer-brand .pf-footer-logo span {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #FFFFFF;
+}
+.pf-footer-tag {
+  margin: 16px 0 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #8FB6D4;
+  max-width: 22em;
+}
+.pf-footer-contact { flex: 1.3 1 300px; min-width: 0; }
+.pf-footer-social { flex: 0.8 1 180px; min-width: 0; }
+.pf-footer h4 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pf-accent-bar);
+}
+.pf-footer-email {
+  font-size: 14.5px;
+  color: #C5DCF0;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+.pf-footer-email:hover { color: var(--pf-accent-bar); }
+.pf-footer-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+}
+.pf-footer-or span:first-child,
+.pf-footer-or span:last-child {
+  flex: 1;
+  height: 1px;
+  background: var(--pf-topbar-border);
+}
+.pf-footer-or .pf-footer-or-label {
+  flex: none;
+  height: auto;
+  background: none;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  color: #5E86AB;
+}
+.pf-footer-form { display: flex; flex-direction: column; gap: 10px; }
+.pf-footer-form input,
+.pf-footer-form textarea {
+  box-sizing: border-box;
+  padding: 11px 13px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--pf-topbar-border);
+  border-radius: 6px;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-family: var(--pf-font);
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+.pf-footer-form input { height: 42px; padding: 0 13px; }
+.pf-footer-form textarea { line-height: 1.5; resize: vertical; min-height: 74px; }
+.pf-footer-form input:focus,
+.pf-footer-form textarea:focus { border-color: var(--pf-accent-bar); }
+.pf-footer-form input::placeholder,
+.pf-footer-form textarea::placeholder { color: var(--pf-text-faint); }
+.pf-footer-form button {
+  height: 42px;
+  padding: 0 22px;
+  align-self: flex-start;
+  background: var(--pf-blue-deep);
+  border: 1px solid var(--pf-border-strong);
+  border-radius: 6px;
+  color: #DCEEFB;
+  font-family: var(--pf-font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+.pf-footer-form button:hover {
+  background: var(--pf-blue-deep-hover);
+  border-color: var(--pf-accent-bar);
+  color: #FFFFFF;
+}
+.pf-footer-form .pf-form-status { margin: 0; font-size: 13px; }
+.pf-footer-form .pf-form-status.ok { color: var(--pf-success); }
+.pf-footer-form .pf-form-status.err { color: var(--pf-ai-bright); }
+.pf-footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  font-size: 14.5px;
+}
+.pf-footer-links a { color: #C5DCF0; text-decoration: none; }
+.pf-footer-links a:hover { color: var(--pf-accent-bar); }
+.pf-footer-bottom-wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 36px 28px 34px;
+  box-sizing: border-box;
+}
+.pf-footer-bottom {
+  border-top: 1px solid #1C3255;
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #5E86AB;
+}

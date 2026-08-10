@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com; media-src 'self' blob:; connect-src 'self' https://pf-ai-debater-24c5902c1a88.herokuapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.emailjs.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://apis.google.com https://publicforumai.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.emailjs.com"/>
+<meta name="referrer" content="strict-origin-when-cross-origin"/>
+<script>
+/* Clickjacking guard. frame-ancestors is ignored in <meta> and GitHub Pages
+   cannot send X-Frame-Options, so hide the page first, then try to break out. */
+if (self !== top) { document.documentElement.style.display = 'none'; try { top.location = self.location; } catch (e) {} }
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ERE3HL6LKB"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'G-ERE3HL6LKB');
+</script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Rounds - PublicForumAI</title>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<link rel="stylesheet" href="toolbar.css"/>
+<link rel="stylesheet" href="pf-theme.css"/>
+<script>
+/* Paint the cached auth state into #authSlot before first render; auth.js reconciles. */
+(function () {
+  var snap = null;
+  try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
+  if (!snap || !snap.uid) return;
+  document.documentElement.classList.add('pfai-signed-in');
+  var painted = false;
+  function paint() {
+    if (painted) return;
+    var slot = document.getElementById('authSlot');
+    if (!slot) return;
+    painted = true;
+    obs.disconnect();
+    var name = (snap.displayName || (snap.email || '').split('@')[0] || 'User').trim();
+    var initials = name.slice(0, 2).toUpperCase() || '?';
+    var premium = snap.plan === 'premium';
+    var planLabel = premium ? 'Premium' : 'Free plan';
+    slot.innerHTML = '<div class="user-menu-wrap">' +
+      '<button class="pf-avatar-btn' + (premium ? ' premium' : '') + '" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span class="pf-avatar-initials"></span>' +
+      (premium ? '<span class="pf-avatar-star">★</span>' : '') +
+      '</button></div>';
+    slot.querySelector('.pf-avatar-initials').textContent = initials;
+    slot.querySelector('.pf-avatar-btn').title = name + ' · ' + planLabel;
+    var myRounds = document.querySelectorAll('a[data-nav="myrounds"]');
+    for (var i = 0; i < myRounds.length; i++) myRounds[i].setAttribute('href', 'rounds.html');
+  }
+  var obs = new MutationObserver(paint);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('DOMContentLoaded', paint);
+})();
+</script>
+<style>
+/* My Rounds page styles. Values come from design/My Rounds.dc.html; tokens
+   from pf-theme.css where one exists for the value. */
+
+/* Whole-page auth gate: the app content stays hidden until a verified
+   sign-in is confirmed, so logged-out visitors never see a flash of it. */
+html:not(.pfai-signed-in) .rd-app { visibility: hidden; }
+
+.rd-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.rd-app {
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 36px 32px 80px;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+/* Page header row */
+.rd-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+.rd-head h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  color: var(--pf-heading);
+}
+.rd-sub { margin: 8px 0 0; font-size: 15px; color: var(--pf-text-muted); }
+.rd-start {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 22px;
+  background: var(--pf-blue);
+  color: #FFFFFF;
+  border-radius: 4px;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  flex: none;
+  transition: background 0.3s ease;
+}
+.rd-start:hover { background: var(--pf-blue-hover); color: #FFFFFF; }
+.rd-limit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px;
+  background: #12233A;
+  border: 1px solid var(--pf-disabled-border);
+  color: var(--pf-text-muted);
+  border-radius: 4px;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  flex: none;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+.rd-limit:hover { border-color: var(--pf-accent); color: var(--pf-text); }
+
+/* Stat tiles */
+.rd-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.rd-stat {
+  padding: 16px 18px;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 6px;
+}
+.rd-stat-value { font-size: 24px; font-weight: 700; letter-spacing: -0.025em; color: var(--pf-text); }
+.rd-stat-value.is-accent { color: var(--pf-accent); }
+.rd-stat-value.is-success { color: var(--pf-success); }
+.rd-stat-value.is-warning { color: var(--pf-warning-text); }
+.rd-stat-label { font-size: 12.5px; color: var(--pf-text-muted); margin-top: 3px; }
+
+/* Two-column layout */
+.rd-cols { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.rd-main { flex: 2.4 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
+.rd-side { flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 14px; position: sticky; top: 92px; }
+
+/* Section headers */
+.rd-sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.rd-sec-head h2 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -0.015em; color: var(--pf-text); }
+.rd-sec-count { font-size: 13px; color: var(--pf-text-muted); }
+.rd-fin-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.rd-fin-head .rd-sec-head { margin-bottom: 0; }
+
+/* In-progress draft cards */
+.rd-draft-list { display: flex; flex-direction: column; gap: 10px; }
+.rd-draft {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  transition: border-color 0.3s ease;
+}
+.rd-draft:hover { border-color: var(--pf-border-strong); }
+.rd-draft-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.rd-draft-info { flex: 1 1 300px; min-width: 0; }
+.rd-draft-meta { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+.rd-side-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 3px;
+  background: var(--pf-blue-deep);
+  color: var(--pf-accent);
+  font-family: var(--pf-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.rd-edited { font-size: 12.5px; color: var(--pf-text-muted); }
+.rd-topic { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.45; color: var(--pf-text); text-wrap: pretty; }
+.rd-resume {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 18px;
+  background: var(--pf-blue-deep);
+  border: 1px solid var(--pf-border-strong);
+  border-radius: 4px;
+  color: #DCEEFB;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  flex: none;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.rd-resume:hover { background: var(--pf-blue-deep-hover); color: #FFFFFF; }
+.rd-progress { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.rd-progress .pf-quota-bar { flex: 1; }
+.rd-progress .pf-quota-bar__fill { background: var(--pf-selected-border); }
+.rd-progress-count { font-family: var(--pf-font-mono); font-size: 11.5px; color: var(--pf-text-muted); white-space: nowrap; }
+.rd-next { margin-top: 9px; font-size: 12.5px; color: var(--pf-text-muted); }
+.rd-next strong { color: #CFEAFF; font-weight: 600; }
+
+/* Empty state for drafts */
+.rd-drafts-empty {
+  padding: 34px 24px;
+  background: var(--pf-surface-sunken);
+  border: 1px dashed var(--pf-border);
+  border-radius: 8px;
+  text-align: center;
+}
+.rd-drafts-empty p { margin: 0 0 14px; font-size: 14px; color: var(--pf-text-muted); }
+.rd-drafts-empty a { font-size: 13.5px; font-weight: 600; text-decoration: none; }
+
+/* Finished list */
+.rd-filters { display: flex; gap: 6px; }
+.rd-filter {
+  height: 30px;
+  padding: 0 12px;
+  background: transparent;
+  border: 1px solid var(--pf-border);
+  border-radius: 4px;
+  color: var(--pf-text-muted);
+  font-family: var(--pf-font);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+.rd-filter:hover { border-color: var(--pf-accent); }
+.rd-filter.is-active { background: var(--pf-selected); border-color: var(--pf-selected-border); color: #FFFFFF; }
+
+.rd-fin-card {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.rd-fin-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--pf-border-row);
+  color: var(--pf-text);
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+.rd-fin-row:hover { background: var(--pf-surface-raised); color: var(--pf-text); }
+.rd-fin-row .pf-chip--neutral {
+  width: auto;
+  padding: 0 8px;
+  background: var(--pf-border-row);
+  color: var(--pf-text-muted);
+}
+.rd-fin-body { flex: 1; min-width: 0; }
+.rd-fin-topic { display: block; font-size: 14.5px; font-weight: 600; line-height: 1.45; text-wrap: pretty; }
+.rd-fin-meta { display: block; margin-top: 4px; font-size: 12.5px; color: var(--pf-text-muted); }
+.rd-fin-ballot { font-size: 13px; color: var(--pf-accent); flex: none; }
+.rd-fin-empty { padding: 24px 20px; font-size: 13.5px; color: var(--pf-text-muted); }
+.rd-retention { padding: 14px 20px; font-size: 12.5px; color: var(--pf-text-muted); }
+.rd-retention a { text-decoration: underline; }
+
+/* Sidebar cards */
+.rd-card {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 8px;
+  padding: 20px 22px;
+}
+.rd-plan-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.rd-plan-head h2, .rd-card h2 { margin: 0; font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em; color: var(--pf-text); }
+.rd-plan-note { margin: 0 0 14px; font-size: 13px; color: var(--pf-text-muted); }
+.rd-plan-reset { margin: 8px 0 14px; font-size: 12px; color: var(--pf-text-muted); }
+.rd-upgrade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  background: var(--pf-blue);
+  color: #FFFFFF;
+  border-radius: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+.rd-upgrade:hover { background: var(--pf-blue-hover); color: #FFFFFF; }
+.rd-manage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  background: transparent;
+  border: 1px solid var(--pf-border);
+  color: #CFEAFF;
+  border-radius: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+.rd-manage:hover { border-color: var(--pf-accent); color: #FFFFFF; }
+
+.rd-tools h2 { margin-bottom: 12px; }
+.rd-tool-list { display: flex; flex-direction: column; gap: 2px; }
+.rd-tool {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  margin: 0 -10px;
+  border-radius: 5px;
+  font-size: 13.5px;
+  color: #CFEAFF;
+  text-decoration: none;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.rd-tool:hover { background: rgba(125, 211, 252, 0.08); color: #FFFFFF; }
+.rd-tool span:first-child { flex: 1; }
+.rd-tool .rd-tool-chev { font-size: 14px; color: #4E7BA0; }
+
+.rd-note {
+  background: var(--pf-surface-sunken);
+  border: 1px solid #1C3E63;
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+.rd-note p { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--pf-text-muted); }
+
+.rd-load-error { margin: 0 0 18px; font-size: 13.5px; color: var(--pf-ai-bright); }
+</style>
+</head>
+<body class="pf-page">
+
+<nav class="toolbar">
+  <a class="logo" href="index.html">
+    <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+    <span class="logo-text">PublicForumAI</span>
+  </a>
+  <div class="nav-links">
+    <a href="flower.html">Flow</a>
+    <a href="casewriter.html">Casewriter</a>
+    <a href="setup.html">Practice Round</a>
+    <a href="login.html?next=%2Frounds.html" data-nav="myrounds" aria-current="page">My Rounds</a>
+    <a href="modules.html">Training</a>
+    <a href="pricing.html">Pricing</a>
+  </div>
+  <div id="authSlot"><a href="login.html?next=%2Frounds.html"><div class="button signin"><span class="title">SIGN IN</span></div></a></div>
+</nav>
+
+<div class="rd-shell">
+  <main class="rd-app" id="roundsApp">
+
+    <div class="rd-head">
+      <div>
+        <h1>My rounds</h1>
+        <p class="rd-sub" id="pageSub"></p>
+      </div>
+      <a class="rd-start" id="startBtn" href="setup.html">Start a new round</a>
+      <a class="rd-limit" id="limitBtn" href="pricing.html" hidden>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        Round limit reached
+      </a>
+    </div>
+
+    <p class="rd-load-error" id="loadError" hidden>Your rounds could not be loaded. Refresh the page to try again.</p>
+
+    <div class="rd-stats">
+      <div class="rd-stat">
+        <div class="rd-stat-value" id="statTotal">0</div>
+        <div class="rd-stat-label">rounds total</div>
+      </div>
+      <div class="rd-stat">
+        <div class="rd-stat-value is-accent" id="statInProgress">0</div>
+        <div class="rd-stat-label">in progress</div>
+      </div>
+      <div class="rd-stat">
+        <div class="rd-stat-value is-success" id="statRecord">0&#8211;0</div>
+        <div class="rd-stat-label">record</div>
+      </div>
+      <div class="rd-stat">
+        <div class="rd-stat-value is-warning" id="statLeft">0</div>
+        <div class="rd-stat-label" id="statLeftLabel">free rounds left</div>
+      </div>
+    </div>
+
+    <div class="rd-cols">
+
+      <div class="rd-main">
+
+        <section>
+          <div class="rd-sec-head">
+            <h2>In progress</h2>
+            <span class="rd-sec-count" id="draftCount"></span>
+          </div>
+          <div class="rd-draft-list" id="draftList"></div>
+          <div class="rd-drafts-empty" id="draftsEmpty" hidden>
+            <p>No rounds in progress. Rounds are kept as you go, so you can leave one and come back.</p>
+            <a href="setup.html">Start a round &#8594;</a>
+          </div>
+        </section>
+
+        <section>
+          <div class="rd-fin-head">
+            <div class="rd-sec-head">
+              <h2>Finished</h2>
+              <span class="rd-sec-count" id="finCount"></span>
+            </div>
+            <div class="rd-filters" role="group" aria-label="Filter finished rounds">
+              <button type="button" class="rd-filter is-active" data-filter="all">All</button>
+              <button type="button" class="rd-filter" data-filter="won">Won</button>
+              <button type="button" class="rd-filter" data-filter="lost">Lost</button>
+            </div>
+          </div>
+          <div class="rd-fin-card">
+            <div id="finList"></div>
+            <div class="rd-fin-empty" id="finEmpty" hidden>No finished rounds yet.</div>
+            <div class="rd-retention" id="retentionNote" hidden>Free plan keeps ballots for 30 days. <a href="pricing.html">Keep them with Premium</a></div>
+          </div>
+        </section>
+
+      </div>
+
+      <aside class="rd-side">
+        <div class="rd-card">
+          <div class="rd-plan-head">
+            <h2>Plan</h2>
+            <span class="pf-plan-badge" id="planBadge">Free</span>
+          </div>
+          <p class="rd-plan-note" id="quotaNote"></p>
+          <div id="quotaWrap" hidden>
+            <div class="pf-quota-bar"><span class="pf-quota-bar__fill" id="quotaFill"></span></div>
+            <p class="rd-plan-reset">Resets on the 1st of each month.</p>
+            <a class="rd-upgrade" href="pricing.html">Upgrade to Premium</a>
+          </div>
+          <a class="rd-manage" id="manageBtn" href="pricing.html" hidden>Manage plan</a>
+        </div>
+
+        <div class="rd-card rd-tools">
+          <h2>Other tools</h2>
+          <div class="rd-tool-list">
+            <a class="rd-tool" href="flower.html"><span>AI Flow</span><span class="rd-tool-chev">&#8250;</span></a>
+            <a class="rd-tool" href="casewriter.html"><span>AI Casewriter</span><span class="rd-tool-chev">&#8250;</span></a>
+            <a class="rd-tool" href="modules.html"><span>Training Modules</span><span class="rd-tool-chev">&#8250;</span></a>
+            <a class="rd-tool" href="profile.html"><span>Profile</span><span class="rd-tool-chev">&#8250;</span></a>
+          </div>
+        </div>
+
+        <div class="rd-note">
+          <p>Rounds are kept as you go. Leave one unfinished, start another, and pick either back up from where you left off.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="pf-footer">
+    <div class="pf-footer-cols">
+      <div class="pf-footer-brand">
+        <a class="pf-footer-logo" href="index.html">
+          <img src="android-chrome-192x192.png" alt="PublicForumAI logo"/>
+          <span>PublicForumAI</span>
+        </a>
+        <p class="pf-footer-tag">Empowering debaters through AI</p>
+      </div>
+      <div class="pf-footer-contact">
+        <h4>Contact Us</h4>
+        <a class="pf-footer-email" href="mailto:support@publicforumai.com">support@publicforumai.com</a>
+        <div class="pf-footer-or"><span></span><span class="pf-footer-or-label">OR</span><span></span></div>
+        <form id="feedbackForm" class="pf-footer-form">
+          <input name="from_email" placeholder="Your email" required="" type="email"/>
+          <textarea name="message" placeholder="Your feedback" required="" rows="3"></textarea>
+          <button type="submit">Submit Feedback</button>
+          <p class="pf-form-status" id="feedbackStatus" role="status" hidden></p>
+        </form>
+      </div>
+      <div class="pf-footer-social">
+        <h4>Follow Us</h4>
+        <div class="pf-footer-links">
+          <a href="https://www.linkedin.com/in/arda-altintepe-584b5b306/" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="https://www.youtube.com/@PublicForumAI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.reddit.com/r/PublicForumAI/" target="_blank" rel="noopener">Reddit</a>
+        </div>
+      </div>
+    </div>
+    <div class="pf-footer-bottom-wrap">
+      <div class="pf-footer-bottom">
+        <span>© 2026 PublicForumAI. All rights reserved.</span>
+        <span>Not for use in live rounds.</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+// Feedback form: inline status messages, no dialogs.
+(function () {
+  var form = document.getElementById('feedbackForm');
+  var status = document.getElementById('feedbackStatus');
+  if (!form || !status) return;
+
+  function showStatus(message, ok) {
+    status.textContent = message;
+    status.classList.remove('ok', 'err');
+    status.classList.add(ok ? 'ok' : 'err');
+    status.hidden = false;
+  }
+
+  try {
+    if (window.emailjs) emailjs.init('wgsczkr19C1FrKtLj');
+  } catch (e) { /* handled on submit */ }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!window.emailjs) {
+      showStatus('The feedback service did not load. Please email us directly instead.', false);
+      return;
+    }
+
+    var btn = form.querySelector('button');
+    status.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    function done() {
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
+    }
+
+    emailjs.sendForm('service_t9hewr3', 'template_i2yiwaj', form)
+      .then(function () {
+        form.reset();
+        showStatus('Thanks! Your feedback was sent.', true);
+        done();
+      }, function (error) {
+        showStatus('Something went wrong and your feedback was not sent. Please try again, or email us directly.', false);
+        console.error('Error:', error);
+        done();
+      });
+  });
+})();
+</script>
+
+<script src="auth.js"></script>
+<script src="sanitize.js"></script>
+<script src="gate.js"></script>
+<script src="api.js"></script>
+<script>
+/* My Rounds page logic. Requires a verified sign-in for the whole page,
+   then renders the rounds list from GET /rounds and the plan card from /me.
+   All user text (topics) goes into the DOM through textContent only. */
+
+/* pfNextSpeech(cells, youFirst) -> { sheet: 'my'|'ai', i: 0..3 } or null.
+   cells = { my: [s0,s1,s2,s3], ai: [s0,s1,s2,s3] } where each entry is the
+   cell state and 'done' means that speech is flowed. Columns per sheet:
+   0 Case, 1 Rebuttal, 2 Summary, 3 Final Focus. 'my' is the user's sheet
+   (the user's case plus the AI answering it); 'ai' is the AI's sheet.
+   youFirst is true when the user speaks first. When resuming a server
+   draft, build cells by marking a slot 'done' when its content field is
+   non-empty, 'empty' otherwise, then recompute the glow from this. */
+function pfNextSpeech(cells, youFirst) {
+  var seq = youFirst
+    ? [['my', 0], ['ai', 0], ['ai', 1], ['my', 1], ['my', 2], ['ai', 2], ['ai', 3], ['my', 3]]
+    : [['ai', 0], ['my', 0], ['my', 1], ['ai', 1], ['ai', 2], ['my', 2], ['my', 3], ['ai', 3]];
+  for (var k = 0; k < seq.length; k++) {
+    var sheet = seq[k][0], i = seq[k][1];
+    if (cells[sheet][i] !== 'done') return { sheet: sheet, i: i };
+  }
+  return null;
+}
+
+(function () {
+  var TOTAL_SPEECHES = 8;
+  var state = { filter: 'all', drafts: [], finished: [], me: null };
+
+  var el = {
+    sub: document.getElementById('pageSub'),
+    startBtn: document.getElementById('startBtn'),
+    limitBtn: document.getElementById('limitBtn'),
+    loadError: document.getElementById('loadError'),
+    statTotal: document.getElementById('statTotal'),
+    statInProgress: document.getElementById('statInProgress'),
+    statRecord: document.getElementById('statRecord'),
+    statLeft: document.getElementById('statLeft'),
+    statLeftLabel: document.getElementById('statLeftLabel'),
+    draftCount: document.getElementById('draftCount'),
+    draftList: document.getElementById('draftList'),
+    draftsEmpty: document.getElementById('draftsEmpty'),
+    finCount: document.getElementById('finCount'),
+    finList: document.getElementById('finList'),
+    finEmpty: document.getElementById('finEmpty'),
+    retentionNote: document.getElementById('retentionNote'),
+    planBadge: document.getElementById('planBadge'),
+    quotaNote: document.getElementById('quotaNote'),
+    quotaWrap: document.getElementById('quotaWrap'),
+    quotaFill: document.getElementById('quotaFill'),
+    manageBtn: document.getElementById('manageBtn')
+  };
+
+  // ---- helpers --------------------------------------------------------------
+
+  function tsSeconds(round) {
+    var t = round.updatedAt || round.savedAt || round.createdAt || 0;
+    return Number(t) || 0;
+  }
+
+  function finishedTs(round) {
+    var t = round.finishedAt || round.updatedAt || round.savedAt || 0;
+    return Number(t) || 0;
+  }
+
+  function shortDate(secs) {
+    if (!secs) return '';
+    try {
+      return new Date(secs * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (e) { return ''; }
+  }
+
+  function editedWhen(secs) {
+    if (!secs) return 'edited earlier';
+    var then = new Date(secs * 1000);
+    var now = new Date();
+    var startOf = function (d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+    var days = Math.round((startOf(now) - startOf(then)) / 86400000);
+    if (days <= 0) return 'edited today';
+    if (days === 1) return 'edited yesterday';
+    if (days < 7) return 'edited ' + days + ' days ago';
+    return 'edited ' + shortDate(secs);
+  }
+
+  function sideShort(side) {
+    var s = String(side || '');
+    if (/^aff/i.test(s)) return 'Aff';
+    if (/^neg/i.test(s)) return 'Neg';
+    return s;
+  }
+
+  function judgeLabel(judgeType) {
+    if (judgeType === 'tech') return 'tech judge';
+    if (judgeType === 'lay') return 'lay judge';
+    return '';
+  }
+
+  // Next-speech label from the number of completed speeches. Speeches finish
+  // in sequence order, so the next one is found by replaying pfNextSpeech.
+  function nextSpeechLabel(done, youFirst) {
+    var cells = { my: ['empty', 'empty', 'empty', 'empty'], ai: ['empty', 'empty', 'empty', 'empty'] };
+    for (var n = 0; n < done; n++) {
+      var slot = pfNextSpeech(cells, youFirst);
+      if (!slot) return null;
+      cells[slot.sheet][slot.i] = 'done';
+    }
+    if (!pfNextSpeech(cells, youFirst)) return null;
+    // Speakers alternate; whoever goes first opens. Pairs of speeches share a name.
+    var names = ['case', 'rebuttal', 'summary', 'final focus'];
+    var name = names[Math.floor(done / 2)] || names[3];
+    var userSpeaks = youFirst ? (done % 2 === 0) : (done % 2 === 1);
+    return userSpeaks ? 'Your ' + name : "The AI's " + name;
+  }
+
+  function resumeHref(round) {
+    return 'Flow.html?round=' + encodeURIComponent(round.id) +
+      '&selectedSide=' + encodeURIComponent(sideShort(round.side) || 'Aff') +
+      '&selectedTurn=' + encodeURIComponent(round.turn || 'First') +
+      '&debateTopic=' + encodeURIComponent(round.topic || '') +
+      '&selectedSkill=' + encodeURIComponent(round.skill || 'high');
+  }
+
+  function clampCount(value, max) {
+    var n = Number(value);
+    if (!Number.isFinite(n) || n < 0) return 0;
+    return Math.min(Math.round(n), max);
+  }
+
+  function element(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  // ---- renderers ------------------------------------------------------------
+
+  function renderDrafts() {
+    var drafts = state.drafts;
+    el.draftList.textContent = '';
+    el.draftCount.textContent = drafts.length === 1 ? '1 round' : drafts.length + ' rounds';
+    el.draftsEmpty.hidden = drafts.length > 0;
+
+    drafts.forEach(function (d) {
+      var done = clampCount(d.speechesDone, TOTAL_SPEECHES);
+
+      var card = element('div', 'rd-draft');
+
+      var top = element('div', 'rd-draft-top');
+      var info = element('div', 'rd-draft-info');
+      var meta = element('div', 'rd-draft-meta');
+      meta.appendChild(element('span', 'rd-side-badge', sideShort(d.side) || 'Aff'));
+      meta.appendChild(element('span', 'rd-edited', editedWhen(tsSeconds(d))));
+      info.appendChild(meta);
+      info.appendChild(element('p', 'rd-topic', d.topic || 'Untitled Topic'));
+      top.appendChild(info);
+
+      var resume = element('a', 'rd-resume', 'Resume');
+      resume.href = resumeHref(d);
+      top.appendChild(resume);
+      card.appendChild(top);
+
+      var progress = element('div', 'rd-progress');
+      var bar = element('div', 'pf-quota-bar');
+      var fill = element('span', 'pf-quota-bar__fill');
+      fill.style.width = Math.round((done / TOTAL_SPEECHES) * 100) + '%';
+      bar.appendChild(fill);
+      progress.appendChild(bar);
+      progress.appendChild(element('span', 'rd-progress-count', done + '/' + TOTAL_SPEECHES + ' speeches'));
+      card.appendChild(progress);
+
+      var nextLabel = nextSpeechLabel(done, String(d.turn || 'First') === 'First');
+      if (nextLabel) {
+        var next = element('div', 'rd-next', 'Next up: ');
+        next.appendChild(element('strong', null, nextLabel));
+        card.appendChild(next);
+      }
+
+      el.draftList.appendChild(card);
+    });
+  }
+
+  function renderFinished() {
+    var all = state.finished;
+    var shown = all;
+    if (state.filter === 'won') shown = all.filter(function (r) { return r.winner === 'user'; });
+    if (state.filter === 'lost') shown = all.filter(function (r) { return r.winner === 'ai'; });
+
+    el.finCount.textContent = (state.filter === 'all' || shown.length === all.length)
+      ? (all.length === 1 ? '1 round' : all.length + ' rounds')
+      : shown.length + ' of ' + all.length;
+
+    el.finList.textContent = '';
+    el.finEmpty.hidden = shown.length > 0;
+
+    shown.forEach(function (r) {
+      var row = element('a', 'rd-fin-row');
+      row.href = 'ballot.html?round=' + encodeURIComponent(r.id);
+
+      var chip;
+      if (r.winner === 'user') chip = element('span', 'pf-chip pf-chip--won', 'Won');
+      else if (r.winner === 'ai') chip = element('span', 'pf-chip pf-chip--lost', 'Lost');
+      else chip = element('span', 'pf-chip pf-chip--neutral', 'Finished');
+      row.appendChild(chip);
+
+      var body = element('span', 'rd-fin-body');
+      body.appendChild(element('span', 'rd-fin-topic', r.topic || 'Untitled Topic'));
+      var metaParts = [shortDate(finishedTs(r)), sideShort(r.side), judgeLabel(r.judgeType)]
+        .filter(function (p) { return p; });
+      body.appendChild(element('span', 'rd-fin-meta', metaParts.join(' · ')));
+      row.appendChild(body);
+
+      row.appendChild(element('span', 'rd-fin-ballot', 'Ballot →'));
+      el.finList.appendChild(row);
+    });
+  }
+
+  function renderStats(roundsLeft, premium) {
+    var wins = state.finished.filter(function (r) { return r.winner === 'user'; }).length;
+    var losses = state.finished.filter(function (r) { return r.winner === 'ai'; }).length;
+    el.statTotal.textContent = state.drafts.length + state.finished.length;
+    el.statInProgress.textContent = state.drafts.length;
+    el.statRecord.textContent = wins + '–' + losses;
+    el.statLeft.textContent = premium ? '∞' : roundsLeft;
+    el.statLeftLabel.textContent = premium ? 'rounds left' : 'free rounds left';
+  }
+
+  function renderPlan() {
+    var me = state.me;
+    var premium = !!(me && (me.premium || me.plan === 'premium'));
+
+    var limit = 3;
+    if (me && me.limits && Number.isFinite(Number(me.limits.roundsPerMonth))) {
+      limit = Number(me.limits.roundsPerMonth);
+    }
+
+    var now = new Date();
+    var monthKey = now.getUTCFullYear() + '-' + String(now.getUTCMonth() + 1).padStart(2, '0');
+    var used = 0;
+    if (me && me.usage && me.usage.month === monthKey) {
+      used = Number(me.usage.roundsStarted) || 0;
+    }
+    var left = Math.max(0, limit - used);
+
+    el.planBadge.textContent = premium ? 'Premium' : 'Free';
+    el.planBadge.classList.toggle('pf-plan-badge--premium', premium);
+
+    if (premium) {
+      el.quotaNote.textContent = 'Unlimited practice rounds with real linked evidence.';
+      el.quotaWrap.hidden = true;
+      el.manageBtn.hidden = false;
+    } else {
+      el.quotaNote.textContent = used + ' of ' + limit + ' rounds started this month.';
+      el.quotaWrap.hidden = false;
+      el.manageBtn.hidden = true;
+      el.quotaFill.style.width = Math.min(100, Math.round((used / limit) * 100)) + '%';
+      el.quotaFill.classList.toggle('is-full', used >= limit);
+    }
+
+    var atLimit = !premium && left === 0;
+    el.startBtn.hidden = atLimit;
+    el.limitBtn.hidden = !atLimit;
+    el.retentionNote.hidden = premium;
+
+    renderStats(left, premium);
+  }
+
+  // ---- data load ------------------------------------------------------------
+
+  function normalizeRounds(payload) {
+    var list = Array.isArray(payload) ? payload : (payload && payload.rounds) || [];
+    return list.filter(function (r) { return r && r.id; });
+  }
+
+  function loadAll() {
+    var roundsPromise = pfRounds({ quiet: true }).then(normalizeRounds);
+    var mePromise = pfMe().catch(function () { return null; });
+
+    return Promise.all([roundsPromise, mePromise]).then(function (results) {
+      var rounds = results[0];
+      state.me = results[1];
+
+      state.drafts = rounds
+        .filter(function (r) { return r.status === 'draft'; })
+        .sort(function (a, b) { return tsSeconds(b) - tsSeconds(a); });
+      state.finished = rounds
+        .filter(function (r) { return r.status !== 'draft'; })
+        .sort(function (a, b) { return finishedTs(b) - finishedTs(a); });
+
+      el.sub.textContent = state.drafts.length + ' in progress · ' + state.finished.length + ' finished';
+
+      renderDrafts();
+      renderFinished();
+      renderPlan();
+    }).catch(function () {
+      el.loadError.hidden = false;
+      el.sub.textContent = '';
+      el.draftsEmpty.hidden = false;
+      el.finEmpty.hidden = false;
+      renderPlan();
+    });
+  }
+
+  // ---- filters --------------------------------------------------------------
+
+  var filterButtons = document.querySelectorAll('.rd-filter');
+  filterButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      state.filter = btn.dataset.filter;
+      filterButtons.forEach(function (b) { b.classList.toggle('is-active', b === btn); });
+      renderFinished();
+    });
+  });
+
+  // ---- whole-page auth gate ---------------------------------------------------
+
+  function goLogin() {
+    try { window.location.href = 'login.html?next=' + encodeURIComponent('/rounds.html'); } catch (e) {}
+  }
+
+  if (window.pfGate && typeof pfGate.isSignedInVerified === 'function') {
+    pfGate.isSignedInVerified().then(function (ok) {
+      if (!ok) { goLogin(); return; }
+      // Reveal the app content (hidden by CSS until a signed-in user is
+      // confirmed, so logged-out visitors never see a flash of it).
+      document.documentElement.classList.add('pfai-signed-in');
+      // Keep gating if the user signs out in another tab.
+      try { if (typeof onAuth === 'function') onAuth(function (u) { if (!u) goLogin(); }); } catch (e) {}
+      loadAll();
+    });
+  } else {
+    goLogin();
+  }
+})();
+</script>
+
+</body>
+</html>
