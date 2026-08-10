@@ -102,6 +102,18 @@ Do this **after** Step 3 is filled in with the new values, so there is no downti
 
 ## Step 5: Deploy and verify
 
+**Read this before you merge anything.** There is no staging environment. Merging `feat/overhaul` into the default branch of `againh3x.github.io` publishes it to publicforumai.com within about a minute, for everyone, immediately. The merge *is* the release.
+
+The order below is not a preference. The new frontend requires the new backend and the Firebase console work from Steps 1 and 2. If it goes live first, then for every student on the site:
+
+- Sign-in fails, because the Google provider is not enabled yet and the account system has no Firestore to write to.
+- The profile page calls `/me`, which does not exist on the old backend, so it errors.
+- Every gated action (starting a round, generating a speech, recording a flow) sends them to a login they cannot complete, which means the site is not degraded, it is unusable.
+
+So: Firebase console and service account first, then Heroku config and keys, then the backend, then the frontend last.
+
+**If something goes wrong after the frontend is live**, revert the merge commit on the default branch and push. GitHub Pages redeploys the previous site in about a minute. That is the rollback, and it is worth knowing before you need it. Note it does not undo Firebase console changes or key rotation, which are the steps to be careful with rather than the merge.
+
 1. Deploy the backend branch `feat/auth-hardening` (after merging with the model-upgrade branch, coordinating merge order as agreed between the two sessions).
 2. Watch `heroku logs -a pf-ai-debater-24c5902c1a88 --tail` through boot. You want a clean uvicorn start with no credential warnings.
 3. Sanity check that auth is actually enforced. This should return 401, **not** a generated case:
