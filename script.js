@@ -1024,7 +1024,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
                 nonselectedSide: nonselectedSide,
                 selectedSkill: selectedSkill
             })
-        }, { page: 'Flow', button: generateButtonAI, label: 'Generate' });
+        }, { page: 'Flow', button: generateButtonAI, label: 'Generate', recoverable: true });
 
 
         const data1 = await response1.json();
@@ -1054,7 +1054,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
                 json: pfWithRoundId({
                     AICase: AICase
                 })
-            }, { page: 'Flow', button: generateButtonAI, label: 'Generate' });
+            }, { page: 'Flow', button: generateButtonAI, label: 'Generate', recoverable: true });
 
 
             const data2 = await response2.json();
@@ -1069,10 +1069,37 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
         }
     } catch (error) {
         console.error('Error processing user input:', error);
-        if (!caseGenerated) {
-            caseElement.innerHTML = previousCase;
-        } else if (window.pfToast) {
-            pfToast('Your case is ready, but sources could not be attached this time. It will argue the same points with no citations behind them.', { duration: 9000 });
+        // Both calls write the same slot, so one recovery covers either one
+        // timing out: /generate_ai_case leaves the plain case there and
+        // /get_sources overwrites it with the sourced version.
+        const staleCase = caseElement.innerHTML;
+        const renderCase = function (value) {
+            return '<p>' + pfSanitize(value.replace(/µ/g, '').replace(/\*\*/g, '')) + '</p>';
+        };
+        const recovered = await pfRecoverAfterTimeout(error, {
+            field: 'AICase',
+            // When /get_sources is the call that timed out, the plain case is
+            // already on screen and in the slot, so "answered" means the slot
+            // renders to something other than what is showing: the sourced
+            // version landing is the whole point of waiting.
+            isReady: function (doc) {
+                var value = doc.AICase;
+                return typeof value === 'string' && value.trim() !== '' && renderCase(value) !== staleCase;
+            },
+            setWait: function () {
+                document.querySelector('#AIContention .text10').textContent = 'Still writing, hold on';
+            },
+            apply: function (value) {
+                caseGenerated = true;
+                caseElement.innerHTML = renderCase(value);
+            }
+        });
+        if (!recovered) {
+            if (!caseGenerated) {
+                caseElement.innerHTML = previousCase;
+            } else if (window.pfToast) {
+                pfToast('Your case is ready, but sources could not be attached this time. It will argue the same points with no citations behind them.', { duration: 9000 });
+            }
         }
     } finally {
         // Hide the loading animation and reset UI elements
@@ -1962,7 +1989,7 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
             })
-        }, { page: 'Flow' });
+        }, { page: 'Flow', recoverable: true });
 
         // Get the debate flow from the response
         const { CaseFlow } = await response.json(); // Parse JSON response
@@ -1981,8 +2008,10 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
         }
     } catch (error) {
         console.error('Failed to process transcription:', error);
-        // Nothing reached the server slot, so the cell must read empty again.
-        fullTranscriptionContention = '';
+        // A gateway timeout usually did store the speech, so ask before
+        // assuming the slot is empty.
+        const recovered = await pfRecoverUserSpeech(error, 'transcription', 'transcriptionContentionText', transcription);
+        if (!recovered) fullTranscriptionContention = '';
         saveRound()
         pfRoundUIRefresh()
     } finally {
@@ -2001,7 +2030,7 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
             debateTopic: debateTopic,
             selectedSide: selectedSide,
         })
-    }, { page: 'Flow' })
+    }, { page: 'Flow', recoverable: true })
         .then(response => response.json()) // Parse JSON response
         .then(data => {
 
@@ -2012,10 +2041,12 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
             transcriptionResultR.innerHTML = "<p>" + pfSanitize(RebuttalFlow) + "</p>";
             saveRound()
         })
-        .catch(error => {
+        .catch(async error => {
             console.error('Failed to process transcription:', error);
-            // Nothing reached the server slot, so the cell must read empty again.
-            fullTranscriptionRebuttal = '';
+            // A gateway timeout usually did store the speech, so ask before
+            // assuming the slot is empty.
+            const recovered = await pfRecoverUserSpeech(error, 'transcriptionR', 'transcriptionRebuttalText', transcriptionR);
+            if (!recovered) fullTranscriptionRebuttal = '';
             saveRound()
             pfRoundUIRefresh()
         })
@@ -2035,7 +2066,7 @@ function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
             debateTopic: debateTopic,
             selectedSide: selectedSide,
         })
-    }, { page: 'Flow' })
+    }, { page: 'Flow', recoverable: true })
         .then(response => response.json()) // Parse JSON response
         .then(data => {
 
@@ -2049,10 +2080,12 @@ function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
             saveRound()
 
         })
-        .catch(error => {
+        .catch(async error => {
             console.error('Failed to process transcription:', error);
-            // Nothing reached the server slot, so the cell must read empty again.
-            fullTranscriptionSummary = '';
+            // A gateway timeout usually did store the speech, so ask before
+            // assuming the slot is empty.
+            const recovered = await pfRecoverUserSpeech(error, 'transcriptionS', 'SummaryUserText', transcriptionS);
+            if (!recovered) fullTranscriptionSummary = '';
             saveRound()
             pfRoundUIRefresh()
         })
@@ -2074,7 +2107,7 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
             debateTopic: debateTopic,
             selectedSide: selectedSide,
         })
-    }, { page: 'Flow' })
+    }, { page: 'Flow', recoverable: true })
         .then(response => response.json()) // Parse JSON response
         .then(data => {
 
@@ -2087,10 +2120,12 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
             transcriptionResultF.innerHTML = "<p>" + pfSanitize(FinalFocusFlow) + "</p>";
             saveRound()
         })
-        .catch(error => {
+        .catch(async error => {
             console.error('Failed to process transcription:', error);
-            // Nothing reached the server slot, so the cell must read empty again.
-            fullTranscriptionFF = '';
+            // A gateway timeout usually did store the speech, so ask before
+            // assuming the slot is empty.
+            const recovered = await pfRecoverUserSpeech(error, 'transcriptionF', 'FFUserText', transcriptionF);
+            if (!recovered) fullTranscriptionFF = '';
             saveRound()
             pfRoundUIRefresh()
         })
@@ -2124,7 +2159,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
                 transcriptionR: transcriptionR,
                 selectedSkill: selectedSkill
             })
-        }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate' })
+        }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate', recoverable: true })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
 
@@ -2136,8 +2171,9 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
 
 
             })
-            .catch(error => {
+            .catch(async error => {
                 console.error('Error processing user input:', error);
+                await pfRecoverAiSpeech(error, 'AIRebuttal', 'AIRebuttalText');
             })
             .finally(() => {
                 // Hide the loading animation
@@ -2156,7 +2192,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
                 nonselectedSide: nonselectedSide,
                 transcription: transcription,
             })
-        }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate' })
+        }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate', recoverable: true })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
 
@@ -2168,8 +2204,9 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
 
 
             })
-            .catch(error => {
+            .catch(async error => {
                 console.error('Error processing user input:', error);
+                await pfRecoverAiSpeech(error, 'AIRebuttal', 'AIRebuttalText');
             })
             .finally(() => {
                 // Hide the loading animation
@@ -2203,7 +2240,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 
 
             })
-        }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate' })
+        }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate', recoverable: true })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
 
@@ -2215,8 +2252,9 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 
 
             })
-            .catch(error => {
+            .catch(async error => {
                 console.error('Error processing user input:', error);
+                await pfRecoverAiSpeech(error, 'AISummary', 'AISummaryText');
             })
             .finally(() => {
                 // Hide the loading animation
@@ -2240,7 +2278,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 
 
             })
-        }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate' })
+        }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate', recoverable: true })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
 
@@ -2252,8 +2290,9 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 
 
             })
-            .catch(error => {
+            .catch(async error => {
                 console.error('Error processing user input:', error);
+                await pfRecoverAiSpeech(error, 'AISummary', 'AISummaryText');
             })
             .finally(() => {
                 // Hide the loading animation
@@ -2282,7 +2321,7 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
             AIRebuttal: AIRebuttal,
             AISummary: AISummary
         })
-    }, { page: 'Flow', button: AIFFGenerateB, label: 'Generate' })
+    }, { page: 'Flow', button: AIFFGenerateB, label: 'Generate', recoverable: true })
         .then(response => response.json()) // Parse JSON response
         .then(data => {
             // Get the AI response from the data
@@ -2294,8 +2333,9 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
             // Display the AI response
             document.getElementById('AIFFText').innerHTML = "<p>" + pfSanitize(AIFinalFocus) + "</p>";
         })
-        .catch(error => {
+        .catch(async error => {
             console.error('Error processing user input:', error);
+            await pfRecoverAiSpeech(error, 'AIFinalFocus', 'AIFFText');
         })
         .finally(() => {
             // Hide the loading animation
@@ -2559,6 +2599,108 @@ function pfWithRoundId(json) {
   return json;
 }
 
+/* ===== Recovering work the gateway gave up on ===============================
+   Heroku's router abandons a request after 30 seconds. The dyno does not: it
+   finishes the generation and writes it into the draft round anyway. So a
+   timeout is an answer this browser never got handed, not work that has to be
+   paid for a second time. Every generate, flow and judge call sends its
+   failure through here, which waits for the slot to fill and renders what the
+   server actually produced.
+
+   Two things this deliberately will not do. It never fires on a 500, because
+   our own handler raising means it never reached the line that persists. And
+   it never re-sends the request: a second call is a second bill, and on the
+   free plan it would run straight into the server's redo gate against the
+   speech the first call already stored. */
+async function pfRecoverAfterTimeout(error, opts) {
+  if (typeof window.pfMayStillBeRunning !== 'function' || !pfMayStillBeRunning(error)) return false;
+  var id = pfServerRoundId();
+  if (!id || typeof window.pfRecoverRound !== 'function') return false;
+
+  var field = opts.field;
+  // "Non-empty" is not good enough as a readiness test. On a premium redo the
+  // slot still holds the previous speech, so the first poll would return that
+  // and pass it off as the new one. Every caller therefore says what "new"
+  // means for it, and the default only applies where the slot starts empty.
+  var isReady = opts.isReady || function (doc) {
+    return typeof doc[field] === 'string' && doc[field].trim() !== '';
+  };
+
+  var announced = false;
+  var doc = await pfRecoverRound(id, isReady, {
+    page: 'Flow',
+    onWait: function () {
+      if (announced) return;
+      announced = true;
+      if (opts.setWait) { try { opts.setWait(); } catch (e) {} }
+      if (window.pfToast) {
+        pfToast('This is taking longer than usual. It is still being written, and it will appear here by itself.', { duration: 9000 });
+      }
+    }
+  });
+
+  if (!doc) {
+    if (window.pfToast) {
+      pfToast('That did not come back in time. Nothing is lost: reopen this round in a minute and it will be here.', { kind: 'error', duration: 10000 });
+    }
+    return false;
+  }
+  opts.apply(doc[field], doc);
+  return true;
+}
+
+// An AI speech. The cell still shows the previous speech at the moment the
+// call fails, because nothing overwrote it, so that rendered string is exactly
+// the "stale" value to hold the recovery against: the slot counts as answered
+// only once it renders to something else.
+// The ballot's rendered form, shared by the success path and the recovery so
+// the two are compared like for like.
+function pfJudgeHtml(feedback, judgeType) {
+  var html = pfSanitize(feedback);
+  // The tech ballot breaks the line before its verdict. The lay one has no
+  // Decision line to break, so rendering it the same way would make a
+  // recovered lay ballot differ from the one the success path draws.
+  if (judgeType === 'tech') html = html.replace('Decision:', '<br>Decision:');
+  return '<p>' + html + '</p>';
+}
+
+function pfRecoverAiSpeech(error, field, cellId, render) {
+  var el = document.getElementById(cellId);
+  var stale = el.innerHTML;
+  render = render || function (value) { return '<p>' + pfSanitize(value) + '</p>'; };
+  return pfRecoverAfterTimeout(error, {
+    field: field,
+    isReady: function (doc) {
+      var value = doc[field];
+      return typeof value === 'string' && value.trim() !== '' && render(value) !== stale;
+    },
+    apply: function (value) { el.innerHTML = render(value); }
+  });
+}
+
+// A user speech. The readiness test is exact here: the slot is answered when
+// it holds the transcript this attempt just sent, which a leftover speech from
+// an earlier take cannot satisfy. The stored copy may be truncated to the
+// server's cap, so a prefix counts.
+//
+// This is the one lossy recovery. The server keeps the raw transcript and
+// never the flowed version the page renders, so a recovered user speech comes
+// back as what they said rather than as the flow of it. Same fallback
+// restoreSavedRound already uses on a second device.
+function pfRecoverUserSpeech(error, field, cellId, sent) {
+  return pfRecoverAfterTimeout(error, {
+    field: field,
+    isReady: function (doc) {
+      var stored = doc[field];
+      if (typeof stored !== 'string' || stored === '') return false;
+      return typeof sent === 'string' && sent.indexOf(stored) === 0;
+    },
+    apply: function (value) {
+      document.getElementById(cellId).innerHTML = '<p>' + pfSanitize(value) + '</p>';
+    }
+  });
+}
+
 function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, transcriptionF, AICase, AIRebuttal, AISummary, AIFinalFocus) {
     // Feedback already on the page is put back if this request fails, so a
     // rate-limited second opinion does not cost the student the first one.
@@ -2582,7 +2724,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
                 AISummary: AISummary,
                 AIFinalFocus: AIFinalFocus
             })
-        }, { page: 'Flow', button: generateFeedbackButton })
+        }, { page: 'Flow', button: generateFeedbackButton, recoverable: true })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
                 // Get the AI response from the data
@@ -2593,17 +2735,30 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
 
                 // Display the AI response
 
-                document.getElementById('feedback-content').innerHTML = "<p>" +
-                    pfSanitize(TechFeedback)
-                        .replace('Decision:', '<br>Decision:') +  // Add line break before Decision
-                    "</p>";
+                document.getElementById('feedback-content').innerHTML = pfJudgeHtml(TechFeedback, 'tech');
                 saveRound()
                 saveFeedbackToProfile();
                 pfShowBallotLink();
             })
-            .catch(error => {
+            .catch(async error => {
                 console.error('Error processing user input:', error);
-                document.getElementById('feedback-content').innerHTML = previousFeedback;
+                const recovered = await pfRecoverAfterTimeout(error, {
+                    field: 'feedback',
+                    isReady: function (doc) {
+                        if (doc.status !== 'finished') return false;
+                        if (typeof doc.feedback !== 'string' || doc.feedback.trim() === '') return false;
+                        // A re-judge starts with the first ballot still stored,
+                        // so the old verdict must not pass as the new one.
+                        return pfJudgeHtml(doc.feedback, doc.judgeType) !== previousFeedback;
+                    },
+                    apply: function (value, doc) {
+                        document.getElementById('feedback-content').innerHTML = pfJudgeHtml(value, doc.judgeType);
+                        saveRound()
+                        saveFeedbackToProfile();
+                        pfShowBallotLink();
+                    }
+                });
+                if (!recovered) document.getElementById('feedback-content').innerHTML = previousFeedback;
             })
             .finally(() => {
                 document.querySelector('.loadingfeed').style.display = 'none';
@@ -2625,7 +2780,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
                 AISummary: AISummary,
                 AIFinalFocus: AIFinalFocus
             })
-        }, { page: 'Flow', button: generateFeedbackButton })
+        }, { page: 'Flow', button: generateFeedbackButton, recoverable: true })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
                 // Get the AI response from the data
@@ -2635,14 +2790,30 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
 
 
                 // Display the AI response
-                document.getElementById('feedback-content').innerHTML = "<p>" + pfSanitize(LayFeedback) + "</p>";
+                document.getElementById('feedback-content').innerHTML = pfJudgeHtml(LayFeedback, 'lay');
                 saveRound()
                 saveFeedbackToProfile();
                 pfShowBallotLink();
             })
-            .catch(error => {
+            .catch(async error => {
                 console.error('Error processing user input:', error);
-                document.getElementById('feedback-content').innerHTML = previousFeedback;
+                const recovered = await pfRecoverAfterTimeout(error, {
+                    field: 'feedback',
+                    isReady: function (doc) {
+                        if (doc.status !== 'finished') return false;
+                        if (typeof doc.feedback !== 'string' || doc.feedback.trim() === '') return false;
+                        // A re-judge starts with the first ballot still stored,
+                        // so the old verdict must not pass as the new one.
+                        return pfJudgeHtml(doc.feedback, doc.judgeType) !== previousFeedback;
+                    },
+                    apply: function (value, doc) {
+                        document.getElementById('feedback-content').innerHTML = pfJudgeHtml(value, doc.judgeType);
+                        saveRound()
+                        saveFeedbackToProfile();
+                        pfShowBallotLink();
+                    }
+                });
+                if (!recovered) document.getElementById('feedback-content').innerHTML = previousFeedback;
             })
             .finally(() => {
                 document.querySelector('.loadingfeed').style.display = 'none';

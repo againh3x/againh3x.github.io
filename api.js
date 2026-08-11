@@ -144,7 +144,7 @@
     try {
       response = await fetch(apiBase() + path, { method: opts.method || "POST", headers: headers, body: fetchBody });
     } catch (e) {
-      if (!opts.quiet) pfToast("Connection problem. Check your internet and try again.", { kind: "error" });
+      if (!opts.quiet && !opts.recoverable) pfToast("Connection problem. Check your internet and try again.", { kind: "error" });
       throw PfApiError("network", 0);
     }
 
@@ -196,7 +196,14 @@
       throw PfApiError("rate_limited", 429, { retryAfter: retryAfter, scope: scope });
     }
 
-    if (!opts.quiet) pfToast("Something went wrong on our end. Please try again.", { kind: "error" });
+    // opts.recoverable: the caller handles gateway failures itself, by going
+    // and fetching the result the dyno finished after the router hung up. Only
+    // those statuses are silenced here; a 500 or a 4xx still toasts, because
+    // there is nothing on the server to go and collect.
+    var gatewayGaveUp = response.status === 502 || response.status === 503 || response.status === 504;
+    if (!opts.quiet && !(opts.recoverable && gatewayGaveUp)) {
+      pfToast("Something went wrong on our end. Please try again.", { kind: "error" });
+    }
     throw PfApiError("http_error", response.status);
   }
 
@@ -411,6 +418,55 @@
       .then(function (r) { return r.json(); });
   }
 
+  // ---- recovering a speech the gateway timed out on -------------------------
+  // Heroku's router abandons a request after 30 seconds, but the dyno does not:
+  // it runs the generation to completion and still writes the result into the
+  // draft round. So a timeout is not lost work, it is an answer this browser
+  // was never handed. Measured on the real stack (uvicorn 0.29 / starlette
+  // 0.35, body-cap middleware and CORS in place): a client hangup mid-request
+  // does not cancel the handler, and the write lands on schedule.
+  //
+  // Each poll doubles as the wait. The dyno makes one blocking provider call at
+  // a time, so GET /rounds/{id} queues behind the generation still running and
+  // answers the instant it finishes; a poll that times out has simply spent 30
+  // seconds waiting. Hence a short pause between attempts rather than a long
+  // one, and a wall-clock deadline rather than an attempt count.
+  //
+  // pfRecoverRound(id, isReady) resolves with the round once isReady(doc) holds,
+  // or null if the deadline passes, the round is gone, or the session ended.
+  function pfSleep(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  // Errors that mean "the server may still be working on it". A 500 is excluded
+  // on purpose: our handler raised, so it never reached the line that persists.
+  function pfMayStillBeRunning(err) {
+    if (!err) return false;
+    if (err.code === "network") return true;
+    return err.code === "http_error" && (err.status === 502 || err.status === 503 || err.status === 504);
+  }
+
+  async function pfRecoverRound(id, isReady, opts) {
+    opts = opts || {};
+    var deadline = Date.now() + (opts.timeoutMs || 150000);
+    var attempt = 0;
+    while (Date.now() < deadline) {
+      if (opts.onWait) { try { opts.onWait(attempt); } catch (e) {} }
+      attempt++;
+      try {
+        var doc = await pfRound(id, { quiet: true, noUpsell: true, page: opts.page });
+        if (doc && isReady(doc)) return doc;
+      } catch (e) {
+        // A dead session or a round that no longer exists will not improve by
+        // asking again. Anything else is the gateway, so keep waiting.
+        if (e && (e.code === "auth_required" || e.code === "email_unverified")) return null;
+        if (e && e.status === 404) return null;
+      }
+      await pfSleep(2500);
+    }
+    return null;
+  }
+
   window.pfFetch = pfFetch;
   window.pfToast = pfToast;
   window.pfCooldown = pfCooldown;
@@ -422,4 +478,6 @@
   window.pfRoundDelete = pfRoundDelete;
   window.pfRounds = pfRounds;
   window.pfRound = pfRound;
+  window.pfRecoverRound = pfRecoverRound;
+  window.pfMayStillBeRunning = pfMayStillBeRunning;
 })();
