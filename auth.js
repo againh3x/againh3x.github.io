@@ -86,9 +86,18 @@ async function ensureFirebase(){
   await authMod.setPersistence(window._auth, authMod.browserLocalPersistence);
   return { authMod };
 }
-function onAuth(cb){
-  return import("https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js")
-    .then(({ onAuthStateChanged }) => onAuthStateChanged(window._auth, cb));
+// Waits for the app before watching it. Importing the module is not enough:
+// window._auth is set by ensureFirebase, so a caller that runs before that
+// finishes used to hand onAuthStateChanged an undefined auth and reject. Pages
+// that call onAuth early and often, modules.html most of all, hit it every
+// load, and the callback they were counting on never ran.
+async function onAuth(cb){
+  let fb = null;
+  try { fb = await ensureFirebase(); } catch (e) { return null; }
+  // No FIREBASE_CONFIG, or the SDK could not be fetched: there is no auth to
+  // watch and the caller's "signed out" default is the right one.
+  if (!fb || !window._auth) return null;
+  return fb.authMod.onAuthStateChanged(window._auth, cb);
 }
 
 // 4) Nav helper: My Rounds always shows; signed out it points at sign-in.
