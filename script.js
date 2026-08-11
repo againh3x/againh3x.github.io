@@ -395,19 +395,22 @@ async function initRoundState(selectedSide, nonselectedSide) {
                 history.replaceState(null, '', u);
             } catch (e2) { }
         }
-    } else {
-        if (id) {
-            // A locally minted id (r_...): keep the legacy server copy of the
-            // old-format round. It cannot host generation (the speech
-            // endpoints only write into a real draft), so one is started
-            // below and takes over as this round's id.
-            try {
-                var round = Object.assign({}, captureState(), { id: id, meta: currentRoundMeta() });
-                syncRoundToServer(round);
-            } catch (e3) { /* localStorage still has the round */ }
-        }
-        ensureServerDraft().catch(function () { /* retried at the first speech action */ });
+    } else if (id) {
+        // A locally minted id (r_...): keep the legacy server copy of the
+        // old-format round. It cannot host generation (the speech endpoints
+        // only write into a real draft), so the first speech action starts
+        // one and it takes over as this round's id.
+        try {
+            var round = Object.assign({}, captureState(), { id: id, meta: currentRoundMeta() });
+            syncRoundToServer(round);
+        } catch (e3) { /* localStorage still has the round */ }
     }
+    // No draft is started here on purpose. Starting one spends a monthly
+    // round, and getDebateTopicSafe falls back to "Untitled Topic", so merely
+    // opening Flow.html from a bookmark or history would have cost a round
+    // without the server's empty-topic guard ever firing. Every action site
+    // awaits pfRequireServerDraft, so the draft appears at the first speech
+    // instead, which is also when the user has actually committed to a round.
 
     loadPlanUI();
     loadDraftList();
