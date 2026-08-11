@@ -83,9 +83,10 @@ function pfHash(str) {
 /* ===== Derived cell state: borders, labels, locks, and the glow =============
    Two sheets of four cells each. 'my' is the user's sheet (their case plus
    the AI answering it); 'ai' is the AI's sheet. Column order per sheet:
-   0 Case, 1 Rebuttal, 2 Summary, 3 Final Focus. A cell is done when its
-   content exists (the same predicate checkRoundCompletion uses); listening
-   and generating are transient flags set around the existing call sites. */
+   0 Case, 1 Rebuttal, 2 Summary, 3 Final Focus. A generate cell is done when
+   its content exists; a record cell is done when its flow cell holds flowed
+   output (see pfFlowCellDone). Listening and generating are transient flags
+   set around the existing call sites. */
 
 var PF_BUSY = { my: [null, null, null, null], ai: [null, null, null, null] };
 
@@ -103,17 +104,28 @@ var PF_SPEAK = {
 };
 var PF_IS_RECORD = { my: [true, false, true, false], ai: [false, true, false, true] };
 
+// A record cell is done only when it holds a flowed speech. Every /process*
+// success and every restore path writes <p>-wrapped HTML; the guidance
+// messages ("Please record a full...") are plain text and do not count, so a
+// failed or rejected recording leaves the cell empty and Record unlocked.
+// This keys the free-plan redo gate on the same event the server keys its
+// own redo gate on: a /process* call that actually persisted.
+function pfFlowCellDone(elId) {
+    var el = document.getElementById(elId);
+    return !!(el && el.querySelector('p'));
+}
+
 function pfCellDone(sheet, i) {
     if (sheet === 'my') {
-        if (i === 0) return fullTranscriptionContention !== '';
+        if (i === 0) return pfFlowCellDone('transcriptionContentionText');
         if (i === 1) return document.getElementById('AIRebuttalText').innerHTML !== '';
-        if (i === 2) return fullTranscriptionSummary !== '';
+        if (i === 2) return pfFlowCellDone('SummaryUserText');
         return document.getElementById('AIFFText').innerHTML !== '';
     }
     if (i === 0) return document.getElementById('AIContentionText').innerHTML !== '';
-    if (i === 1) return fullTranscriptionRebuttal !== '';
+    if (i === 1) return pfFlowCellDone('transcriptionRebuttalText');
     if (i === 2) return document.getElementById('AISummaryText').innerHTML !== '';
-    return fullTranscriptionFF !== '';
+    return pfFlowCellDone('FFUserText');
 }
 
 function pfCellState(sheet, i) {
@@ -242,10 +254,10 @@ function pfShowBallotLink() {
 
 /* ===== Draft persistence to the account ====================================
    Speech content is persisted server-side by the speech endpoints themselves
-   (every payload carries roundId), so the debounced PATCH only carries the
-   judge choice. Sending the page's innerHTML copies of AI speeches would trip
-   the server's free-plan redo guard, which compares against the raw strings
-   it stored itself. */
+   (payloads carry roundId whenever a server draft exists), so the debounced
+   PATCH only carries the judge choice. Sending the page's innerHTML copies of
+   AI speeches would trip the server's free-plan redo guard, which compares
+   against the raw strings it stored itself. */
 var __draftPatchTimer = null;
 var __draftPatchDisabled = false;
 
@@ -363,7 +375,10 @@ async function initRoundState(selectedSide, nonselectedSide) {
     restoreSavedRound(selectedSide, nonselectedSide, expectedId);
 
     var id = window.__currentRoundId;
-    if (id && expectedId && typeof window.pfRound === 'function') {
+    var isServerId = !!id && String(id).indexOf('r_') !== 0;
+    if (isServerId && typeof window.pfRound === 'function') {
+        // A server draft id, whether it came from ?round or from a restored
+        // save: the server copy is the source of truth either way.
         window.__pfServerDraft = true;
         try {
             var doc = await pfRound(id, { page: 'Flow', quiet: true });
@@ -371,15 +386,27 @@ async function initRoundState(selectedSide, nonselectedSide) {
         } catch (e) {
             console.error('Could not load this round from your account:', e);
         }
-    } else if (!id) {
-        ensureServerDraft();
+        if (!expectedId) {
+            // Restored without ?round in the URL: put the id back so a
+            // reload resumes this draft instead of starting a new one.
+            try {
+                var u = new URL(location.href);
+                u.searchParams.set('round', id);
+                history.replaceState(null, '', u);
+            } catch (e2) { }
+        }
     } else {
-        // A locally minted id (r_...): make sure the server has a copy, since
-        // every speech endpoint now writes into the server draft.
-        try {
-            var round = Object.assign({}, captureState(), { id: id, meta: currentRoundMeta() });
-            syncRoundToServer(round);
-        } catch (e) { /* localStorage still has the round */ }
+        if (id) {
+            // A locally minted id (r_...): keep the legacy server copy of the
+            // old-format round. It cannot host generation (the speech
+            // endpoints only write into a real draft), so one is started
+            // below and takes over as this round's id.
+            try {
+                var round = Object.assign({}, captureState(), { id: id, meta: currentRoundMeta() });
+                syncRoundToServer(round);
+            } catch (e3) { /* localStorage still has the round */ }
+        }
+        ensureServerDraft().catch(function () { /* retried at the first speech action */ });
     }
 
     loadPlanUI();
@@ -387,15 +414,26 @@ async function initRoundState(selectedSide, nonselectedSide) {
     pfRoundUIRefresh();
 }
 
+// Starts the server draft every speech endpoint writes into. All callers
+// share one in-flight attempt; a failed attempt clears the slot so the next
+// speech action can retry. Resolves with the draft id.
+var __serverDraftPromise = null;
+
 function ensureServerDraft() {
-    if (window.__currentRoundId || typeof window.pfRoundStart !== 'function') return;
+    if (window.__pfServerDraft && window.__currentRoundId) {
+        return Promise.resolve(window.__currentRoundId);
+    }
+    if (__serverDraftPromise) return __serverDraftPromise;
+    if (typeof window.pfRoundStart !== 'function') {
+        return Promise.reject(new Error('round start unavailable'));
+    }
     var side = document.getElementById('selectedSide').textContent;
     var turn = document.getElementById('selectedTurn').textContent;
     var skill = document.getElementById('selectedSkill').textContent;
-    pfRoundStart({ topic: getDebateTopicSafe(), side: side, turn: turn, skill: skill },
+    __serverDraftPromise = pfRoundStart({ topic: getDebateTopicSafe(), side: side, turn: turn, skill: skill },
         { page: 'Flow', quiet: true })
         .then(function (res) {
-            if (!res || !res.id) return;
+            if (!res || !res.id) throw new Error('round start returned no id');
             window.__currentRoundId = res.id;
             window.__pfServerDraft = true;
             if (res.doc && res.doc.evidenceMode) window.__pfEvidenceMode = res.doc.evidenceMode;
@@ -406,11 +444,31 @@ function ensureServerDraft() {
                 history.replaceState(null, '', u);
             } catch (e) { }
             loadDraftList();
+            return res.id;
         })
         .catch(function (e) {
-            // Quota or network: the upsell/toast already fired from pfFetch.
-            console.error('Could not start a server draft for this round:', e);
+            __serverDraftPromise = null;
+            throw e;
         });
+    return __serverDraftPromise;
+}
+
+// Every speech action runs through this gate: without a server draft the
+// speech endpoints have nothing to write into, so the mic must not open and
+// no generation or judging may fire. A 402 already showed the upsell from
+// pfFetch; only the failures ensureServerDraft's quiet flag suppressed
+// (network, generic server error) get a toast here, so exactly one shows.
+async function pfRequireServerDraft() {
+    try {
+        await ensureServerDraft();
+        return true;
+    } catch (e) {
+        var surfaced = e && e.code && e.code !== 'network' && e.code !== 'http_error';
+        if (!surfaced && window.pfToast) {
+            pfToast('This round could not be started on the server. Check your connection and try again.', { kind: 'error' });
+        }
+        return false;
+    }
 }
 
 // Overlay the server draft onto the page. Local HTML wins where it exists
@@ -434,6 +492,15 @@ function applyServerRound(doc, selectedSide, nonselectedSide) {
     renderInto('AIRebuttalText', doc.AIRebuttal);
     renderInto('AISummaryText', doc.AISummary);
     renderInto('AIFFText', doc.AIFinalFocus);
+
+    // The server never sees the rendered flow HTML, only the transcripts, so
+    // on a device without the local save the user's cells fall back to the
+    // stored transcript (round.html does the same for saved rounds). Local
+    // rendered flow HTML still wins: renderInto only fills empty cells.
+    renderInto('transcriptionContentionText', doc.transcription);
+    renderInto('transcriptionRebuttalText', doc.transcriptionR);
+    renderInto('SummaryUserText', doc.transcriptionS);
+    renderInto('FFUserText', doc.transcriptionF);
 
     if (doc.judgeType === 'tech' || doc.judgeType === 'lay') selectJudgeType(doc.judgeType);
 
@@ -589,6 +656,7 @@ AISummaryGenerateB.addEventListener('click', async () => {
     if (!isSummarying) {
         if (pfRedoBlocked('ai', 2)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
+        if (!(await pfRequireServerDraft())) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
         const transcription = fullTranscriptionContention;
@@ -622,6 +690,7 @@ AIFFGenerateB.addEventListener('click', async () => {
     if (!isFFing) {
         if (pfRedoBlocked('my', 3)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
+        if (!(await pfRequireServerDraft())) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
         const transcription = fullTranscriptionContention;
@@ -656,6 +725,7 @@ generateButtonAI.addEventListener('click', async () => {
     if (!isGenerating) {
         if (pfRedoBlocked('ai', 0)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
+        if (!(await pfRequireServerDraft())) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
         const selectedSkill = document.getElementById('selectedSkill').textContent;
@@ -672,6 +742,7 @@ GenerateAIRebuttalB.addEventListener('click', async () => {
     if (!isRebutting) {
         if (pfRedoBlocked('my', 1)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
+        if (!(await pfRequireServerDraft())) return;
         const selectedSide = document.getElementById('selectedSide').textContent;
         const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
         const transcription = fullTranscriptionContention;
@@ -945,12 +1016,11 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
     try {
         // First API call to generate AI case
         const response1 = await pfFetch('/generate_ai_case', {
-            json: {
-                roundId: pfCurrentRoundId(),
+            json: pfWithRoundId({
                 debateTopic: debateTopic,
                 nonselectedSide: nonselectedSide,
                 selectedSkill: selectedSkill
-            }
+            })
         }, { page: 'Flow', button: generateButtonAI, label: 'Generate' });
 
 
@@ -978,9 +1048,9 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
 
             // Second API call to get sources
             const response2 = await pfFetch('/get_sources', {
-                json: {
+                json: pfWithRoundId({
                     AICase: AICase
-                }
+                })
             }, { page: 'Flow', button: generateButtonAI, label: 'Generate' });
 
 
@@ -1028,11 +1098,14 @@ toggleFlowButton.addEventListener('click', () => {
 });
 function updateFlowValues(selectedSide, nonselectedSide) {
     const flow1 = document.getElementById('Flow1');
-    // The bar title names the sheet on screen: blue for Aff, red for Neg.
-    // This is the one place color follows the side, per the design.
+    // The bar title names the sheet on screen and takes its color from whose
+    // sheet it is, not from the side. The design hardcoded Aff blue / Neg red,
+    // which reads correctly only for an Aff user; for a Neg user it would
+    // paint their own sheet in the page's AI color while every cell on it is
+    // blue. Owner-keyed matches the design exactly whenever the user is Aff.
     const visibleSide = ToggleisSelectedSide ? selectedSide : nonselectedSide;
     flow1.textContent = pfFullSide(visibleSide) + ' Flow';
-    flow1.style.color = (visibleSide === 'Aff') ? '#7DD3FC' : '#F49C97';
+    flow1.style.color = ToggleisSelectedSide ? 'var(--pf-accent)' : 'var(--pf-ai)';
 
     // Only the Case columns name a side, and those never change: the user's
     // case is always their side, the AI's case always the other. (Two spans
@@ -1053,6 +1126,9 @@ recordButtonC.addEventListener('click', async () => {
     if (!isRecordingC) { // If not currently recording, start recording
         if (pfRedoBlocked('my', 0)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
+        // No server draft means /processC has nowhere to write; the mic must
+        // not even prompt for permission in that case.
+        if (!(await pfRequireServerDraft())) return;
         startRecording();
         recordButtonC.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingC = true;
@@ -1067,6 +1143,7 @@ recordButtonR.addEventListener('click', async () => {
     if (!isRecordingR) { // If not currently recording, start recording
         if (pfRedoBlocked('ai', 1)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
+        if (!(await pfRequireServerDraft())) return;
         startRecordingR();
         recordButtonR.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingR = true;
@@ -1081,6 +1158,7 @@ recordButtonS.addEventListener('click', async () => {
     if (!isRecordingS) { // If not currently recording, start recording
         if (pfRedoBlocked('my', 2)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
+        if (!(await pfRequireServerDraft())) return;
         startRecordingS();
         recordButtonS.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingS = true;
@@ -1095,6 +1173,7 @@ recordButtonF.addEventListener('click', async () => {
     if (!isRecordingF) { // If not currently recording, start recording
         if (pfRedoBlocked('ai', 3)) { if (window.pfUpsell) pfUpsell('redo'); return; }
         if (!(await pfGateOrLogin({ page: 'Flow' }))) return;
+        if (!(await pfRequireServerDraft())) return;
         startRecordingF();
         recordButtonF.textContent = 'Stop'; // Change button text to "Stop"
         isRecordingF = true;
@@ -1875,12 +1954,11 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
     // Send the transcription to your Python backend for processing
     try {
         const response = await pfFetch('/processC', {
-            json: {
-                roundId: pfCurrentRoundId(),
+            json: pfWithRoundId({
                 transcription: transcription,
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
-            }
+            })
         }, { page: 'Flow' });
 
         // Get the debate flow from the response
@@ -1888,13 +1966,22 @@ async function processTranscription(transcription, debateTopic, selectedSide) {
         // Update the display with the generated debate flow
         if (CaseFlow == '') {
             transcriptionResultC.innerHTML = 'Your speech does not resemble a public forum debate case.'
+            // The server refused to flow this speech, so the slot is still
+            // open; keeping the raw transcript would lock the free plan's
+            // Record behind the redo gate with nothing saved.
+            fullTranscriptionContention = '';
             saveRound()
+            pfRoundUIRefresh()
         } else {
             transcriptionResultC.innerHTML = "<p>" + pfSanitize(CaseFlow) + "</p>";
             saveRound()
         }
     } catch (error) {
         console.error('Failed to process transcription:', error);
+        // Nothing reached the server slot, so the cell must read empty again.
+        fullTranscriptionContention = '';
+        saveRound()
+        pfRoundUIRefresh()
     } finally {
         document.querySelector('.loadingU').style.display = 'none';
         pfCellIdle('my', 0);
@@ -1906,12 +1993,11 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
     document.querySelector('.loadingRU').style.display = 'block';
     // Send the transcription to your Python backend for processing
     pfFetch('/processR', {
-        json: {
-            roundId: pfCurrentRoundId(),
+        json: pfWithRoundId({
             transcriptionR: transcriptionR,
             debateTopic: debateTopic,
             selectedSide: selectedSide,
-        }
+        })
     }, { page: 'Flow' })
         .then(response => response.json()) // Parse JSON response
         .then(data => {
@@ -1925,6 +2011,10 @@ function processTranscriptionR(transcriptionR, debateTopic, selectedSide) {
         })
         .catch(error => {
             console.error('Failed to process transcription:', error);
+            // Nothing reached the server slot, so the cell must read empty again.
+            fullTranscriptionRebuttal = '';
+            saveRound()
+            pfRoundUIRefresh()
         })
         .finally(() => {
             // Hide the loading animation
@@ -1937,12 +2027,11 @@ function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
     document.querySelector('.loadingSU').style.display = 'block';
     // Send the transcription to your Python backend for processing
     pfFetch('/processS', {
-        json: {
-            roundId: pfCurrentRoundId(),
+        json: pfWithRoundId({
             transcriptionS: transcriptionS,
             debateTopic: debateTopic,
             selectedSide: selectedSide,
-        }
+        })
     }, { page: 'Flow' })
         .then(response => response.json()) // Parse JSON response
         .then(data => {
@@ -1959,6 +2048,10 @@ function processTranscriptionS(transcriptionS, debateTopic, selectedSide) {
         })
         .catch(error => {
             console.error('Failed to process transcription:', error);
+            // Nothing reached the server slot, so the cell must read empty again.
+            fullTranscriptionSummary = '';
+            saveRound()
+            pfRoundUIRefresh()
         })
         .finally(() => {
             // Hide the loading animation
@@ -1973,12 +2066,11 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
     // Send the transcription to your Python backend for processing
     transcriptionResultF.textContent = '';
     pfFetch('/processF', {
-        json: {
-            roundId: pfCurrentRoundId(),
+        json: pfWithRoundId({
             transcriptionF: transcriptionF,
             debateTopic: debateTopic,
             selectedSide: selectedSide,
-        }
+        })
     }, { page: 'Flow' })
         .then(response => response.json()) // Parse JSON response
         .then(data => {
@@ -1994,6 +2086,10 @@ function processTranscriptionF(transcriptionF, debateTopic, selectedSide) {
         })
         .catch(error => {
             console.error('Failed to process transcription:', error);
+            // Nothing reached the server slot, so the cell must read empty again.
+            fullTranscriptionFF = '';
+            saveRound()
+            pfRoundUIRefresh()
         })
         .finally(() => {
             // Hide the loading animation
@@ -2017,15 +2113,14 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
         pfFetch('/secondrebuttal', {
-            json: {
-                roundId: pfCurrentRoundId(),
+            json: pfWithRoundId({
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
                 transcription: transcription,
                 transcriptionR: transcriptionR,
                 selectedSkill: selectedSkill
-            }
+            })
         }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate' })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
@@ -2052,13 +2147,12 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
     }
     if (selectedTurn == "Second") {
         pfFetch('/firstrebuttal', {
-            json: {
-                roundId: pfCurrentRoundId(),
+            json: pfWithRoundId({
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
                 transcription: transcription,
-            }
+            })
         }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate' })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
@@ -2094,8 +2188,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
         pfFetch('/secondsummary', {
-            json: {
-                roundId: pfCurrentRoundId(),
+            json: pfWithRoundId({
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -2106,7 +2199,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
                 AIRebuttal: AIRebuttal
 
 
-            }
+            })
         }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate' })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
@@ -2133,8 +2226,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
     }
     if (selectedTurn == "Second") {
         pfFetch('/firstsummary', {
-            json: {
-                roundId: pfCurrentRoundId(),
+            json: pfWithRoundId({
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -2144,7 +2236,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
                 AIRebuttal: AIRebuttal
 
 
-            }
+            })
         }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate' })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
@@ -2176,8 +2268,7 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
     pfCellBusy('my', 3, 'generating');
     document.querySelector('.loadingFFA').style.display = 'block';
     pfFetch('/finalfocus', {
-        json: {
-            roundId: pfCurrentRoundId(),
+        json: pfWithRoundId({
             debateTopic: debateTopic,
             selectedSide: selectedSide,
             nonselectedSide: nonselectedSide,
@@ -2187,7 +2278,7 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
             AICase: AICase,
             AIRebuttal: AIRebuttal,
             AISummary: AISummary
-        }
+        })
     }, { page: 'Flow', button: AIFFGenerateB, label: 'Generate' })
         .then(response => response.json()) // Parse JSON response
         .then(data => {
@@ -2358,6 +2449,10 @@ function syncRoundToServer(round) {
   if (window.__pfServerDraft) return;
   if (typeof window.pfFetch !== 'function') return;
   if (!round || !round.id) return;
+  // Legacy full-save is for locally minted ids only. A server-issued id here
+  // would mean POST /rounds replacing a draft document, which the backend now
+  // refuses anyway.
+  if (String(round.id).indexOf('r_') !== 0) return;
   try {
     pfFetch('/rounds', { json: toServerRound(round) }, { page: 'Flow', quiet: true })
       .catch(error => { console.error('Could not save this round to your account:', error); });
@@ -2439,13 +2534,26 @@ function saveFeedbackToProfile() {
   }
 }
 
-// Stable per-round id shared by the server gem award (/tech, /lay roundId)
-// and the saved round in the profile. Lazily minted once per round.
+// The current round id, or null. Never mints one: the server rejects ids it
+// did not issue, so ids only ever come from /rounds/start, ?round=, or a
+// restored save.
 function pfCurrentRoundId() {
-  if (!window.__currentRoundId) {
-    window.__currentRoundId = `r_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  }
-  return window.__currentRoundId;
+  return window.__currentRoundId || null;
+}
+
+// The server draft id, or null when no server draft exists (a restored r_ id
+// is local-only and must never be sent to the speech endpoints).
+function pfServerRoundId() {
+  return (window.__pfServerDraft && window.__currentRoundId) ? window.__currentRoundId : null;
+}
+
+// Attach roundId to a payload only when a server draft exists. Without one
+// the key is omitted entirely: the backend treats a missing roundId as a
+// standalone (flower-style) call, but a null one as a bad id.
+function pfWithRoundId(json) {
+  var id = pfServerRoundId();
+  if (id) json.roundId = id;
+  return json;
 }
 
 function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, transcriptionF, AICase, AIRebuttal, AISummary, AIFinalFocus) {
@@ -2457,8 +2565,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
     if (judgeType == 'tech') {
 
         pfFetch('/tech', {
-            json: {
-                roundId: pfCurrentRoundId(),
+            json: pfWithRoundId({
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -2471,7 +2578,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
                 AIRebuttal: AIRebuttal,
                 AISummary: AISummary,
                 AIFinalFocus: AIFinalFocus
-            }
+            })
         }, { page: 'Flow', button: generateFeedbackButton })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
@@ -2501,8 +2608,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
             );
     } else if (judgeType == 'lay') {
         pfFetch('/lay', {
-            json: {
-                roundId: pfCurrentRoundId(),
+            json: pfWithRoundId({
                 debateTopic: debateTopic,
                 selectedSide: selectedSide,
                 nonselectedSide: nonselectedSide,
@@ -2515,7 +2621,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
                 AIRebuttal: AIRebuttal,
                 AISummary: AISummary,
                 AIFinalFocus: AIFinalFocus
-            }
+            })
         }, { page: 'Flow', button: generateFeedbackButton })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
@@ -2548,6 +2654,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
 
 generateFeedbackButton.addEventListener('click', async () => {
     if (window.pfGate && !(await pfGate.requireAuth({ page: 'Flow' }))) return;
+    if (!(await pfRequireServerDraft())) return;
     const selectedSide = document.getElementById('selectedSide').textContent;
     const nonselectedSide = (selectedSide === 'Aff') ? 'Neg' : 'Aff';
     const transcription = fullTranscriptionContention;

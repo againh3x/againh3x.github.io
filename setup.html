@@ -1032,6 +1032,24 @@ gtag('config', 'G-ERE3HL6LKB');
     if (fields.evidence === 'real' || fields.evidence === 'sim') state.evidence = fields.evidence;
   })();
 
+  // Prefill from a "Run this topic again" link (ballot.html emits
+  // setup.html?topic=&side=&turn=&skill=). The pre-login stash wins: these
+  // only fill fields the stash left empty.
+  (function prefillFromQuery() {
+    var q = new URLSearchParams(location.search);
+    var topic = q.get('topic');
+    if (topic && !topicInput.value) {
+      topicInput.value = String(topic).slice(0, 500);
+      topicInput.dataset.touched = '1';
+    }
+    var skill = q.get('skill');
+    if ((skill === 'high' || skill === 'middle') && !state.skill) selectOption('skill', skill);
+    var side = q.get('side');
+    if ((side === 'Aff' || side === 'Neg') && !state.side) selectOption('side', side);
+    var turn = q.get('turn');
+    if ((turn === 'First' || turn === 'Second') && !state.turn) selectOption('turn', turn);
+  })();
+
   // First paint from the cached auth snapshot so the premium bits do not flash.
   try {
     var snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot'));

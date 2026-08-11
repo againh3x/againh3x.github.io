@@ -343,7 +343,12 @@
 
   function meStorageKey(uid) { return "pfai_me::" + uid; }
 
-  function meInvalidate() { mePromise = null; meAt = 0; meUid = null; }
+  function meInvalidate() {
+    // The localStorage copy must go too: in-memory state does not survive the
+    // navigation that usually follows an invalidation (start round -> Flow).
+    try { if (meUid) localStorage.removeItem(meStorageKey(meUid)); } catch (e) {}
+    mePromise = null; meAt = 0; meUid = null;
+  }
   document.addEventListener("pfai:signedout", meInvalidate);
 
   function announceMe(me) {
