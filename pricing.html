@@ -75,6 +75,7 @@ gtag('config', 'G-ERE3HL6LKB');
 .pricing-main {
   max-width: 1000px;
   width: 100%;
+  box-sizing: border-box; /* width:100% plus side padding overflowed every phone by 40px */
   margin: 0 auto;
   padding: 64px 28px 0;
   flex: 1;
@@ -319,23 +320,78 @@ gtag('config', 'G-ERE3HL6LKB');
   text-wrap: pretty;
 }
 
-/* Contact modal (Premium rollout) */
-#contactModal[hidden] { display: none; }
-.contact-modal-alt {
-  margin: 16px 0 0;
-  font-size: 13px;
-  color: #9FC4E2;
+/* Monthly / yearly switch */
+.billing-toggle-row {
+  display: flex;
+  justify-content: center;
+  margin: 32px 0 28px;
 }
-.contact-modal-alt button {
-  background: none;
+.billing-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #1C3E63;
+  border-radius: 999px;
+  background: #0B2240;
+}
+.billing-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
   border: none;
-  padding: 0;
-  font: inherit;
-  color: var(--pf-accent);
-  text-decoration: underline;
+  border-radius: 999px;
+  background: transparent;
+  color: #9FC4E2;
+  font: 600 14px var(--pf-font);
   cursor: pointer;
 }
-.contact-modal-alt button:hover { color: #BAE6FD; }
+.billing-toggle button[aria-pressed="true"] {
+  background: var(--pf-blue);
+  color: var(--pf-heading);
+}
+.billing-toggle button:focus-visible { outline: 2px solid var(--pf-accent); outline-offset: 2px; }
+.save-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(125, 211, 252, 0.16);
+  color: var(--pf-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+.billing-toggle button[aria-pressed="true"] .save-badge {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--pf-heading);
+}
+.plan-price-note {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: var(--pf-accent);
+}
+.plan-price-note[hidden] { display: none; }
+.plan-cta[disabled] { opacity: 0.7; cursor: progress; }
+.plan-manage-note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  text-align: center;
+  color: var(--pf-text-muted);
+}
+.plan-manage-note[hidden] { display: none; }
+
+/* Coming back from Checkout */
+.checkout-banner {
+  margin: 0 0 24px;
+  padding: 14px 18px;
+  border: 1px solid #2F5A85;
+  border-radius: 8px;
+  background: #0E2A4A;
+  color: #DCEEFB;
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.checkout-banner[hidden] { display: none; }
+.checkout-banner--done { border-color: var(--pf-accent); }
 
 /* Graceful degradation on narrow screens */
 @media (max-width: 640px) {
@@ -370,6 +426,15 @@ gtag('config', 'G-ERE3HL6LKB');
       <p>Flowing, casewriting, and the training modules are free for every debater. In order to keep it that way, we added premium, which removes the round limit and puts real, linked evidence in your rounds.</p>
     </div>
 
+    <p class="checkout-banner" id="checkoutBanner" role="status" hidden></p>
+
+    <div class="billing-toggle-row">
+    <div class="billing-toggle" role="group" aria-label="Billing period">
+      <button type="button" id="billMonth" aria-pressed="true">Monthly</button>
+      <button type="button" id="billYear" aria-pressed="false">Yearly <span class="save-badge" id="saveBadge">Save 50%</span></button>
+    </div>
+    </div>
+
     <div class="plan-grid">
       <div class="plan-card plan-card--free">
         <div class="plan-head">
@@ -401,9 +466,10 @@ gtag('config', 'G-ERE3HL6LKB');
             <span class="plan-star" title="Most picked">★</span>
           </div>
           <div class="plan-price-row">
-            <span class="plan-price">$9.99</span>
-            <span class="plan-per">per month</span>
+            <span class="plan-price" id="premiumPrice">$9.99</span>
+            <span class="plan-per" id="premiumPer">per month</span>
           </div>
+          <p class="plan-price-note" id="premiumNote" hidden></p>
           <p class="plan-blurb">For debaters in season who run rounds every week.</p>
         </div>
         <div class="plan-features">
@@ -415,6 +481,7 @@ gtag('config', 'G-ERE3HL6LKB');
         </div>
         <div class="plan-cta-wrap">
           <a class="plan-cta plan-cta--premium" id="premiumCta" href="login.html?next=%2Fpricing.html">Upgrade to Premium</a>
+          <p class="plan-manage-note" id="premiumManageNote" hidden></p>
         </div>
       </div>
     </div>
@@ -478,7 +545,15 @@ gtag('config', 'G-ERE3HL6LKB');
         </div>
         <div class="faq-item">
           <h3>Can I cancel anytime?</h3>
-          <p>Yes. Cancel whenever and you keep Premium until the end of the billing period, then fall back to the free plan. Rounds you already saved stay in your account.</p>
+          <p>Yes, from your Account page, in a couple of clicks. You keep Premium until the end of the period you paid for, then move to the free plan. Rounds and ballots you saved while on Premium stay for 30 days after that, the same as any free round.</p>
+        </div>
+        <div class="faq-item">
+          <h3>How does yearly billing work?</h3>
+          <p>You pay $59 once a year instead of $9.99 every month, which comes to about half the price over a season. It renews each year until you cancel.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Who handles the payment?</h3>
+          <p>Stripe. Your card goes straight to them and never touches our servers. Receipts go to the email entered at checkout, so a parent can pay with their own card and email.</p>
         </div>
         <div class="faq-item">
           <h3>Is this allowed in real rounds?</h3>
@@ -526,20 +601,6 @@ gtag('config', 'G-ERE3HL6LKB');
   </footer>
 </div>
 
-<div class="pf-modal-backdrop" id="contactModal" hidden>
-  <div class="pf-modal pf-upsell" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle">
-    <div class="pf-upsell-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-    </div>
-    <h2 class="pf-upsell-title" id="contactModalTitle">Premium is rolling out</h2>
-    <p class="pf-upsell-body">We are setting up Premium accounts by hand while billing is finished. Email us at <a href="mailto:support@publicforumai.com">support@publicforumai.com</a> and we will get you upgraded.</p>
-    <div class="pf-upsell-actions">
-      <button type="button" class="pf-btn-ghost" id="contactModalClose">Not now</button>
-      <a class="pf-btn-primary" href="mailto:support@publicforumai.com">Email support</a>
-    </div>
-    <p class="contact-modal-alt">Or <button type="button" id="contactModalFormLink">use the feedback form</button> at the bottom of this page.</p>
-  </div>
-</div>
 
 <script>
 // Feedback form: inline status messages, no dialogs.
@@ -596,39 +657,64 @@ gtag('config', 'G-ERE3HL6LKB');
 <script src="gate.js"></script>
 <script src="api.js"></script>
 <script>
-// Plan-aware CTAs. Signed out: both CTAs go to login.html (default markup).
-// Signed-in free: Free card shows a current-plan state and the Premium CTA
-// opens the honest rollout contact modal. Premium: the Premium card shows the
-// current-plan state and the Free CTA is hidden. Snapshot paints first (plan
-// may be stale); pfMe() reconciles.
+// Prices live here and only here on the page. They must match the Stripe
+// prices behind STRIPE_PRICE_MONTHLY and STRIPE_PRICE_YEARLY, because Checkout
+// charges whatever Stripe says, not what this page shows.
+var PF_PRICES = { month: 9.99, year: 59 };
+
+// The yearly discount against twelve monthly payments, rounded DOWN so the
+// badge can never promise more than the real saving (50.8% shows as 50%).
+function pfYearlySavingPct() {
+  return Math.floor((1 - PF_PRICES.year / (PF_PRICES.month * 12)) * 100);
+}
+
 (function () {
+  var interval = 'month';
+  try { if (sessionStorage.getItem('pf_billing_interval') === 'year') interval = 'year'; } catch (e) {}
+
+  var monthBtn = document.getElementById('billMonth');
+  var yearBtn = document.getElementById('billYear');
+  var price = document.getElementById('premiumPrice');
+  var per = document.getElementById('premiumPer');
+  var note = document.getElementById('premiumNote');
+  var pct = pfYearlySavingPct();
+  document.getElementById('saveBadge').textContent = 'Save ' + pct + '%';
+
+  function money(n) { return '$' + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0); }
+
+  function paintInterval() {
+    monthBtn.setAttribute('aria-pressed', String(interval === 'month'));
+    yearBtn.setAttribute('aria-pressed', String(interval === 'year'));
+    if (interval === 'year') {
+      price.textContent = money(PF_PRICES.year);
+      per.textContent = 'per year';
+      note.textContent = 'Works out to ' + money(PF_PRICES.year / 12) + ' a month. ' + pct + '% off paying monthly.';
+      note.hidden = false;
+    } else {
+      price.textContent = money(PF_PRICES.month);
+      per.textContent = 'per month';
+      note.hidden = true;
+    }
+    try { sessionStorage.setItem('pf_billing_interval', interval); } catch (e) {}
+  }
+  monthBtn.addEventListener('click', function () { interval = 'month'; paintInterval(); });
+  yearBtn.addEventListener('click', function () { interval = 'year'; paintInterval(); });
+  paintInterval();
+
+  // ---- plan-aware CTAs ----------------------------------------------------
+  // Signed out: both CTAs go to sign in (default markup), and the chosen
+  // interval survives the trip in sessionStorage. Signed-in free: Upgrade opens
+  // Stripe Checkout for the chosen interval. Premium through Stripe: Manage
+  // billing opens the customer portal. Premium granted by hand: current plan.
   var freeCtaWrap = document.getElementById('freeCtaWrap');
   var premiumCta = document.getElementById('premiumCta');
-  var modal = document.getElementById('contactModal');
-  var modalClose = document.getElementById('contactModalClose');
-  var modalFormLink = document.getElementById('contactModalFormLink');
+  var manageNote = document.getElementById('premiumManageNote');
 
-  function openModal() {
-    modal.hidden = false;
-    modalClose.focus();
+  function swapPremiumCta(el) {
+    el.id = 'premiumCta';
+    premiumCta.replaceWith(el);
+    premiumCta = el;
   }
-  function closeModal() {
-    modal.hidden = true;
-  }
-  modalClose.addEventListener('click', closeModal);
-  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !modal.hidden) closeModal();
-  });
-  modalFormLink.addEventListener('click', function () {
-    closeModal();
-    var form = document.getElementById('feedbackForm');
-    if (!form) return;
-    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    var email = form.querySelector('input[name="from_email"]');
-    if (email) setTimeout(function () { email.focus({ preventScroll: true }); }, 400);
-  });
-
   function currentPlanEl() {
     var el = document.createElement('span');
     el.className = 'plan-cta plan-cta--current';
@@ -636,45 +722,114 @@ gtag('config', 'G-ERE3HL6LKB');
     el.textContent = 'Your current plan';
     return el;
   }
+  function button(text, cls, onClick) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'plan-cta ' + cls;
+    btn.textContent = text;
+    btn.addEventListener('click', onClick);
+    return btn;
+  }
+
+  function refreshMe() {
+    return window.pfMe ? pfMe({ fresh: true }).then(applyMe) : Promise.resolve();
+  }
+
+  function startCheckout(e) {
+    pfBillingCheckout(interval, e.currentTarget).catch(function (err) {
+      // 409: this account is already premium (paid elsewhere, or set by hand).
+      if (err && err.status === 409) refreshMe();
+    });
+  }
+  function openPortal(e) {
+    pfBillingPortal(e.currentTarget).catch(function () { /* toast already shown */ });
+  }
 
   var applied = null;
-  function applyPlan(plan) {
-    if (plan === applied) return;
-    applied = plan;
+  function applyMe(me) {
+    if (!me) return;
+    var plan = me.plan === 'premium' ? 'premium' : 'free';
+    var billing = me.billing || {};
+    var key = plan + '|' + (billing.manageable ? 1 : 0) + '|' + (billing.cancelAtPeriodEnd ? 1 : 0) + '|' + billing.currentPeriodEnd;
+    if (key === applied) return;
+    applied = key;
+
+    manageNote.hidden = true;
     if (plan === 'premium') {
       freeCtaWrap.style.display = 'none';
-      var current = currentPlanEl();
-      current.id = 'premiumCta';
-      premiumCta.replaceWith(current);
-      premiumCta = current;
+      if (billing.source === 'stripe' && billing.manageable) {
+        swapPremiumCta(button('Manage billing', 'plan-cta--free', openPortal));
+        var end = Number(billing.currentPeriodEnd);
+        if (end > 0) {
+          var date = new Date(end * 1000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+          manageNote.textContent = billing.cancelAtPeriodEnd
+            ? 'Canceled. Premium stays on until ' + date + '.'
+            : 'Renews ' + date + (billing.interval === 'year' ? ', billed yearly.' : ', billed monthly.');
+          manageNote.hidden = false;
+        }
+      } else {
+        swapPremiumCta(currentPlanEl());
+      }
     } else {
-      // Signed-in free user.
       freeCtaWrap.style.display = '';
       var freeCurrent = currentPlanEl();
       freeCurrent.id = 'freeCta';
       document.getElementById('freeCta').replaceWith(freeCurrent);
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'plan-cta plan-cta--premium';
-      btn.id = 'premiumCta';
-      btn.textContent = 'Upgrade to Premium';
-      btn.addEventListener('click', openModal);
-      premiumCta.replaceWith(btn);
-      premiumCta = btn;
+      swapPremiumCta(button('Upgrade to Premium', 'plan-cta--premium', startCheckout));
     }
+  }
+
+  // ---- back from Stripe Checkout -----------------------------------------
+  // ?checkout=success is only a hint: anyone can type it. Premium is real once
+  // /me says so, which happens when Stripe's webhook reaches the server,
+  // usually within a few seconds.
+  var banner = document.getElementById('checkoutBanner');
+  var params = new URLSearchParams(location.search);
+  var returning = params.get('checkout');
+  if (returning) {
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  }
+  if (returning === 'cancel' && window.pfToast) {
+    pfToast('Checkout canceled. You were not charged.', { duration: 6000 });
+  }
+
+  function waitForPremium() {
+    banner.textContent = 'Payment received. Turning on Premium...';
+    banner.className = 'checkout-banner';
+    banner.hidden = false;
+    var deadline = Date.now() + 90000;
+    (function poll() {
+      if (!window.pfMe) return;
+      pfMe({ fresh: true }).then(function (me) {
+        applyMe(me);
+        if (me && me.plan === 'premium') {
+          banner.textContent = 'You are on Premium. Unlimited rounds and real sources are on.';
+          banner.className = 'checkout-banner checkout-banner--done';
+          if (window.pfaiUpdatePlan) pfaiUpdatePlan('premium');
+          return;
+        }
+        if (Date.now() > deadline) {
+          banner.textContent = 'Your payment went through, but Premium has not switched on yet. Refresh in a minute, or email support@publicforumai.com and we will sort it out.';
+          return;
+        }
+        setTimeout(poll, 2500);
+      }).catch(function () {
+        if (Date.now() < deadline) setTimeout(poll, 4000);
+      });
+    })();
   }
 
   var snap = null;
   try { snap = JSON.parse(localStorage.getItem('pfai_auth_snapshot')); } catch (e) {}
-  if (!snap || !snap.uid) return; // signed out: keep login links
+  if (!snap || !snap.uid) return; // signed out: keep the sign-in links
 
-  applyPlan(snap.plan === 'premium' ? 'premium' : 'free');
+  applyMe({ plan: snap.plan === 'premium' ? 'premium' : 'free', billing: {} });
+  document.addEventListener('pfai:me', function (e) { applyMe(e.detail); });
 
-  document.addEventListener('pfai:me', function (e) {
-    var me = e.detail;
-    if (me) applyPlan(me.plan === 'premium' ? 'premium' : 'free');
-  });
-  if (window.pfMe) pfMe().catch(function () { /* snapshot state stands */ });
+  if (returning === 'success') waitForPremium();
+  // Apply the result directly: pfMe answers from its cache without firing
+  // pfai:me, and the cached answer still carries the billing details.
+  else if (window.pfMe) pfMe().then(applyMe).catch(function () { /* snapshot state stands */ });
 })();
 </script>
 </body>

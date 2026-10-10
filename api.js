@@ -467,6 +467,54 @@
     return null;
   }
 
+  // ---- billing ---------------------------------------------------------------
+  // Both calls hand back a Stripe-hosted URL and the page navigates there. The
+  // plan never changes here: only the server's webhook writes it, and the
+  // pricing page polls /me after Checkout returns.
+  var BILLING_ERRORS = {
+    billing_unconfigured: "Checkout is not open yet. Email support@publicforumai.com and we will set you up.",
+    billing_unavailable: "Stripe did not answer just now. Please try again in a minute.",
+    no_billing_account: "There is no billing account on file for this login yet."
+  };
+
+  async function pfBillingRedirect(path, json, button) {
+    var label = button ? button.textContent : "";
+    if (button) { button.disabled = true; button.textContent = "Opening Stripe..."; }
+    try {
+      var response = await pfFetch(path, json ? { json: json } : { json: {} },
+        { page: "Pricing", quiet: true, button: button, label: label });
+      var body = await response.json();
+      if (!body || typeof body.url !== "string" || body.url.indexOf("https://") !== 0) {
+        throw PfApiError("http_error", 500);
+      }
+      location.assign(body.url);
+      return true;
+    } catch (e) {
+      if (button) { button.disabled = false; button.textContent = label; }
+      var code = e && e.code;
+      if (code === "auth_required" || code === "email_unverified" || code === "rate_limited") throw e;
+      if (e && e.status === 409) {
+        // Already premium: the caller refreshes /me and repaints.
+        throw e;
+      }
+      // pfFetch reports the status, not the body, so the status picks the copy.
+      var message = e && e.status === 503 ? BILLING_ERRORS.billing_unconfigured
+        : e && e.status === 404 ? BILLING_ERRORS.no_billing_account
+        : e && e.code === "network" ? "Connection problem. Check your internet and try again."
+        : BILLING_ERRORS.billing_unavailable;
+      pfToast(message, { kind: "error", duration: 9000 });
+      throw e;
+    }
+  }
+
+  function pfBillingCheckout(interval, button) {
+    return pfBillingRedirect("/billing/checkout", { interval: interval === "year" ? "year" : "month" }, button);
+  }
+
+  function pfBillingPortal(button) {
+    return pfBillingRedirect("/billing/portal", null, button);
+  }
+
   window.pfFetch = pfFetch;
   window.pfToast = pfToast;
   window.pfCooldown = pfCooldown;
@@ -478,6 +526,8 @@
   window.pfRoundDelete = pfRoundDelete;
   window.pfRounds = pfRounds;
   window.pfRound = pfRound;
+  window.pfBillingCheckout = pfBillingCheckout;
+  window.pfBillingPortal = pfBillingPortal;
   window.pfRecoverRound = pfRecoverRound;
   window.pfMayStillBeRunning = pfMayStillBeRunning;
 })();

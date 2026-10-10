@@ -1385,12 +1385,24 @@ gtag('config', 'G-ERE3HL6LKB');
 
       const fill = $('quotaFill');
       const cta = $('planCta');
+      const billing = (me && me.billing) || {};
+      // Stripe subscribers manage billing in Stripe's portal, which returns
+      // them here. Everyone else keeps the plain link to the pricing page.
+      cta.dataset.portal = (premium && billing.source === 'stripe' && billing.manageable) ? '1' : '';
       if (premium) {
-        $('planNote').textContent = 'Premium · unlimited rounds';
+        let note = 'Premium · unlimited rounds';
+        const end = Number(billing.currentPeriodEnd);
+        if (billing.source === 'stripe' && end > 0) {
+          const date = new Date(end * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+          note = billing.cancelAtPeriodEnd ? 'Premium · ends ' + date
+            : billing.status === 'past_due' ? 'Premium · payment failed, update your card'
+            : 'Premium · renews ' + date + (billing.interval === 'year' ? ' (yearly)' : ' (monthly)');
+        }
+        $('planNote').textContent = note;
         fill.style.width = '100%';
         fill.classList.remove('is-full');
         fill.classList.add('is-premium');
-        cta.textContent = 'Manage plan';
+        cta.textContent = cta.dataset.portal ? 'Manage billing' : 'Your plan';
         cta.classList.add('acct-plan-cta--ghost');
       } else {
         $('planNote').textContent = 'Free · ' + started + ' of ' + cap + ' rounds started this month';
@@ -1402,6 +1414,12 @@ gtag('config', 'G-ERE3HL6LKB');
         cta.classList.remove('acct-plan-cta--ghost');
       }
     }
+
+    $('planCta').addEventListener('click', function (e) {
+      if (!this.dataset.portal || !window.pfBillingPortal) return; // plain link to pricing
+      e.preventDefault();
+      pfBillingPortal(this).catch(function () { /* toast already shown */ });
+    });
 
     // ── Two-factor authentication ─────────────────────────────────────────
     async function initMfa(user, me) {
