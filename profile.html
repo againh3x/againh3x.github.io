@@ -1422,7 +1422,13 @@ gtag('config', 'G-ERE3HL6LKB');
     });
 
     // ── Two-factor authentication ─────────────────────────────────────────
+    // Off until TOTP is enabled on the Firebase project (it has no console
+    // toggle; it takes an identitytoolkit admin/v2 config PATCH). With it off
+    // the card stays hidden, since enrolling would only fail.
+    const PF_MFA_ENABLED = false;
+
     async function initMfa(user, me) {
+      if (!PF_MFA_ENABLED) return;
       const authMod = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
       const { multiFactor, TotpMultiFactorGenerator, EmailAuthProvider,
               reauthenticateWithCredential, reauthenticateWithPopup,
