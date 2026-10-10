@@ -109,7 +109,10 @@ nav.toolbar #authSlot {
   position: relative;
 }
 
-nav.toolbar #authSlot a {
+/* Direct children only: the account menu also lives inside #authSlot, and
+   with an id in it this reset outranks every .user-menu rule, which stripped
+   the padding and hover background off the plan pill and the menu rows. */
+nav.toolbar #authSlot > a {
   text-decoration: none;
   background: none;
   position: static;
