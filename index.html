@@ -461,9 +461,12 @@ gtag('config', 'G-ERE3HL6LKB');
 .faq-toggle .faq-sign::after { transform: rotate(90deg); }
 .faq-toggle[aria-expanded="true"] .faq-sign::after { transform: rotate(0deg); }
 
+/* The panel is what animates. It has no padding, so its height can run
+   from 0; the answer's own padding would floor the height at 20px and make
+   the opening stall before it grows. */
+.faq-item .faq-panel { overflow: hidden; }
+
 .faq-item .faq-a {
-  box-sizing: border-box;
-  overflow: hidden;
   margin: 0;
   padding: 0 4px 20px;
   font-size: 15.5px;
@@ -616,42 +619,42 @@ gtag('config', 'G-ERE3HL6LKB');
         <span class="faq-q">How does the AI work?</span>
         <span class="faq-sign" aria-hidden="true"></span>
       </button>
-      <p class="faq-a" hidden>Our hybrid architecture combines several large language models and web search APIs that are fed example cases and combined through natural language processing techniques.</p>
+      <div class="faq-panel" hidden><p class="faq-a">Our hybrid architecture combines several large language models and web search APIs that are fed example cases and combined through natural language processing techniques.</p></div>
     </div>
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">Is this cheating?</span>
         <span class="faq-sign" aria-hidden="true"></span>
       </button>
-      <p class="faq-a" hidden>No. Our AI tools are not meant to be used in real rounds, and will not generate links to sources in rebuttal and summary for this reason. PublicForumAI is meant to help users prepare for rounds through real debate experience that can be accessed without human opponents anywhere, at any time.</p>
+      <div class="faq-panel" hidden><p class="faq-a">No. Our AI tools are not meant to be used in real rounds, and will not generate links to sources in rebuttal and summary for this reason. PublicForumAI is meant to help users prepare for rounds through real debate experience that can be accessed without human opponents anywhere, at any time.</p></div>
     </div>
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">Can I receive feedback after my round?</span>
         <span class="faq-sign" aria-hidden="true"></span>
       </button>
-      <p class="faq-a" hidden>Yes, you will receive structured AI feedback and a chosen "winner" upon completing a full practice round. You also have the option to choose between a tech and a lay judge, though we often find the feedback from the AI tech judge to be more helpful.</p>
+      <div class="faq-panel" hidden><p class="faq-a">Yes, you will receive structured AI feedback and a chosen "winner" upon completing a full practice round. You also have the option to choose between a tech and a lay judge, though we often find the feedback from the AI tech judge to be more helpful.</p></div>
     </div>
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">Is there a crossfire feature?</span>
         <span class="faq-sign" aria-hidden="true"></span>
       </button>
-      <p class="faq-a" hidden>While it is definitely possible, we do not yet have a crossfire feature that would be fast enough to replicate a real round. However, it's in the works.</p>
+      <div class="faq-panel" hidden><p class="faq-a">While it is definitely possible, we do not yet have a crossfire feature that would be fast enough to replicate a real round. However, it's in the works.</p></div>
     </div>
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">How long will a round take?</span>
         <span class="faq-sign" aria-hidden="true"></span>
       </button>
-      <p class="faq-a" hidden>The full practice round feature takes roughly the same amount of time as any PF round, just without crossfire. So, around 35 minutes with prep time.</p>
+      <div class="faq-panel" hidden><p class="faq-a">The full practice round feature takes roughly the same amount of time as any PF round, just without crossfire. So, around 35 minutes with prep time.</p></div>
     </div>
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">What if I'm new to debate and not good enough to debate the AI?</span>
         <span class="faq-sign" aria-hidden="true"></span>
       </button>
-      <p class="faq-a" hidden>We offer features meant to help debaters of all levels improve, including New2Debate and our middle school and high school levels.</p>
+      <div class="faq-panel" hidden><p class="faq-a">We offer features meant to help debaters of all levels improve, including New2Debate and our middle school and high school levels.</p></div>
     </div>
   </div>
 </section>
@@ -777,7 +780,7 @@ gtag('config', 'G-ERE3HL6LKB');
 
   function setOpen(item, open) {
     var btn = item.querySelector('.faq-toggle');
-    var answer = item.querySelector('.faq-a');
+    var answer = item.querySelector('.faq-panel');
     var isOpen = btn.getAttribute('aria-expanded') === 'true';
     if (isOpen === open) return;
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -792,7 +795,7 @@ gtag('config', 'G-ERE3HL6LKB');
       return;
     }
     var anim = answer.animate(
-      [{ height: from + 'px', opacity: open ? 0 : 1 }, { height: to + 'px', opacity: open ? 1 : 0 }],
+      [{ height: from + 'px' }, { height: to + 'px' }],
       { duration: 300, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
     );
     answer._anim = anim;
