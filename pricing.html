@@ -431,7 +431,7 @@ gtag('config', 'G-ERE3HL6LKB');
     <div class="billing-toggle-row">
     <div class="billing-toggle" role="group" aria-label="Billing period">
       <button type="button" id="billMonth" aria-pressed="true">Monthly</button>
-      <button type="button" id="billYear" aria-pressed="false">Yearly <span class="save-badge" id="saveBadge">Save 50%</span></button>
+      <button type="button" id="billYear" aria-pressed="false">Yearly <span class="save-badge" id="saveBadge">Save 34%</span></button>
     </div>
     </div>
 
@@ -549,7 +549,7 @@ gtag('config', 'G-ERE3HL6LKB');
         </div>
         <div class="faq-item">
           <h3>How does yearly billing work?</h3>
-          <p>You pay $59 once a year instead of $9.99 every month, which comes to about half the price over a season. It renews each year until you cancel.</p>
+          <p>You pay $79 once a year instead of $9.99 a month. That is about what one season costs month to month, and 34% less than paying monthly all year. It renews each year until you cancel.</p>
         </div>
         <div class="faq-item">
           <h3>Who handles the payment?</h3>
@@ -660,10 +660,10 @@ gtag('config', 'G-ERE3HL6LKB');
 // Prices live here and only here on the page. They must match the Stripe
 // prices behind STRIPE_PRICE_MONTHLY and STRIPE_PRICE_YEARLY, because Checkout
 // charges whatever Stripe says, not what this page shows.
-var PF_PRICES = { month: 9.99, year: 59 };
+var PF_PRICES = { month: 9.99, year: 79 };
 
 // The yearly discount against twelve monthly payments, rounded DOWN so the
-// badge can never promise more than the real saving (50.8% shows as 50%).
+// badge can never promise more than the real saving (34.1% shows as 34%).
 function pfYearlySavingPct() {
   return Math.floor((1 - PF_PRICES.year / (PF_PRICES.month * 12)) * 100);
 }
