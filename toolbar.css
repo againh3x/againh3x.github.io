@@ -5,7 +5,15 @@
    states render controls with identical outer geometry (40px SIGN IN pill or
    38px avatar button inside the 40px box). auth.js and the inline head
    snippet swap #authSlot content only; nothing inside the slot may change the
-   bar's size. */
+   bar's size.
+   The slot is also a fixed WIDTH. The nav links are centered in the space
+   between the logo and the slot, so a slot that was 99px for SIGN IN, 38px
+   for the avatar and 0px while a gated page checks auth moved the links ~50px
+   from page to page. */
+
+/* Reserve the scrollbar gutter on every page, long or short, so the bar sits
+   in the same place whether or not the page scrolls. */
+html { scrollbar-gutter: stable; }
 
 nav.toolbar {
   box-sizing: border-box;
@@ -92,9 +100,11 @@ nav.toolbar .nav-links a[aria-current="page"] {
 
 nav.toolbar #authSlot {
   flex: none;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  width: 104px;
   height: 40px;
   position: relative;
 }

@@ -362,25 +362,26 @@ gtag('config', 'G-ERE3HL6LKB');
   max-width: 44em;
 }
 
-.premium-strip-btn {
+.pf-page a.premium-strip-btn {
   display: inline-flex;
   align-items: center;
   height: 44px;
   padding: 0 22px;
   flex: none;
-  background: var(--pf-blue);
-  border: 1px solid var(--pf-selected-border);
+  background: rgba(252, 211, 77, 0.06);
+  border: 1px solid rgba(252, 211, 77, 0.45);
   border-radius: 6px;
-  color: #FFFFFF;
+  color: #FCD34D;
   font-size: 14.5px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
-  transition: border-color 0.3s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.premium-strip-btn:hover {
-  border-color: var(--pf-accent);
-  color: #FFFFFF;
+.pf-page a.premium-strip-btn:hover {
+  background: rgba(252, 211, 77, 0.14);
+  border-color: #FCD34D;
+  color: #FDE68A;
 }
 
 /* ===== Mission statement ===== */
@@ -437,14 +438,32 @@ gtag('config', 'G-ERE3HL6LKB');
 
 .faq-toggle:hover .faq-q { color: #FFFFFF; }
 
+/* Drawn plus whose vertical bar folds flat into a minus, so the sign
+   animates with the answer instead of swapping glyphs. */
 .faq-toggle .faq-sign {
+  position: relative;
   flex: none;
-  font-size: 20px;
-  line-height: 1;
-  color: var(--pf-accent);
+  width: 14px;
+  height: 14px;
 }
+.faq-toggle .faq-sign::before,
+.faq-toggle .faq-sign::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--pf-accent);
+  transition: transform 0.3s ease;
+}
+.faq-toggle .faq-sign::after { transform: rotate(90deg); }
+.faq-toggle[aria-expanded="true"] .faq-sign::after { transform: rotate(0deg); }
 
 .faq-item .faq-a {
+  box-sizing: border-box;
+  overflow: hidden;
   margin: 0;
   padding: 0 4px 20px;
   font-size: 15.5px;
@@ -595,42 +614,42 @@ gtag('config', 'G-ERE3HL6LKB');
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">How does the AI work?</span>
-        <span class="faq-sign" aria-hidden="true">+</span>
+        <span class="faq-sign" aria-hidden="true"></span>
       </button>
       <p class="faq-a" hidden>Our hybrid architecture combines several large language models and web search APIs that are fed example cases and combined through natural language processing techniques.</p>
     </div>
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">Is this cheating?</span>
-        <span class="faq-sign" aria-hidden="true">+</span>
+        <span class="faq-sign" aria-hidden="true"></span>
       </button>
       <p class="faq-a" hidden>No. Our AI tools are not meant to be used in real rounds, and will not generate links to sources in rebuttal and summary for this reason. PublicForumAI is meant to help users prepare for rounds through real debate experience that can be accessed without human opponents anywhere, at any time.</p>
     </div>
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">Can I receive feedback after my round?</span>
-        <span class="faq-sign" aria-hidden="true">+</span>
+        <span class="faq-sign" aria-hidden="true"></span>
       </button>
       <p class="faq-a" hidden>Yes, you will receive structured AI feedback and a chosen "winner" upon completing a full practice round. You also have the option to choose between a tech and a lay judge, though we often find the feedback from the AI tech judge to be more helpful.</p>
     </div>
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">Is there a crossfire feature?</span>
-        <span class="faq-sign" aria-hidden="true">+</span>
+        <span class="faq-sign" aria-hidden="true"></span>
       </button>
       <p class="faq-a" hidden>While it is definitely possible, we do not yet have a crossfire feature that would be fast enough to replicate a real round. However, it's in the works.</p>
     </div>
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">How long will a round take?</span>
-        <span class="faq-sign" aria-hidden="true">+</span>
+        <span class="faq-sign" aria-hidden="true"></span>
       </button>
       <p class="faq-a" hidden>The full practice round feature takes roughly the same amount of time as any PF round, just without crossfire. So, around 35 minutes with prep time.</p>
     </div>
     <div class="faq-item">
       <button class="faq-toggle" type="button" aria-expanded="false">
         <span class="faq-q">What if I'm new to debate and not good enough to debate the AI?</span>
-        <span class="faq-sign" aria-hidden="true">+</span>
+        <span class="faq-sign" aria-hidden="true"></span>
       </button>
       <p class="faq-a" hidden>We offer features meant to help debaters of all levels improve, including New2Debate and our middle school and high school levels.</p>
     </div>
@@ -747,19 +766,40 @@ gtag('config', 'G-ERE3HL6LKB');
 <script src="gate.js"></script>
 <script src="api.js"></script>
 <script>
-// FAQ accordion: one item open at a time, +/- sign toggles.
+// FAQ accordion: one item open at a time. Answers slide open and shut by
+// animating their height; hidden is only set once a close has finished, so
+// screen readers and find-in-page see the same state the eye does.
 (function () {
   var list = document.getElementById('faqList');
   if (!list) return;
   var items = list.querySelectorAll('.faq-item');
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function setOpen(item, open) {
     var btn = item.querySelector('.faq-toggle');
-    var sign = item.querySelector('.faq-sign');
     var answer = item.querySelector('.faq-a');
+    var isOpen = btn.getAttribute('aria-expanded') === 'true';
+    if (isOpen === open) return;
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    sign.textContent = open ? '–' : '+';
-    answer.hidden = !open;
+
+    // Start a reversal from wherever a running animation has got to.
+    var from = answer.hidden ? 0 : answer.getBoundingClientRect().height;
+    if (answer._anim) { answer._anim.cancel(); answer._anim = null; }
+    answer.hidden = false;
+    var to = open ? answer.scrollHeight : 0;
+    if (reduceMotion || !answer.animate) {
+      answer.hidden = !open;
+      return;
+    }
+    var anim = answer.animate(
+      [{ height: from + 'px', opacity: open ? 0 : 1 }, { height: to + 'px', opacity: open ? 1 : 0 }],
+      { duration: 300, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
+    );
+    answer._anim = anim;
+    anim.onfinish = function () {
+      answer._anim = null;
+      if (!open) answer.hidden = true;
+    };
   }
 
   for (var i = 0; i < items.length; i++) {
