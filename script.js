@@ -2749,12 +2749,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
-                // /get_sources answers 502 itself when Perplexity fails, and that
-        // request is over: nothing will land in the slot, so waiting on it
-        // only holds the student for minutes before the same outcome. Heroku's
-        // own timeout is a 503, which still goes through recovery.
-        const sourcesFailedOutright = sourcesStage && error && error.status === 502;
-        const recovered = !sourcesFailedOutright && await pfRecoverAfterTimeout(error, {
+                const recovered = await pfRecoverAfterTimeout(error, {
                     field: 'feedback',
                     isReady: function (doc) {
                         if (doc.status !== 'finished') return false;
@@ -2809,12 +2804,7 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
-                // /get_sources answers 502 itself when Perplexity fails, and that
-        // request is over: nothing will land in the slot, so waiting on it
-        // only holds the student for minutes before the same outcome. Heroku's
-        // own timeout is a 503, which still goes through recovery.
-        const sourcesFailedOutright = sourcesStage && error && error.status === 502;
-        const recovered = !sourcesFailedOutright && await pfRecoverAfterTimeout(error, {
+                const recovered = await pfRecoverAfterTimeout(error, {
                     field: 'feedback',
                     isReady: function (doc) {
                         if (doc.status !== 'finished') return false;
