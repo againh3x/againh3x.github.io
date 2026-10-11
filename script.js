@@ -1145,15 +1145,16 @@ function pfSourcedRound() {
     return window.__pfPlan === 'premium' && window.__pfEvidenceMode !== 'simulated';
 }
 
-// Loading-line estimates, set a little under what each Luna speech measured
-// (2026-10-11, real calls through the full pipeline): a sourced case ran
-// 38-49s, a sourced rebuttal 32-43s, summary 10-12s, final focus 8-11s, and
-// simulated speeches 6-13s. Erring short keeps the wait feeling quick.
+// Loading-line estimates, set a little under the median of each Luna speech
+// with the public forum rules (held-out validation run, 2026-10-11): sourced
+// case 38s, sourced rebuttal 28s, summary 11s, final focus 8s; simulated case
+// 9s, rebuttal 12s, summary 9s, final focus 6s. Erring short keeps the wait
+// feeling quick.
 var PF_SPEECH_WAIT = {
-    case: { sourced: 'Researching sources and writing (~35s)', simulated: 'Generating Case (~10s)' },
-    rebuttal: { sourced: 'Researching sources and writing (~30s)', simulated: 'Generating (~8 seconds)' },
+    case: { sourced: 'Researching sources and writing (~35s)', simulated: 'Generating Case (~8s)' },
+    rebuttal: { sourced: 'Researching sources and writing (~25s)', simulated: 'Generating (~10 seconds)' },
     summary: { sourced: 'Generating (~10 seconds)', simulated: 'Generating (~8 seconds)' },
-    ff: { sourced: 'Generating (~8 seconds)', simulated: 'Generating (~6 seconds)' }
+    ff: { sourced: 'Generating (~7 seconds)', simulated: 'Generating (~5 seconds)' }
 };
 function pfSpeechWait(kind) {
     return PF_SPEECH_WAIT[kind][pfSourcedRound() ? 'sourced' : 'simulated'];
@@ -2805,9 +2806,9 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
     const previousFeedback = document.getElementById('feedback-content').innerHTML;
     document.getElementById('feedback-content').innerHTML = ''
     document.querySelector('.loadingfeed').style.display = 'block';
-    // The tech judge measured 20-32s on Luna, the lay judge 6-12s.
+    // With the judging rules the tech judge's median is 30s, the lay judge's 12s.
     document.querySelector('.loadingfeed .text10').textContent =
-        judgeType === 'tech' ? 'Generating (~20 seconds)' : 'Generating (~6 seconds)';
+        judgeType === 'tech' ? 'Generating (~25 seconds)' : 'Generating (~10 seconds)';
     if (judgeType == 'tech') {
 
         pfFetch('/tech', {
