@@ -1078,6 +1078,20 @@ function pfSourcedRound() {
     return window.__pfPlan === 'premium' && window.__pfEvidenceMode !== 'simulated';
 }
 
+// Loading-line estimates, set a little under what each Luna speech measured
+// (2026-10-11, real calls through the full pipeline): a sourced case ran
+// 38-49s, a sourced rebuttal 32-43s, summary 10-12s, final focus 8-11s, and
+// simulated speeches 6-13s. Erring short keeps the wait feeling quick.
+var PF_SPEECH_WAIT = {
+    case: { sourced: 'Researching sources and writing (~35s)', simulated: 'Generating Case (~10s)' },
+    rebuttal: { sourced: 'Researching sources and writing (~30s)', simulated: 'Generating (~8 seconds)' },
+    summary: { sourced: 'Generating (~10 seconds)', simulated: 'Generating (~8 seconds)' },
+    ff: { sourced: 'Generating (~8 seconds)', simulated: 'Generating (~6 seconds)' }
+};
+function pfSpeechWait(kind) {
+    return PF_SPEECH_WAIT[kind][pfSourcedRound() ? 'sourced' : 'simulated'];
+}
+
 async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
     fullAIContentionRaw = '';
     const caseElement = document.getElementById('AIContentionText');
@@ -1089,8 +1103,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
     if (caseSources) caseSources.innerHTML = '';
     pfCellBusy('ai', 0, 'generating');
     document.querySelector('#AIContention .loading').style.display = 'block';
-    document.querySelector('#AIContention .text10').textContent =
-        pfSourcedRound() ? 'Researching sources and writing (~40s)' : 'Generating Case (~15s)';
+    document.querySelector('#AIContention .text10').textContent = pfSpeechWait('case');
 
     try {
         const response = await pfFetch('/generate_ai_case', {
@@ -2163,8 +2176,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
     fullAIRebuttal = ''; // Reset full AI rebuttal
     pfCellBusy('my', 1, 'generating');
     document.querySelector('.loadingRA').style.display = 'block';
-    document.querySelector('.loadingRA .text5').textContent =
-        pfSourcedRound() ? 'Researching sources and writing (~35s)' : 'Generating (~20 seconds)';
+    document.querySelector('.loadingRA .text5').textContent = pfSpeechWait('rebuttal');
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
@@ -2238,6 +2250,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
     const selectedTurn = document.getElementById('selectedTurn').textContent;
     pfCellBusy('ai', 2, 'generating');
     document.querySelector('.loadingSA').style.display = 'block';
+    document.querySelector('.loadingSA .text2').textContent = pfSpeechWait('summary');
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
@@ -2319,6 +2332,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription, transcriptionR, transcriptionS, AICase, AIRebuttal, AISummary) {
     pfCellBusy('my', 3, 'generating');
     document.querySelector('.loadingFFA').style.display = 'block';
+    document.querySelector('.loadingFFA .text7').textContent = pfSpeechWait('ff');
     pfFetch('/finalfocus', {
         json: pfWithRoundId({
             debateTopic: debateTopic,
@@ -2714,6 +2728,9 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
     const previousFeedback = document.getElementById('feedback-content').innerHTML;
     document.getElementById('feedback-content').innerHTML = ''
     document.querySelector('.loadingfeed').style.display = 'block';
+    // The tech judge measured 20-22s on Luna, the lay judge about 7s.
+    document.querySelector('.loadingfeed .text10').textContent =
+        judgeType === 'tech' ? 'Generating (~18 seconds)' : 'Generating (~6 seconds)';
     if (judgeType == 'tech') {
 
         pfFetch('/tech', {
