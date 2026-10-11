@@ -402,8 +402,11 @@ input, textarea, button, select { font: inherit; color: inherit; }
 /* ===== Cell content: the backend's flat strings, sanitized, pre-wrap ===== */
 .cell-text {
   margin-top: 12px;
-  font-size: 13.5px;
-  line-height: 1.5;
+  /* Speech and flow text is read at length; Inter at 15px reads easier than
+     the 13.5px Archivo the UI chrome uses. */
+  font-family: 'Inter', Archivo, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
   color: #D3EBFA;
   white-space: pre-wrap;
   overflow-wrap: break-word;

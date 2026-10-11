@@ -2728,9 +2728,9 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
     const previousFeedback = document.getElementById('feedback-content').innerHTML;
     document.getElementById('feedback-content').innerHTML = ''
     document.querySelector('.loadingfeed').style.display = 'block';
-    // The tech judge measured 20-22s on Luna, the lay judge about 7s.
+    // The tech judge measured 20-32s on Luna, the lay judge 6-12s.
     document.querySelector('.loadingfeed .text10').textContent =
-        judgeType === 'tech' ? 'Generating (~18 seconds)' : 'Generating (~6 seconds)';
+        judgeType === 'tech' ? 'Generating (~20 seconds)' : 'Generating (~6 seconds)';
     if (judgeType == 'tech') {
 
         pfFetch('/tech', {
