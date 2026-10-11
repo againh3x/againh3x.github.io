@@ -479,7 +479,7 @@
 
   async function pfBillingRedirect(path, json, button) {
     var label = button ? button.textContent : "";
-    if (button) { button.disabled = true; button.textContent = "Opening Stripe..."; }
+    if (button) { button.disabled = true; button.textContent = "Loading..."; }
     try {
       var response = await pfFetch(path, json ? { json: json } : { json: {} },
         { page: "Pricing", quiet: true, button: button, label: label });
