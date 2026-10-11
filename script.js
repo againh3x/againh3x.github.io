@@ -491,10 +491,21 @@ function applyServerRound(doc, selectedSide, nonselectedSide) {
     if (typeof doc.transcriptionS === 'string' && doc.transcriptionS) fullTranscriptionSummary = doc.transcriptionS;
     if (typeof doc.transcriptionF === 'string' && doc.transcriptionF) fullTranscriptionFF = doc.transcriptionF;
 
-    renderInto('AIContentionText', doc.AICase);
-    renderInto('AIRebuttalText', doc.AIRebuttal);
-    renderInto('AISummaryText', doc.AISummary);
-    renderInto('AIFFText', doc.AIFinalFocus);
+    // AI speeches: a sourced copy in the round wins over the local HTML,
+    // because only the round has the source list to go under it. Otherwise
+    // the usual fill-the-gaps rule applies.
+    var roundSources = pfParseSources(doc.sources);
+    Object.keys(PF_AI_SLOTS).forEach(function (slot) {
+        var plain = doc[slot];
+        if (typeof plain !== 'string' || plain.trim() === '') return;
+        var sourced = doc[slot + 'Sourced'];
+        if (typeof sourced === 'string' && sourced && pfSourcesUsed(sourced, roundSources).length) {
+            renderAISpeech(slot, plain, sourced, roundSources);
+        } else {
+            window.__pfAIPlain[slot] = plain;
+            renderInto(PF_AI_SLOTS[slot].text, plain);
+        }
+    });
 
     // The server never sees the rendered flow HTML, only the transcripts, so
     // on a device without the local save the user's cells fall back to the
@@ -1004,22 +1015,85 @@ async function startSpeakingR() {
         await speakFromElement('AIRebuttalText', () => isSpeakingR, playAudioQueueR);
     }
 }
+// ---- AI speeches and their citations -----------------------------------------
+// A premium round's speeches come back as plain text plus a "sourced" copy
+// carrying [S#] tags and the round's cumulative source list. citations.js
+// turns the sourced copy into clickable author-year links over a per-speech
+// source list. Free rounds (simulated evidence) and speeches with no sources
+// render as plain text, exactly as before.
+var PF_AI_SLOTS = {
+    AICase: { text: 'AIContentionText', list: 'AIContentionSources' },
+    AIRebuttal: { text: 'AIRebuttalText', list: 'AIRebuttalSources' },
+    AISummary: { text: 'AISummaryText', list: 'AISummarySources' },
+    AIFinalFocus: { text: 'AIFFText', list: 'AIFFSources' }
+};
+
+// The plain text of each AI speech as the server last gave it to this page.
+// Timeout recovery uses it to tell a new speech in the round slot from the
+// one already showing, which matters on a premium Redo where the slot still
+// holds the previous take.
+window.__pfAIPlain = { AICase: '', AIRebuttal: '', AISummary: '', AIFinalFocus: '' };
+
+function pfParseSources(raw) {
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw !== 'string' || raw === '') return [];
+    try {
+        var parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (e) { return []; }
+}
+
+// The round's source list is cumulative; each speech lists only what it cites.
+function pfSourcesUsed(sourced, sources) {
+    var used = {};
+    String(sourced || '').replace(/\[S(\d+)\]|\{\{S(\d+)\|/g, function (_, a, b) {
+        used['S' + (a || b)] = true;
+        return _;
+    });
+    return (sources || []).filter(function (s) { return s && used[s.tag]; });
+}
+
+function renderAISpeech(slot, plain, sourced, sources) {
+    var ids = PF_AI_SLOTS[slot];
+    var listEl = document.getElementById(ids.list);
+    if (typeof plain === 'string') window.__pfAIPlain[slot] = plain;
+    var used = (typeof sourced === 'string' && sourced) ? pfSourcesUsed(sourced, sources) : [];
+    if (used.length && window.pfCitations) {
+        pfCitations.renderInto(ids.text, ids.list, sourced, used);
+        return;
+    }
+    document.getElementById(ids.text).innerHTML =
+        '<p>' + pfSanitize(String(plain || '').replace(/µ/g, '').replace(/\*\*/g, '')) + '</p>';
+    if (listEl) listEl.innerHTML = '';
+}
+
+// Render a speech straight off a speech endpoint's response.
+function renderAISpeechResponse(slot, key, data) {
+    renderAISpeech(slot, data[key], data[key + 'Sourced'], data.sources);
+}
+
+// A premium round on real evidence researches its sources on the web, which
+// takes longer than writing alone; the loading line says so.
+function pfSourcedRound() {
+    return window.__pfPlan === 'premium' && window.__pfEvidenceMode !== 'simulated';
+}
+
 async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
     fullAIContentionRaw = '';
     const caseElement = document.getElementById('AIContentionText');
+    const caseSources = document.getElementById('AIContentionSources');
     const previousCase = caseElement.innerHTML;
+    const previousSources = caseSources ? caseSources.innerHTML : '';
     let caseGenerated = false;
-    let sourcesStage = false;
     caseElement.innerHTML = '';
+    if (caseSources) caseSources.innerHTML = '';
     pfCellBusy('ai', 0, 'generating');
     document.querySelector('#AIContention .loading').style.display = 'block';
-    // Update text within AIContention's loading
-    document.querySelector('#AIContention .text10').textContent = 'Generating Case (~15s)';
-
+    document.querySelector('#AIContention .text10').textContent =
+        pfSourcedRound() ? 'Researching sources and writing (~40s)' : 'Generating Case (~15s)';
 
     try {
-        // First API call to generate AI case
-        const response1 = await pfFetch('/generate_ai_case', {
+        const response = await pfFetch('/generate_ai_case', {
             json: pfWithRoundId({
                 debateTopic: debateTopic,
                 nonselectedSide: nonselectedSide,
@@ -1027,86 +1101,21 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
             })
         }, { page: 'Flow', button: generateButtonAI, label: 'Generate', recoverable: true });
 
-
-        const data1 = await response1.json();
-        const AICase = data1.AICase;
-
-        // Show the case as soon as it exists. /get_sources replaces it below
-        // when it works; when it fails the student still has the case that was
-        // generated for them. The evidence markers and bold markup that
-        // /get_sources would have stripped are stripped here too, because this
-        // text is what the judge reads back off the page.
-        if (typeof AICase === 'string' && AICase.trim() !== '') {
+        const data = await response.json();
+        if (typeof data.AICase === 'string' && data.AICase.trim() !== '') {
             caseGenerated = true;
-            const plainCase = AICase.replace(/µ/g, '').replace(/\*\*/g, '');
-            caseElement.innerHTML = "<p>" + pfSanitize(plainCase) + "</p>";
-        }
-
-        // Real sources are a Premium feature; free rounds run on simulated
-        // evidence and never call /get_sources (the server rejects it anyway).
-        const wantSources = window.__pfPlan === 'premium' && window.__pfEvidenceMode !== 'simulated';
-        if (wantSources) {
-            sourcesStage = true;
-            // Update loading text
-            document.querySelector('#AIContention .text10').textContent = 'Finding Sources (~10s)';
-
-
-            // Second API call to get sources
-            const response2 = await pfFetch('/get_sources', {
-                json: pfWithRoundId({
-                    AICase: AICase
-                })
-            }, { page: 'Flow', button: generateButtonAI, label: 'Generate', recoverable: true });
-
-
-            const data2 = await response2.json();
-            const modifiedAICase = data2.AICase;
-
-
-            // Display the AI case with sources, keeping the sourceless one if the
-            // sourced version came back empty.
-            if (typeof modifiedAICase === 'string' && modifiedAICase.trim() !== '') {
-                caseElement.innerHTML = "<p>" + pfSanitize(modifiedAICase) + "</p>";
-            }
+            renderAISpeechResponse('AICase', 'AICase', data);
         }
     } catch (error) {
         console.error('Error processing user input:', error);
-        // Both calls write the same slot, so one recovery covers either one
-        // timing out: /generate_ai_case leaves the plain case there and
-        // /get_sources overwrites it with the sourced version.
-        const staleCase = caseElement.innerHTML;
-        const renderCase = function (value) {
-            return '<p>' + pfSanitize(value.replace(/µ/g, '').replace(/\*\*/g, '')) + '</p>';
-        };
-        // /get_sources answers 502 itself when Perplexity fails, and that
-        // request is over: nothing will land in the slot, so waiting on it
-        // only holds the student for minutes before the same outcome. Heroku's
-        // own timeout is a 503, which still goes through recovery.
-        const sourcesFailedOutright = sourcesStage && error && error.status === 502;
-        const recovered = !sourcesFailedOutright && await pfRecoverAfterTimeout(error, {
-            field: 'AICase',
-            // When /get_sources is the call that timed out, the plain case is
-            // already on screen and in the slot, so "answered" means the slot
-            // renders to something other than what is showing: the sourced
-            // version landing is the whole point of waiting.
-            isReady: function (doc) {
-                var value = doc.AICase;
-                return typeof value === 'string' && value.trim() !== '' && renderCase(value) !== staleCase;
-            },
-            setWait: function () {
-                document.querySelector('#AIContention .text10').textContent = 'Still writing, hold on';
-            },
-            apply: function (value) {
-                caseGenerated = true;
-                caseElement.innerHTML = renderCase(value);
-            }
+        const recovered = await pfRecoverAiSpeech(error, 'AICase', function () {
+            document.querySelector('#AIContention .text10').textContent = 'Still writing, hold on';
         });
-        if (!recovered) {
-            if (!caseGenerated) {
-                caseElement.innerHTML = previousCase;
-            } else if (window.pfToast) {
-                pfToast('Your case is ready, but sources could not be attached this time. It will argue the same points with no citations behind them.', { duration: 9000 });
-            }
+        if (recovered) {
+            caseGenerated = true;
+        } else if (!caseGenerated) {
+            caseElement.innerHTML = previousCase;
+            if (caseSources) caseSources.innerHTML = previousSources;
         }
     } finally {
         // Hide the loading animation and reset UI elements
@@ -2154,6 +2163,8 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
     fullAIRebuttal = ''; // Reset full AI rebuttal
     pfCellBusy('my', 1, 'generating');
     document.querySelector('.loadingRA').style.display = 'block';
+    document.querySelector('.loadingRA .text5').textContent =
+        pfSourcedRound() ? 'Researching sources and writing (~35s)' : 'Generating (~20 seconds)';
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
@@ -2172,15 +2183,13 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
 
 
                 // Get the AI response from the data
-                const { AISecondRebuttal } = data;
-                // Display the AI response
-                document.getElementById('AIRebuttalText').innerHTML = "<p>" + pfSanitize(AISecondRebuttal) + "</p>";
+                renderAISpeechResponse('AIRebuttal', 'AISecondRebuttal', data);
 
 
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
-                await pfRecoverAiSpeech(error, 'AIRebuttal', 'AIRebuttalText');
+                await pfRecoverAiSpeech(error, 'AIRebuttal');
             })
             .finally(() => {
                 // Hide the loading animation
@@ -2205,15 +2214,13 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
 
 
                 // Get the AI response from the data
-                const { AIFirstRebuttal } = data;
-                // Display the AI response
-                document.getElementById('AIRebuttalText').innerHTML = "<p>" + pfSanitize(AIFirstRebuttal) + "</p>";
+                renderAISpeechResponse('AIRebuttal', 'AIFirstRebuttal', data);
 
 
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
-                await pfRecoverAiSpeech(error, 'AIRebuttal', 'AIRebuttalText');
+                await pfRecoverAiSpeech(error, 'AIRebuttal');
             })
             .finally(() => {
                 // Hide the loading animation
@@ -2253,15 +2260,13 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 
 
                 // Get the AI response from the data
-                const { AISecondSummary } = data;
-                // Display the AI response
-                document.getElementById('AISummaryText').innerHTML = "<p>" + pfSanitize(AISecondSummary) + "</p>";
+                renderAISpeechResponse('AISummary', 'AISecondSummary', data);
 
 
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
-                await pfRecoverAiSpeech(error, 'AISummary', 'AISummaryText');
+                await pfRecoverAiSpeech(error, 'AISummary');
             })
             .finally(() => {
                 // Hide the loading animation
@@ -2291,15 +2296,13 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 
 
                 // Get the AI response from the data
-                const { AIFirstSummary } = data;
-                // Display the AI response
-                document.getElementById('AISummaryText').innerHTML = "<p>" + pfSanitize(AIFirstSummary) + "</p>";
+                renderAISpeechResponse('AISummary', 'AIFirstSummary', data);
 
 
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
-                await pfRecoverAiSpeech(error, 'AISummary', 'AISummaryText');
+                await pfRecoverAiSpeech(error, 'AISummary');
             })
             .finally(() => {
                 // Hide the loading animation
@@ -2332,17 +2335,11 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
         .then(response => response.json()) // Parse JSON response
         .then(data => {
             // Get the AI response from the data
-            const { AIFinalFocus } = data;
-
-
-
-
-            // Display the AI response
-            document.getElementById('AIFFText').innerHTML = "<p>" + pfSanitize(AIFinalFocus) + "</p>";
+            renderAISpeechResponse('AIFinalFocus', 'AIFinalFocus', data);
         })
         .catch(async error => {
             console.error('Error processing user input:', error);
-            await pfRecoverAiSpeech(error, 'AIFinalFocus', 'AIFFText');
+            await pfRecoverAiSpeech(error, 'AIFinalFocus');
         })
         .finally(() => {
             // Hide the loading animation
@@ -2671,17 +2668,20 @@ function pfJudgeHtml(feedback, judgeType) {
   return '<p>' + html + '</p>';
 }
 
-function pfRecoverAiSpeech(error, field, cellId, render) {
-  var el = document.getElementById(cellId);
-  var stale = el.innerHTML;
-  render = render || function (value) { return '<p>' + pfSanitize(value) + '</p>'; };
+function pfRecoverAiSpeech(error, slot, setWait) {
+  // "New" means the slot holds something other than the speech this page
+  // last rendered for it: on a premium Redo the old take is still there.
+  var shown = window.__pfAIPlain[slot] || '';
   return pfRecoverAfterTimeout(error, {
-    field: field,
+    field: slot,
     isReady: function (doc) {
-      var value = doc[field];
-      return typeof value === 'string' && value.trim() !== '' && render(value) !== stale;
+      var value = doc[slot];
+      return typeof value === 'string' && value.trim() !== '' && value !== shown;
     },
-    apply: function (value) { el.innerHTML = render(value); }
+    setWait: setWait,
+    apply: function (value, doc) {
+      renderAISpeech(slot, value, doc[slot + 'Sourced'], pfParseSources(doc.sources));
+    }
   });
 }
 

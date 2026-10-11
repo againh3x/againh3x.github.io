@@ -550,6 +550,7 @@ body.pf-page {
           <p class="cw-note" id="outputNote" hidden></p>
           <h2 id="caseResolution"></h2>
           <div id="Output"></div>
+          <div id="OutputSources" class="pf-sources"></div>
           <p class="cw-disclaimer">Check every citation before you use it. Evidence is retrieved automatically and can be wrong.</p>
         </div>
 
@@ -650,6 +651,7 @@ body.pf-page {
 <script src="sanitize.js"></script>
 <script src="gate.js"></script>
 <script src="api.js"></script>
+<script src="citations.js"></script>
 
 <script>
 (function () {
@@ -719,14 +721,26 @@ body.pf-page {
     outputNoteEl.hidden = true;
   }
 
-  // The µ markers and ** are stripped by /get_sources server-side. On the
-  // sources-failed path that cleanup never runs, so do it here for both paths:
-  // this text is what the student copies out.
-  function renderCase(text) {
+  // A premium case arrives with its sources: the sourced copy renders as
+  // clickable author-year links over a source list, and the copied text gets
+  // the list appended so the links survive the paste. A free case (simulated
+  // evidence) renders plain. µ and ** are stripped either way, because this
+  // is what the student copies out.
+  function renderCase(text, sourced, sources) {
     var cleaned = String(text == null ? '' : text).replace(/µ/g, '').replace(/\*\*/g, '');
-    document.getElementById('Output').innerHTML = '<p>' + pfSanitize(cleaned) + '</p>';
+    var sourcesEl = document.getElementById('OutputSources');
+    var list = Array.isArray(sources) ? sources : [];
+    if (sourced && list.length && window.pfCitations) {
+      pfCitations.renderInto('Output', 'OutputSources', sourced, list);
+      lastCaseText = cleaned + '\n\nSources:\n' + list.map(function (s, i) {
+        return (i + 1) + '. ' + (s.cite || s.tag) + ': ' + (s.title || '') + (s.url ? ' (' + s.url + ')' : '');
+      }).join('\n');
+    } else {
+      document.getElementById('Output').innerHTML = '<p>' + pfSanitize(cleaned) + '</p>';
+      if (sourcesEl) sourcesEl.innerHTML = '';
+      lastCaseText = cleaned;
+    }
     document.getElementById('caseResolution').textContent = lastCaseTopic;
-    lastCaseText = cleaned;
     hasCase = true;
     showState('stateDone');
   }
@@ -879,11 +893,13 @@ body.pf-page {
     lastCaseText = '';
     lastCaseTopic = topic;
     clearOutputNote();
-    document.getElementById('loadingSub').textContent = 'About 15 seconds. Sources are pulled after the draft.';
+    document.getElementById('loadingSub').textContent = planPremium
+      ? 'About 40 seconds. Every source is researched and its link checked.'
+      : 'About 15 seconds.';
     showState('stateLoading');
 
-    // Tracks whether the case itself arrived, so a failure in the
-    // sources call is reported as a partial success rather than a loss.
+    // Tracks whether the case itself arrived, so a failure after it rendered
+    // is reported as a partial success rather than a loss.
     var caseRendered = false;
     // Refresh the cached /me after anything that moved the monthly quota.
     var quotaTouched = false;
@@ -902,30 +918,11 @@ body.pf-page {
       var data1 = await response1.json();
       var AICase = data1.AICase;
 
-      // Show the case the moment it exists. Sources are an upgrade on
-      // top of it, not a condition for showing it.
-      renderCase(AICase);
+      // One call returns the case with its sources already attached.
+      renderCase(AICase, data1.AICaseSourced, data1.sources);
       caseRendered = true;
-
-      // Real linked sources are a Premium feature server-side; free cases
-      // ship with simulated evidence already baked in, so skip the call.
-      if (planPremium) {
-        showOutputNote('Finding sources (about 10 seconds)');
-
-        var response2 = await pfFetch('/get_sources', {
-          json: { AICase: AICase }
-        }, { page: 'casewriter', button: generateBtn, label: 'Generate case', noUpsell: true });
-
-        var data2 = await response2.json();
-
-        // Replace the case with the sourced version, but never with an
-        // empty one: the case already on screen is worth more.
-        if (data2 && typeof data2.AICase === 'string' && data2.AICase.trim()) {
-          clearOutputNote();
-          renderCase(data2.AICase);
-        } else {
-          showOutputNote(SOURCES_MISSING_NOTE);
-        }
+      if (planPremium && !(data1.sources && data1.sources.length)) {
+        showOutputNote(SOURCES_MISSING_NOTE);
       }
     } catch (error) {
       console.error('Error processing user input:', error);

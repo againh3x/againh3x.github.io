@@ -148,6 +148,37 @@
       throw PfApiError("network", 0);
     }
 
+    // Streamed routes (the Luna speech, flow and judge calls) send a 200 at
+    // once and keep the connection open with spaces until the JSON is ready,
+    // because a sourced speech outlasts Heroku's 30 second first-byte cutoff.
+    // A failure after that 200 can only travel in the body, as
+    // {"error": ..., "status": n}, so it is unpacked here into the response it
+    // stands for and goes through the same handling as any other error. The
+    // request is over either way: streamedFailure keeps it out of the timeout
+    // recovery, which would otherwise wait minutes for a result that is not
+    // coming. A body that does not parse means the connection dropped
+    // mid-stream, and that one may still finish on the server.
+    var streamedFailure = false;
+    if (response.ok && response.headers.get("X-PF-Stream") === "1") {
+      var streamedText;
+      try { streamedText = await response.text(); } catch (e) { streamedText = null; }
+      var streamed = null;
+      try { streamed = JSON.parse(streamedText); } catch (e) {}
+      if (!streamed || typeof streamed !== "object") {
+        if (!opts.quiet && !opts.recoverable) pfToast("Connection problem. Check your internet and try again.", { kind: "error" });
+        throw PfApiError("network", 0);
+      }
+      var jsonHeaders = { "Content-Type": "application/json" };
+      if (typeof streamed.error === "string") {
+        var inBandStatus = Number(streamed.status);
+        if (!(inBandStatus >= 400 && inBandStatus <= 599)) inBandStatus = 502;
+        response = new Response(streamedText, { status: inBandStatus, headers: jsonHeaders });
+        streamedFailure = true;
+      } else {
+        return new Response(streamedText, { status: 200, headers: jsonHeaders });
+      }
+    }
+
     if (response.ok) return response;
 
     var payload = null;
@@ -200,11 +231,12 @@
     // and fetching the result the dyno finished after the router hung up. Only
     // those statuses are silenced here; a 500 or a 4xx still toasts, because
     // there is nothing on the server to go and collect.
-    var gatewayGaveUp = response.status === 502 || response.status === 503 || response.status === 504;
+    var gatewayGaveUp = !streamedFailure &&
+      (response.status === 502 || response.status === 503 || response.status === 504);
     if (!opts.quiet && !(opts.recoverable && gatewayGaveUp)) {
       pfToast("Something went wrong on our end. Please try again.", { kind: "error" });
     }
-    throw PfApiError("http_error", response.status);
+    throw PfApiError("http_error", response.status, streamedFailure ? { final: true } : null);
   }
 
   // ---- upsell modal ---------------------------------------------------------
@@ -441,7 +473,7 @@
   // Errors that mean "the server may still be working on it". A 500 is excluded
   // on purpose: our handler raised, so it never reached the line that persists.
   function pfMayStillBeRunning(err) {
-    if (!err) return false;
+    if (!err || err.final) return false;
     if (err.code === "network") return true;
     return err.code === "http_error" && (err.status === 502 || err.status === 503 || err.status === 504);
   }

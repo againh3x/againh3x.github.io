@@ -541,6 +541,7 @@ gtag('config', 'G-ERE3HL6LKB');
   <script src="sanitize.js"></script>
   <script src="gate.js"></script>
   <script src="api.js"></script>
+<script src="citations.js"></script>
   <script>
     function getParam(name){ return new URL(location.href).searchParams.get(name); }
 
@@ -672,6 +673,36 @@ gtag('config', 'G-ERE3HL6LKB');
           el.textContent = 'Empty';
         }
       });
+
+      // A premium round's AI speeches carry their citations: re-render those
+      // cells as clickable author-year links with the speech's sources under
+      // it. The round keeps one cumulative list, so each cell gets only the
+      // sources it cites.
+      var roundSources = [];
+      try {
+        roundSources = Array.isArray(round.sources) ? round.sources : JSON.parse(round.sources || '[]');
+      } catch (e) { roundSources = []; }
+      if (window.pfCitations && Array.isArray(roundSources) && roundSources.length) {
+        [['AICase', 'AICaseSourced'], ['AIRebuttal', 'AIRebuttalSourced'],
+         ['AISummary', 'AISummarySourced'], ['AIFF', 'AIFinalFocusSourced']].forEach(function (pair) {
+          var sourced = round[pair[1]];
+          var el = document.getElementById(pair[0]);
+          if (!el || typeof sourced !== 'string' || !sourced) return;
+          var used = {};
+          sourced.replace(/\[S(\d+)\]|\{\{S(\d+)\|/g, function (m, x, y) { used['S' + (x || y)] = true; return m; });
+          var mine = roundSources.filter(function (src) { return src && used[src.tag]; });
+          if (!mine.length) return;
+          var listId = pair[0] + 'Sources';
+          var listEl = document.getElementById(listId);
+          if (!listEl) {
+            listEl = document.createElement('div');
+            listEl.id = listId;
+            listEl.className = 'pf-sources';
+            el.parentNode.insertBefore(listEl, el.nextSibling);
+          }
+          pfCitations.renderInto(pair[0], listId, sourced, mine);
+        });
+      }
 
       // Feedback panel + ballot links.
       var feedbackText = (typeof round.Feedback === 'string' && round.Feedback.trim()) ? round.Feedback
