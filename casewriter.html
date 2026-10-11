@@ -905,6 +905,40 @@ body.pf-page {
     // Refresh the cached /me after anything that moved the monthly quota.
     var quotaTouched = false;
 
+    // Live progress: research steps under the loading line, then the case
+    // itself as it is written. renderCase replaces the draft at the end.
+    var liveDraft = '';
+    var liveQueued = false;
+    var loadingSubEl = document.getElementById('loadingSub');
+    var loadingSubText = loadingSubEl.textContent;
+    function paintLive() {
+      liveQueued = false;
+      if (!liveDraft) return;
+      document.getElementById('Output').innerHTML =
+        '<p>' + pfSanitize(window.pfLiveText ? pfLiveText(liveDraft) : liveDraft) + '<span class="pf-caret"></span></p>';
+    }
+    function onLiveEvent(event) {
+      if (event.type === 'status') {
+        var line = event.kind === 'search' ? 'Searching: ' + event.text
+          : event.kind === 'read' ? 'Reading ' + event.text : (event.text || '');
+        loadingSubEl.textContent = line || loadingSubText;
+      } else if (event.type === 'delta') {
+        if (!liveDraft) {
+          document.getElementById('caseResolution').textContent = lastCaseTopic;
+          var sourcesEl = document.getElementById('OutputSources');
+          if (sourcesEl) sourcesEl.innerHTML = '';
+          showState('stateDone');
+        }
+        liveDraft += event.text || '';
+        if (!liveQueued) { liveQueued = true; requestAnimationFrame(paintLive); }
+      } else if (event.type === 'reset') {
+        liveDraft = '';
+        document.getElementById('Output').innerHTML = '';
+        loadingSubEl.textContent = event.text || loadingSubText;
+        showState('stateLoading');
+      }
+    }
+
     try {
       var response1 = await pfFetch('/generate_ai_casewriter', {
         json: {
@@ -913,7 +947,7 @@ body.pf-page {
           selectedSkill: skill,
           contentions: contentions
         }
-      }, { page: 'casewriter', button: generateBtn, label: 'Generate case' });
+      }, { page: 'casewriter', button: generateBtn, label: 'Generate case', onEvent: onLiveEvent });
       quotaTouched = true;
 
       var data1 = await response1.json();

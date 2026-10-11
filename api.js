@@ -122,6 +122,11 @@
   //   opts.label     label to restore on that button after the countdown
   //   opts.retry429  throw a silent rate_limited error (scope user) so the
   //                  caller can wait retryAfter seconds and retry itself
+  //   opts.onEvent   ask a Luna route for live progress: it then streams
+  //                  newline-delimited events (status lines, the speech text
+  //                  as it is written, a reset before a citation retry), each
+  //                  handed to this callback, and pfFetch still resolves to the
+  //                  route's ordinary response once the result line arrives.
   //   opts.quiet     skip the generic server-error toast. For background work
   //                  the user did not ask for, where the page already has a
   //                  local copy of whatever failed to send. Auth, verification
@@ -139,6 +144,7 @@
 
     var token = await getAuthToken();
     if (token) headers["Authorization"] = "Bearer " + token;
+    if (typeof opts.onEvent === "function") headers["X-PF-Events"] = "1";
 
     var response;
     try {
@@ -159,6 +165,48 @@
     // coming. A body that does not parse means the connection dropped
     // mid-stream, and that one may still finish on the server.
     var streamedFailure = false;
+    if (response.ok && response.headers.get("X-PF-Stream") === "events") {
+      var resultEvent = null;
+      try {
+        var reader = response.body.getReader();
+        var decoder = new TextDecoder();
+        var pending = "";
+        for (;;) {
+          var chunk = await reader.read();
+          if (chunk.done) break;
+          pending += decoder.decode(chunk.value, { stream: true });
+          var newline;
+          while ((newline = pending.indexOf("\n")) >= 0) {
+            var rawLine = pending.slice(0, newline);
+            pending = pending.slice(newline + 1);
+            if (!rawLine.trim()) continue;
+            var event;
+            try { event = JSON.parse(rawLine); } catch (e) { continue; }
+            if (event.type === "result") {
+              resultEvent = event;
+            } else if (event.type !== "ping" && event.type !== "open" && typeof opts.onEvent === "function") {
+              try { opts.onEvent(event); } catch (e) { console.error("onEvent failed", e); }
+            }
+          }
+        }
+      } catch (e) {
+        resultEvent = null;
+      }
+      if (!resultEvent) {
+        // The connection dropped mid-stream; the server may still finish.
+        if (!opts.quiet && !opts.recoverable) pfToast("Connection problem. Check your internet and try again.", { kind: "error" });
+        throw PfApiError("network", 0);
+      }
+      var resultText = JSON.stringify(resultEvent.body || {});
+      var resultHeaders = { "Content-Type": "application/json" };
+      var resultStatus = Number(resultEvent.status) || 200;
+      if (resultStatus >= 400) {
+        response = new Response(resultText, { status: resultStatus, headers: resultHeaders });
+        streamedFailure = true;
+      } else {
+        return new Response(resultText, { status: 200, headers: resultHeaders });
+      }
+    }
     if (response.ok && response.headers.get("X-PF-Stream") === "1") {
       var streamedText;
       try { streamedText = await response.text(); } catch (e) { streamedText = null; }

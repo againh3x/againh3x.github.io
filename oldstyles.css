@@ -597,3 +597,17 @@ input, textarea, button, select { font: inherit; color: inherit; }
   .content-box { flex-wrap: wrap; height: auto; }
   .flow-col { flex: 1 1 260px; height: auto; min-height: 220px; max-height: 70vh; }
 }
+
+/* ===== Live generation: what the AI is doing, then the speech as written ===== */
+.pf-live-status {
+  margin-top: 10px;
+  max-width: 100%;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--pf-text-muted, #8AA6C2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pf-live-status:empty { display: none; }
+

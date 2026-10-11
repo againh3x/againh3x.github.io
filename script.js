@@ -1072,6 +1072,62 @@ function renderAISpeechResponse(slot, key, data) {
     renderAISpeech(slot, data[key], data[key + 'Sourced'], data.sources);
 }
 
+// ---- Live generation --------------------------------------------------------
+// Luna routes stream their progress when asked (pfFetch opts.onEvent): while
+// the model researches, the loading box shows what it is doing ("Searching:
+// ...", "Reading cbpp.org"), and once it starts writing, the speech appears in
+// its cell as it is written. The finished speech, with clickable citations,
+// then replaces the draft through the usual render.
+
+function pfLiveStatusText(event) {
+    if (event.kind === 'search') return 'Searching: ' + event.text;
+    if (event.kind === 'read') return 'Reading ' + event.text;
+    return event.text || '';
+}
+
+// One live view per generation: loadingSel is the cell's loading box, textId
+// its speech cell.
+function pfLiveSpeech(loadingSel, textId) {
+    var loading = document.querySelector(loadingSel);
+    var textEl = document.getElementById(textId);
+    var statusEl = loading && loading.querySelector('.pf-live-status');
+    if (loading && !statusEl) {
+        statusEl = document.createElement('div');
+        statusEl.className = 'pf-live-status';
+        statusEl.setAttribute('aria-live', 'polite');
+        loading.appendChild(statusEl);
+    }
+    if (statusEl) statusEl.textContent = '';
+    var draft = '';
+    var queued = false;
+    function paint() {
+        queued = false;
+        if (!draft) return;
+        textEl.innerHTML = '<p>' + pfSanitize(pfLiveText(draft)) + '<span class="pf-caret"></span></p>';
+    }
+    return {
+        onEvent: function (event) {
+            if (event.type === 'status') {
+                if (statusEl) statusEl.textContent = pfLiveStatusText(event);
+            } else if (event.type === 'delta') {
+                if (!draft && loading) loading.style.display = 'none';
+                draft += event.text || '';
+                if (!queued) { queued = true; requestAnimationFrame(paint); }
+            } else if (event.type === 'reset') {
+                draft = '';
+                textEl.innerHTML = '';
+                if (loading) loading.style.display = 'block';
+                if (statusEl) statusEl.textContent = event.text || '';
+            }
+        },
+        // Drop a half-drawn draft, e.g. when the call failed.
+        clearDraft: function () {
+            if (draft) textEl.innerHTML = '';
+            draft = '';
+        }
+    };
+}
+
 // A premium round on real evidence researches its sources on the web, which
 // takes longer than writing alone; the loading line says so.
 function pfSourcedRound() {
@@ -1105,6 +1161,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
     document.querySelector('#AIContention .loading').style.display = 'block';
     document.querySelector('#AIContention .text10').textContent = pfSpeechWait('case');
 
+    const live = pfLiveSpeech('#AIContention .loading', 'AIContentionText');
     try {
         const response = await pfFetch('/generate_ai_case', {
             json: pfWithRoundId({
@@ -1112,7 +1169,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
                 nonselectedSide: nonselectedSide,
                 selectedSkill: selectedSkill
             })
-        }, { page: 'Flow', button: generateButtonAI, label: 'Generate', recoverable: true });
+        }, { page: 'Flow', button: generateButtonAI, label: 'Generate', recoverable: true, onEvent: live.onEvent });
 
         const data = await response.json();
         if (typeof data.AICase === 'string' && data.AICase.trim() !== '') {
@@ -1121,6 +1178,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
         }
     } catch (error) {
         console.error('Error processing user input:', error);
+        live.clearDraft();
         const recovered = await pfRecoverAiSpeech(error, 'AICase', function () {
             document.querySelector('#AIContention .text10').textContent = 'Still writing, hold on';
         });
@@ -2177,6 +2235,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
     pfCellBusy('my', 1, 'generating');
     document.querySelector('.loadingRA').style.display = 'block';
     document.querySelector('.loadingRA .text5').textContent = pfSpeechWait('rebuttal');
+    const live = pfLiveSpeech('.loadingRA', 'AIRebuttalText');
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
@@ -2189,7 +2248,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
                 transcriptionR: transcriptionR,
                 selectedSkill: selectedSkill
             })
-        }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate', recoverable: true })
+        }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate', recoverable: true, onEvent: live.onEvent })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
 
@@ -2201,6 +2260,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
+                live.clearDraft();
                 await pfRecoverAiSpeech(error, 'AIRebuttal');
             })
             .finally(() => {
@@ -2220,7 +2280,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
                 nonselectedSide: nonselectedSide,
                 transcription: transcription,
             })
-        }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate', recoverable: true })
+        }, { page: 'Flow', button: GenerateAIRebuttalB, label: 'Generate', recoverable: true, onEvent: live.onEvent })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
 
@@ -2232,6 +2292,7 @@ function GenerateAIRebuttal(debateTopic, selectedSide, nonselectedSide, transcri
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
+                live.clearDraft();
                 await pfRecoverAiSpeech(error, 'AIRebuttal');
             })
             .finally(() => {
@@ -2251,6 +2312,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
     pfCellBusy('ai', 2, 'generating');
     document.querySelector('.loadingSA').style.display = 'block';
     document.querySelector('.loadingSA .text2').textContent = pfSpeechWait('summary');
+    const live = pfLiveSpeech('.loadingSA', 'AISummaryText');
     // Get the user's input from the text box
     // Send the user's input to the Python backend for processing
     if (selectedTurn == "First") {
@@ -2267,7 +2329,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 
 
             })
-        }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate', recoverable: true })
+        }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate', recoverable: true, onEvent: live.onEvent })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
 
@@ -2279,6 +2341,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
+                live.clearDraft();
                 await pfRecoverAiSpeech(error, 'AISummary');
             })
             .finally(() => {
@@ -2303,7 +2366,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
 
 
             })
-        }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate', recoverable: true })
+        }, { page: 'Flow', button: AISummaryGenerateB, label: 'Generate', recoverable: true, onEvent: live.onEvent })
             .then(response => response.json()) // Parse JSON response
             .then(data => {
 
@@ -2315,6 +2378,7 @@ function GenerateAISummary(debateTopic, selectedSide, nonselectedSide, transcrip
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
+                live.clearDraft();
                 await pfRecoverAiSpeech(error, 'AISummary');
             })
             .finally(() => {
@@ -2333,6 +2397,7 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
     pfCellBusy('my', 3, 'generating');
     document.querySelector('.loadingFFA').style.display = 'block';
     document.querySelector('.loadingFFA .text7').textContent = pfSpeechWait('ff');
+    const live = pfLiveSpeech('.loadingFFA', 'AIFFText');
     pfFetch('/finalfocus', {
         json: pfWithRoundId({
             debateTopic: debateTopic,
@@ -2345,7 +2410,7 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
             AIRebuttal: AIRebuttal,
             AISummary: AISummary
         })
-    }, { page: 'Flow', button: AIFFGenerateB, label: 'Generate', recoverable: true })
+    }, { page: 'Flow', button: AIFFGenerateB, label: 'Generate', recoverable: true, onEvent: live.onEvent })
         .then(response => response.json()) // Parse JSON response
         .then(data => {
             // Get the AI response from the data
@@ -2353,6 +2418,7 @@ function GenerateAIFF(debateTopic, selectedSide, nonselectedSide, transcription,
         })
         .catch(async error => {
             console.error('Error processing user input:', error);
+            live.clearDraft();
             await pfRecoverAiSpeech(error, 'AIFinalFocus');
         })
         .finally(() => {

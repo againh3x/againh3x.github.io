@@ -132,8 +132,25 @@
     ".pf-src-cite{font-weight:600;color:var(--pf-text,#E8F1FA);}" +
     ".pf-src-dead{opacity:.6;font-style:italic;}" +
     ".pf-src-flash{animation:pfSrcFlash 1.6s ease-out;}" +
-    "@keyframes pfSrcFlash{0%{background:rgba(252,211,77,.22);}100%{background:transparent;}}";
+    "@keyframes pfSrcFlash{0%{background:rgba(252,211,77,.22);}100%{background:transparent;}}" +
+    ".pf-caret{display:inline-block;width:7px;height:1em;margin-left:2px;vertical-align:-2px;background:var(--pf-accent,#7DD3FC);animation:pfCaret 1s steps(1) infinite;}" +
+    "@keyframes pfCaret{50%{opacity:0;}}" +
+    "@media (prefers-reduced-motion: reduce){.pf-caret{animation:none;}}";
   document.head.appendChild(css);
 
+  // Draft text as the student should see it mid-stream: no source tags, the
+  // referring phrase of a {{S#|...}} wrapper, nothing from the SOURCES block,
+  // and no half-written tag at the end.
+  function pfLiveText(raw) {
+      var text = String(raw || '');
+      var cut = text.search(/(^|\n)\s*SOURCES:/);
+      if (cut >= 0) text = text.slice(0, cut);
+      text = text.replace(/\n\s*S(O(U(R(C(E(S)?)?)?)?)?)?:?\s*$/, '');
+      text = text.replace(/\{\{S\d+\|([^}]*)\}\}/g, '$1').replace(/\s*\[S\d+\]/g, '');
+      text = text.replace(/\s*\[S?\d*$/, '').replace(/\{\{[^}]*$/, '');
+      return text.replace(/µ/g, '').replace(/\*\*/g, '');
+  }
+
   window.pfCitations = { renderInto: renderInto, bodyHtml: bodyHtml, listHtml: listHtml };
+  window.pfLiveText = pfLiveText;
 })();
