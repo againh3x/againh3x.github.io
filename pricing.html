@@ -381,17 +381,31 @@ gtag('config', 'G-ERE3HL6LKB');
 
 /* Coming back from Checkout */
 .checkout-banner {
-  margin: 0 0 24px;
-  padding: 14px 18px;
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 36em;
+  margin: 26px auto 0;
+  padding: 9px 18px;
   border: 1px solid #2F5A85;
-  border-radius: 8px;
-  background: #0E2A4A;
+  border-radius: 20px;
+  background: rgba(14, 42, 74, 0.7);
   color: #DCEEFB;
   font-size: 14.5px;
-  line-height: 1.55;
+  line-height: 1.5;
+  text-align: center;
 }
 .checkout-banner[hidden] { display: none; }
-.checkout-banner--done { border-color: var(--pf-accent); }
+.checkout-banner--done {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(52, 211, 153, 0.08);
+  color: #A7F3D0;
+}
+.checkout-banner--done::before {
+  content: "\2713";
+  margin-right: 8px;
+  font-weight: 700;
+  color: #34D399;
+}
 
 /* Graceful degradation on narrow screens */
 @media (max-width: 640px) {
