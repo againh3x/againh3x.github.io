@@ -1099,22 +1099,33 @@ function pfLiveSpeech(loadingSel, textId) {
     }
     if (statusEl) statusEl.textContent = '';
     var draft = '';
+    var status = '';
     var queued = false;
+    // Once the speech is being written the loading box is gone, so later
+    // steps (checking the links) show under the draft instead.
     function paint() {
         queued = false;
         if (!draft) return;
-        textEl.innerHTML = '<p>' + pfSanitize(pfLiveText(draft)) + '<span class="pf-caret"></span></p>';
+        textEl.innerHTML = '<p>' + pfSanitize(pfLiveText(draft)) + '<span class="pf-caret"></span></p>' +
+            (status ? '<div class="pf-live-status">' + pfSanitize.escape(status) + '</div>' : '');
+    }
+    function schedule() {
+        if (!queued) { queued = true; requestAnimationFrame(paint); }
     }
     return {
         onEvent: function (event) {
             if (event.type === 'status') {
-                if (statusEl) statusEl.textContent = pfLiveStatusText(event);
+                status = pfLiveStatusText(event);
+                if (statusEl) statusEl.textContent = status;
+                // Thinking headings during writing are noise; link checks are not.
+                if (draft && event.kind === 'verify') schedule(); else if (draft) status = '';
             } else if (event.type === 'delta') {
                 if (!draft && loading) loading.style.display = 'none';
                 draft += event.text || '';
-                if (!queued) { queued = true; requestAnimationFrame(paint); }
+                schedule();
             } else if (event.type === 'reset') {
                 draft = '';
+                status = '';
                 textEl.innerHTML = '';
                 if (loading) loading.style.display = 'block';
                 if (statusEl) statusEl.textContent = event.text || '';

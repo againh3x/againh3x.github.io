@@ -425,6 +425,7 @@ body.pf-page {
   border-bottom: 1px solid var(--pf-border-row);
 }
 #Output p { margin: 0; }
+#Output .cw-live-status { margin-top: 14px; font-size: 13px; color: var(--pf-text-muted); }
 .cw-disclaimer {
   margin: 0;
   font-size: 12.5px;
@@ -908,6 +909,7 @@ body.pf-page {
     // Live progress: research steps under the loading line, then the case
     // itself as it is written. renderCase replaces the draft at the end.
     var liveDraft = '';
+    var liveStatus = '';
     var liveQueued = false;
     var loadingSubEl = document.getElementById('loadingSub');
     var loadingSubText = loadingSubEl.textContent;
@@ -915,13 +917,19 @@ body.pf-page {
       liveQueued = false;
       if (!liveDraft) return;
       document.getElementById('Output').innerHTML =
-        '<p>' + pfSanitize(window.pfLiveText ? pfLiveText(liveDraft) : liveDraft) + '<span class="pf-caret"></span></p>';
+        '<p>' + pfSanitize(window.pfLiveText ? pfLiveText(liveDraft) : liveDraft) + '<span class="pf-caret"></span></p>' +
+        (liveStatus ? '<p class="cw-live-status">' + pfSanitize.escape(liveStatus) + '</p>' : '');
     }
     function onLiveEvent(event) {
       if (event.type === 'status') {
         var line = event.kind === 'search' ? 'Searching: ' + event.text
           : event.kind === 'read' ? 'Reading ' + event.text : (event.text || '');
         loadingSubEl.textContent = line || loadingSubText;
+        // After the case starts appearing, only the link checks are shown, under it.
+        if (liveDraft && event.kind === 'verify') {
+          liveStatus = line;
+          if (!liveQueued) { liveQueued = true; requestAnimationFrame(paintLive); }
+        }
       } else if (event.type === 'delta') {
         if (!liveDraft) {
           document.getElementById('caseResolution').textContent = lastCaseTopic;
