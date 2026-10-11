@@ -1009,6 +1009,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
     const caseElement = document.getElementById('AIContentionText');
     const previousCase = caseElement.innerHTML;
     let caseGenerated = false;
+    let sourcesStage = false;
     caseElement.innerHTML = '';
     pfCellBusy('ai', 0, 'generating');
     document.querySelector('#AIContention .loading').style.display = 'block';
@@ -1045,6 +1046,7 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
         // evidence and never call /get_sources (the server rejects it anyway).
         const wantSources = window.__pfPlan === 'premium' && window.__pfEvidenceMode !== 'simulated';
         if (wantSources) {
+            sourcesStage = true;
             // Update loading text
             document.querySelector('#AIContention .text10').textContent = 'Finding Sources (~10s)';
 
@@ -1076,7 +1078,12 @@ async function startGenerating(debateTopic, nonselectedSide, selectedSkill) {
         const renderCase = function (value) {
             return '<p>' + pfSanitize(value.replace(/µ/g, '').replace(/\*\*/g, '')) + '</p>';
         };
-        const recovered = await pfRecoverAfterTimeout(error, {
+        // /get_sources answers 502 itself when Perplexity fails, and that
+        // request is over: nothing will land in the slot, so waiting on it
+        // only holds the student for minutes before the same outcome. Heroku's
+        // own timeout is a 503, which still goes through recovery.
+        const sourcesFailedOutright = sourcesStage && error && error.status === 502;
+        const recovered = !sourcesFailedOutright && await pfRecoverAfterTimeout(error, {
             field: 'AICase',
             // When /get_sources is the call that timed out, the plain case is
             // already on screen and in the slot, so "answered" means the slot
@@ -2742,7 +2749,12 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
-                const recovered = await pfRecoverAfterTimeout(error, {
+                // /get_sources answers 502 itself when Perplexity fails, and that
+        // request is over: nothing will land in the slot, so waiting on it
+        // only holds the student for minutes before the same outcome. Heroku's
+        // own timeout is a 503, which still goes through recovery.
+        const sourcesFailedOutright = sourcesStage && error && error.status === 502;
+        const recovered = !sourcesFailedOutright && await pfRecoverAfterTimeout(error, {
                     field: 'feedback',
                     isReady: function (doc) {
                         if (doc.status !== 'finished') return false;
@@ -2797,7 +2809,12 @@ function generateFeedback(judgeType, selectedTurn, debateTopic, selectedSide, no
             })
             .catch(async error => {
                 console.error('Error processing user input:', error);
-                const recovered = await pfRecoverAfterTimeout(error, {
+                // /get_sources answers 502 itself when Perplexity fails, and that
+        // request is over: nothing will land in the slot, so waiting on it
+        // only holds the student for minutes before the same outcome. Heroku's
+        // own timeout is a 503, which still goes through recovery.
+        const sourcesFailedOutright = sourcesStage && error && error.status === 502;
+        const recovered = !sourcesFailedOutright && await pfRecoverAfterTimeout(error, {
                     field: 'feedback',
                     isReady: function (doc) {
                         if (doc.status !== 'finished') return false;
