@@ -611,3 +611,5 @@ textarea.pf-input {
   font-size: 13px;
   color: #5E86AB;
 }
+.pf-footer-bottom a { color: inherit; margin-left: 10px; text-decoration: underline; }
+.pf-footer-bottom a:hover { color: var(--pf-accent); }

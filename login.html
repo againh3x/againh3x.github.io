@@ -349,6 +349,8 @@ button.textlink:hover { color: var(--pf-accent); }
   .auth-quote-inner .quote { font-size: 24px; }
   .auth-pane { padding: 40px 20px; }
 }
+.age-note { margin: 14px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--pf-text-muted, #8AA6C2); text-align: center; }
+.age-note a { color: var(--pf-accent, #7DD3FC); }
 </style>
 </head>
 <body class="pf-page">
@@ -437,6 +439,7 @@ button.textlink:hover { color: var(--pf-accent); }
             <span>Continue with Google</span>
           </button>
           <div class="form-error" id="g-err" aria-live="polite"></div>
+          <p class="age-note">By continuing, you confirm you are 13 or older and agree to our <a href="privacy.html">Privacy Policy</a>.</p>
         </div>
 
         <!-- TOTP challenge -->
@@ -572,7 +575,7 @@ button.textlink:hover { color: var(--pf-accent); }
     <div class="pf-footer-bottom-wrap">
       <div class="pf-footer-bottom">
         <span>© 2026 PublicForumAI. All rights reserved.</span>
-        <span>Not for use in live rounds.</span>
+        <span>Not for use in live rounds. <a href="privacy.html">Privacy</a></span>
       </div>
     </div>
   </footer>
