@@ -250,6 +250,10 @@
       throw PfApiError("plan_required", response.status, { feature: payload && payload.feature });
     }
 
+    if (response.status === 402 && code === "no_premium_cases") {
+      throw PfApiError("no_premium_cases", 402);
+    }
+
     if (response.status === 402 && code === "quota_exhausted") {
       var scope402 = (payload && payload.scope) === "cases" ? "cases" : "rounds";
       if (!opts.noUpsell) pfUpsell("quota_" + scope402, { resetAt: payload && payload.resetAt });

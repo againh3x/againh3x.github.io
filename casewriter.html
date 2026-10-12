@@ -88,8 +88,16 @@ body.pf-page {
   letter-spacing: -0.03em;
   font-weight: 700;
 }
-.cw-intro {
+.cw-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
   margin: 0 0 32px;
+}
+.cw-head-text { min-width: 0; }
+.cw-intro {
+  margin: 0;
   font-size: 16px;
   line-height: 1.6;
   color: var(--pf-text-2);
@@ -229,17 +237,53 @@ body.pf-page {
 }
 .cw-locked-note a { color: var(--pf-accent); text-decoration: none; }
 .cw-tier-note {
-  margin: 0 0 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--pf-border);
-  border-radius: 3px;
-  background: var(--pf-surface-sunken);
+  margin: 0 0 10px;
   font-size: 12.5px;
   line-height: 1.5;
-  color: var(--pf-text-2);
+  color: var(--pf-text-muted);
 }
-.cw-tier-note strong { color: var(--pf-heading); font-weight: 600; }
-.cw-tier-note a { color: var(--pf-accent); text-decoration: none; }
+.cw-tier-note.is-premium { color: var(--pf-accent); }
+
+/* Premium case picker, top right of the page header (free plan only). */
+.cw-premium {
+  flex: none;
+  min-width: 300px;
+  justify-content: space-between;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 14px 12px 18px;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: 6px;
+  color: var(--pf-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.cw-premium:hover { border-color: var(--pf-accent); }
+.cw-premium:focus-visible { outline: 2px solid var(--pf-accent); outline-offset: 2px; }
+.cw-premium[aria-pressed="true"] { border-color: var(--pf-accent); background: var(--pf-selected); }
+.cw-premium-text { display: flex; flex-direction: column; gap: 2px; }
+.cw-premium-title { font-size: 14.5px; font-weight: 600; color: var(--pf-heading); }
+.cw-premium-sub { font-size: 12.5px; color: var(--pf-text-muted); }
+.cw-premium-pill {
+  flex: none;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--pf-blue);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cw-premium[aria-pressed="true"] .cw-premium-pill {
+  background: transparent;
+  border: 1px solid var(--pf-border-strong);
+  color: var(--pf-text);
+}
+.cw-premium.is-empty .cw-premium-pill { background: var(--pf-blue-deep); }
 
 #generateButton {
   width: 100%;
@@ -447,6 +491,8 @@ body.pf-page {
 
 @media (max-width: 760px) {
   .cw-main { padding: 28px 20px 56px; }
+  .cw-head { flex-direction: column; align-items: stretch; gap: 18px; }
+  .cw-premium { justify-content: space-between; }
   .cw-brief-col { max-width: none; position: static; }
   #stateDone { padding: 26px 22px 32px; }
 }
@@ -470,8 +516,19 @@ body.pf-page {
 </nav>
 
 <div class="cw-main">
-  <h1>Build your case</h1>
-  <p class="cw-intro">A structured constructive with contentions, warrants, and evidence. Use it as a model for your own writing, not as a case to read in a live round.</p>
+  <div class="cw-head">
+    <div class="cw-head-text">
+      <h1>Build your case</h1>
+      <p class="cw-intro">A structured constructive with contentions, warrants, and evidence. Use it as a model for your own writing, not as a case to read in a live round.</p>
+    </div>
+    <button type="button" class="cw-premium" id="premiumPicker" aria-pressed="false" hidden>
+      <span class="cw-premium-text">
+        <span class="cw-premium-title" id="premiumTitle"></span>
+        <span class="cw-premium-sub" id="premiumSub"></span>
+      </span>
+      <span class="cw-premium-pill" id="premiumPill"></span>
+    </button>
+  </div>
 
   <div class="cw-columns">
 
@@ -724,26 +781,64 @@ body.pf-page {
     showState('stateError');
   }
 
-  var PRACTICE_NOTE = 'Practice evidence: the authors and numbers in this case are invented to show structure. Do not cite them. Premium cases research real sources with links.';
+  var PRACTICE_NOTE = 'Practice evidence: the authors and numbers in this case are made up. Do not cite them.';
   var PRACTICE_DISCLAIMER = 'This is a free plan case. Replace every piece of evidence with a real source before you use it.';
   var REAL_DISCLAIMER = 'Check every citation before you use it. Evidence is retrieved automatically and can be wrong.';
 
+  // Free plan: the next case is free (practice evidence) unless the student
+  // taps the picker to spend one of the account's Premium cases on it.
+  var usePremium = false;
   function trialLeft() {
     return (!planPremium && meInfo && typeof meInfo.trialCasesLeft === 'number') ? meInfo.trialCasesLeft : 0;
   }
-  // Whether the next case will be researched (Premium, or a free trial case).
-  function nextCaseIsReal() { return planPremium || trialLeft() > 0; }
+  function nextCaseIsReal() { return planPremium || usePremium; }
+  function generateLabel() { return usePremium ? 'Generate Premium case' : 'Generate case'; }
 
   function updateTierUI() {
-    var el = document.getElementById('tierNote');
-    if (!el) return;
-    if (planPremium || !meInfo) { el.hidden = true; return; }
+    var note = document.getElementById('tierNote');
+    var picker = document.getElementById('premiumPicker');
+    if (planPremium || !meInfo) {
+      usePremium = false;
+      note.hidden = true;
+      picker.hidden = true;
+      return;
+    }
     var left = trialLeft();
-    el.innerHTML = left > 0
-      ? '<strong>Your next case is a Premium case</strong> with real, linked sources. ' + left + ' of 2 Premium cases left on your account. After that, free cases use practice evidence.'
-      : '<strong>Free cases use practice evidence:</strong> invented authors and numbers that show how a case is built. <a href="pricing.html">Premium</a> researches real sources with links.';
-    el.hidden = false;
+    if (left === 0) usePremium = false;
+    note.textContent = usePremium
+      ? 'This is a Premium case with real, linked sources.'
+      : 'This is a free case. Its evidence is made up for practice.';
+    note.classList.toggle('is-premium', usePremium);
+    note.hidden = false;
+
+    var title = document.getElementById('premiumTitle');
+    var sub = document.getElementById('premiumSub');
+    var pill = document.getElementById('premiumPill');
+    picker.classList.toggle('is-empty', left === 0);
+    picker.setAttribute('aria-pressed', usePremium ? 'true' : 'false');
+    if (left === 0) {
+      title.textContent = 'No Premium cases left';
+      sub.textContent = 'Upgrade for real sources on every case';
+      pill.textContent = 'Upgrade';
+    } else if (usePremium) {
+      title.textContent = 'Using a Premium case';
+      sub.textContent = left === 1 ? 'This is your last one' : (left - 1) + ' left after this one';
+      pill.textContent = 'Undo';
+    } else {
+      title.textContent = left + (left === 1 ? ' Premium case left' : ' Premium cases left');
+      sub.textContent = 'Real research with linked sources';
+      pill.textContent = 'Use one';
+    }
+    picker.hidden = false;
+    if (!isGenerating && !generateBtn.dataset.pfCooldown) generateBtn.textContent = generateLabel();
   }
+
+  document.getElementById('premiumPicker').addEventListener('click', function () {
+    if (isGenerating) return;
+    if (trialLeft() === 0) { window.location.href = 'pricing.html'; return; }
+    usePremium = !usePremium;
+    updateTierUI();
+  });
 
   var SOURCES_MISSING_NOTE = 'Your case is below. We could not attach sources this time, so add your own evidence before you use it.';
 
@@ -928,6 +1023,7 @@ body.pf-page {
     isGenerating = true;
     generateBtn.disabled = true;
     generateBtn.textContent = 'Generating…';
+    var spendPremium = usePremium && !planPremium;
     hasCase = false;
     lastCaseText = '';
     lastCaseTopic = topic;
@@ -990,9 +1086,10 @@ body.pf-page {
           debateTopic: topic,
           nonselectedSide: side,
           selectedSkill: skill,
-          contentions: contentions
+          contentions: contentions,
+          usePremiumCase: spendPremium
         }
-      }, { page: 'casewriter', button: generateBtn, label: 'Generate case', onEvent: onLiveEvent });
+      }, { page: 'casewriter', button: generateBtn, label: generateLabel(), onEvent: onLiveEvent });
       quotaTouched = true;
 
       var data1 = await response1.json();
@@ -1002,6 +1099,10 @@ body.pf-page {
       renderCase(AICase, data1.AICaseSourced, data1.sources);
       caseRendered = true;
       var researched = data1.tier ? data1.tier === 'paid' : planPremium;
+      if (spendPremium && meInfo && typeof meInfo.trialCasesLeft === 'number') {
+        meInfo.trialCasesLeft = Math.max(0, meInfo.trialCasesLeft - 1);
+      }
+      if (spendPremium) usePremium = false;
       if (!researched) {
         showOutputNote(PRACTICE_NOTE);
       } else if (!(data1.sources && data1.sources.length)) {
@@ -1020,6 +1121,10 @@ body.pf-page {
         showOutputError('The generator needs a short break. Wait for the timer on the button, then try again.');
       } else if (error && error.code === 'quota_exhausted') {
         showOutputError('You have used all your free cases this month. They reset on the 1st, or upgrade to Premium for unlimited cases.');
+      } else if (error && error.code === 'no_premium_cases') {
+        if (meInfo) meInfo.trialCasesLeft = 0;
+        usePremium = false;
+        showOutputError('You have no Premium cases left, so nothing was generated. Hit Generate case for a free case.');
       } else if (error && error.code === 'plan_required') {
         // The upsell modal already explains the gate.
         showState('stateEmpty');
@@ -1029,7 +1134,7 @@ body.pf-page {
     } finally {
       if (!generateBtn.dataset.pfCooldown) {
         generateBtn.disabled = false;
-        generateBtn.textContent = 'Generate case';
+        generateBtn.textContent = generateLabel();
       }
       isGenerating = false;
       if (quotaTouched && window.pfMe) {
@@ -1039,6 +1144,7 @@ body.pf-page {
         } catch (e) {}
       }
       updateQuotaUI();
+      updateTierUI();
     }
   }
 
