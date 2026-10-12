@@ -228,6 +228,18 @@ body.pf-page {
   color: var(--pf-text-muted);
 }
 .cw-locked-note a { color: var(--pf-accent); text-decoration: none; }
+.cw-tier-note {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--pf-border);
+  border-radius: 3px;
+  background: var(--pf-surface-sunken);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--pf-text-2);
+}
+.cw-tier-note strong { color: var(--pf-heading); font-weight: 600; }
+.cw-tier-note a { color: var(--pf-accent); text-decoration: none; }
 
 #generateButton {
   width: 100%;
@@ -459,7 +471,7 @@ body.pf-page {
 
 <div class="cw-main">
   <h1>Build your case</h1>
-  <p class="cw-intro">A structured constructive with contentions, warrants, and cited evidence. Use it as a model for your own writing, not as a case to read in a live round.</p>
+  <p class="cw-intro">A structured constructive with contentions, warrants, and evidence. Use it as a model for your own writing, not as a case to read in a live round.</p>
 
   <div class="cw-columns">
 
@@ -505,6 +517,7 @@ body.pf-page {
           </div>
 
           <div>
+            <p class="cw-tier-note" id="tierNote" hidden></p>
             <button type="button" id="generateButton">Generate case</button>
             <div id="quotaWrap">
               <div class="cw-quota-row">
@@ -553,7 +566,7 @@ body.pf-page {
           <h2 id="caseResolution"></h2>
           <div id="Output"></div>
           <div id="OutputSources" class="pf-sources"></div>
-          <p class="cw-disclaimer">Check every citation before you use it. Evidence is retrieved automatically and can be wrong.</p>
+          <p class="cw-disclaimer" id="caseDisclaimer">Check every citation before you use it. Evidence is retrieved automatically and can be wrong.</p>
         </div>
 
       </div>
@@ -711,6 +724,27 @@ body.pf-page {
     showState('stateError');
   }
 
+  var PRACTICE_NOTE = 'Practice evidence: the authors and numbers in this case are invented to show structure. Do not cite them. Premium cases research real sources with links.';
+  var PRACTICE_DISCLAIMER = 'This is a free plan case. Replace every piece of evidence with a real source before you use it.';
+  var REAL_DISCLAIMER = 'Check every citation before you use it. Evidence is retrieved automatically and can be wrong.';
+
+  function trialLeft() {
+    return (!planPremium && meInfo && typeof meInfo.trialCasesLeft === 'number') ? meInfo.trialCasesLeft : 0;
+  }
+  // Whether the next case will be researched (Premium, or a free trial case).
+  function nextCaseIsReal() { return planPremium || trialLeft() > 0; }
+
+  function updateTierUI() {
+    var el = document.getElementById('tierNote');
+    if (!el) return;
+    if (planPremium || !meInfo) { el.hidden = true; return; }
+    var left = trialLeft();
+    el.innerHTML = left > 0
+      ? '<strong>Your next case is a Premium case</strong> with real, linked sources. ' + left + ' of 2 Premium cases left on your account. After that, free cases use practice evidence.'
+      : '<strong>Free cases use practice evidence:</strong> invented authors and numbers that show how a case is built. <a href="pricing.html">Premium</a> researches real sources with links.';
+    el.hidden = false;
+  }
+
   var SOURCES_MISSING_NOTE = 'Your case is below. We could not attach sources this time, so add your own evidence before you use it.';
 
   // Adds a line above the case without clearing what is already rendered.
@@ -743,6 +777,8 @@ body.pf-page {
       lastCaseText = cleaned;
     }
     document.getElementById('caseResolution').textContent = lastCaseTopic;
+    var real = sourced && list.length;
+    document.getElementById('caseDisclaimer').textContent = real ? REAL_DISCLAIMER : PRACTICE_DISCLAIMER;
     hasCase = true;
     showState('stateDone');
   }
@@ -820,6 +856,7 @@ body.pf-page {
     planPremium = me.premium === true || me.plan === 'premium';
     applyPlanUI();
     updateQuotaUI();
+    updateTierUI();
   }
 
   document.addEventListener('pfai:me', function (e) { applyMe(e.detail); });
@@ -895,7 +932,7 @@ body.pf-page {
     lastCaseText = '';
     lastCaseTopic = topic;
     clearOutputNote();
-    document.getElementById('loadingSub').textContent = planPremium
+    document.getElementById('loadingSub').textContent = nextCaseIsReal()
       ? 'About 40 seconds. Every source is researched and its link checked.'
       : 'About 8 seconds.';
     showState('stateLoading');
@@ -964,7 +1001,10 @@ body.pf-page {
       // One call returns the case with its sources already attached.
       renderCase(AICase, data1.AICaseSourced, data1.sources);
       caseRendered = true;
-      if (planPremium && !(data1.sources && data1.sources.length)) {
+      var researched = data1.tier ? data1.tier === 'paid' : planPremium;
+      if (!researched) {
+        showOutputNote(PRACTICE_NOTE);
+      } else if (!(data1.sources && data1.sources.length)) {
         showOutputNote(SOURCES_MISSING_NOTE);
       }
     } catch (error) {
