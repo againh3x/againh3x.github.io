@@ -7,7 +7,7 @@
 // 1) Firebase config (or set window.FIREBASE_CONFIG in HTML before this <script>)
 window.FIREBASE_CONFIG = window.FIREBASE_CONFIG || {
   apiKey: "AIzaSyBe3XWeTbZ0QRiG2EJsgKfLoekloSADp3o",
-  authDomain: "publicforumai.firebaseapp.com",
+  authDomain: "publicforumai.com",
   projectId: "publicforumai",
   storageBucket: "publicforumai.appspot.com",
   messagingSenderId: "1077321088730",
