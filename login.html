@@ -319,27 +319,9 @@ button.textlink:hover { color: var(--pf-accent); }
 }
 .warnbox ul { margin: 6px 0 0; padding-left: 18px; }
 
-/* Pending panel: waiting chip mirrors the 5-second verification poll */
-.statuschip {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-top: 22px;
-  padding: 12px 14px;
-  background: var(--pf-surface);
-  border: 1px solid #1A3A5C;
-  border-radius: 3px;
-}
-.statuschip .dot {
-  display: block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--pf-accent);
-  flex: none;
-  animation: pf-ready 2s ease-in-out infinite;
-}
-.statuschip span:last-child { font-size: 13px; color: var(--pf-text-muted); }
+/* Pending panel: "Open Gmail" is a link styled as the primary button */
+a.btn-primary, a.btn-primary:visited { display: flex; align-items: center; justify-content: center; color: #FFFFFF; text-decoration: none; }
+#panel-pending .btn-quiet { width: 100%; margin-top: 10px; }
 
 .afterhint { margin: 14px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--pf-text-muted); }
 
@@ -459,12 +441,9 @@ button.textlink:hover { color: var(--pf-accent); }
         <!-- Verification pending -->
         <div id="panel-pending" class="panel" hidden>
           <h1>Check your email</h1>
-          <p class="lead">We sent a verification link to <strong id="pend-email"></strong>. Click it, then come back here. This page checks on its own every few seconds. Look in spam if it does not show up.</p>
-          <div class="btnrow">
-            <button class="btn-primary" type="button" id="pend-check">I verified</button>
-            <button class="btn-quiet" type="button" id="pend-resend">Resend email</button>
-          </div>
-          <div class="statuschip"><span class="dot"></span><span>Waiting for verification…</span></div>
+          <p class="lead">We sent a link to <strong id="pend-email"></strong>. Click it to finish creating your account. If it is not in your inbox, check spam.</p>
+          <a class="btn-primary" id="pend-open" target="_blank" rel="noopener" hidden></a>
+          <button class="btn-quiet" type="button" id="pend-resend">Resend email</button>
           <div class="form-msg" id="pend-msg" aria-live="polite"></div>
           <div class="form-error" id="pend-err" aria-live="polite"></div>
           <div class="linkrow"><button type="button" class="textlink" id="pendSwitchLink">Use a different account</button></div>
@@ -766,10 +745,23 @@ button.textlink:hover { color: var(--pf-accent); }
       return;
     }
     $('pend-email').textContent = user.email || '';
+    var inbox = inboxFor(user.email);
+    $('pend-open').hidden = !inbox;
+    if (inbox) { $('pend-open').href = inbox[1]; $('pend-open').textContent = 'Open ' + inbox[0]; }
     show('pending');
   }
 
   // ── Verification pending: poll + resend ──
+  var INBOXES = {
+    'gmail.com': ['Gmail', 'https://mail.google.com/'], 'googlemail.com': ['Gmail', 'https://mail.google.com/'],
+    'icloud.com': ['iCloud Mail', 'https://www.icloud.com/mail'], 'me.com': ['iCloud Mail', 'https://www.icloud.com/mail'],
+    'mac.com': ['iCloud Mail', 'https://www.icloud.com/mail'],
+    'outlook.com': ['Outlook', 'https://outlook.live.com/mail/'], 'hotmail.com': ['Outlook', 'https://outlook.live.com/mail/'],
+    'live.com': ['Outlook', 'https://outlook.live.com/mail/'], 'yahoo.com': ['Yahoo Mail', 'https://mail.yahoo.com/']
+  };
+  function inboxFor(email) {
+    return INBOXES[String(email || '').split('@')[1] || ''] || null;
+  }
   function startPoll() {
     stopPoll();
     pollTimer = setInterval(checkVerified, 5000);
@@ -777,16 +769,13 @@ button.textlink:hover { color: var(--pf-accent); }
   function stopPoll() {
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
   }
-  async function checkVerified(showFeedback) {
+  async function checkVerified() {
     var user = window._auth && window._auth.currentUser;
     if (!user) return;
     try { await user.reload(); } catch (e) { return; }
     if (user.emailVerified) {
       stopPoll();
       await finishAndGo(user);
-    } else if (showFeedback) {
-      $('pend-msg').textContent = '';
-      $('pend-err').textContent = 'Not verified yet. Open the link in the email first, then try again.';
     }
   }
   function startResendCooldown() {
@@ -1086,7 +1075,8 @@ button.textlink:hover { color: var(--pf-accent); }
   panels.recovery.addEventListener('submit', function (e) { e.preventDefault(); doRecover(); });
 
   $('googleBtn').addEventListener('click', doGoogle);
-  $('pend-check').addEventListener('click', function () { checkVerified(true); });
+  // Coming back from the email tab: check right away instead of waiting for the poll.
+  window.addEventListener('focus', function () { if (current === 'pending') checkVerified(); });
   $('pend-resend').addEventListener('click', async function () {
     if (Date.now() < resendUntil) return;
     clearNotes(['pend-msg', 'pend-err']);
